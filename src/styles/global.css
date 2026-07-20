@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+
+/* TableGrid: keep table body at full height even when rows are few */
+.table-grid-wrapper .ant-table-body {
+  min-height: calc(100vh - 330px);
+}
+
+@media (max-width: 768px) {
+  .table-grid-wrapper .ant-table-body {
+    min-height: 280px;
+  }
+}

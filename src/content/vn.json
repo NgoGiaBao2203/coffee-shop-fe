@@ -1,0 +1,84 @@
+{
+  "common": {
+    "appName": "Hoa Yên Coffee",
+    "appNameShort": "HYC",
+    "ok": "OK",
+    "error": "Lỗi"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm..."
+  },
+  "staffs": {
+    "title": "Nhân Viên",
+    "fullName": "Họ và tên",
+    "username": "Tên đăng nhập",
+    "email": "Email",
+    "phoneNumber": "Số điện thoại",
+    "role": "Vai trò",
+    "shopName": "Chi nhánh",
+    "searchPlaceholder": "Tìm kiếm nhân viên...",
+    "emptySearch": "Không tìm thấy nhân viên nào phù hợp với từ khóa tìm kiếm.",
+    "editTitle": "Chỉnh sửa nhân viên",
+    "fullNameRequired": "Vui lòng nhập họ và tên.",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật"
+  },
+  "table": {
+    "actions": "Thao tác",
+    "deleteConfirmTitle": "Xác nhận xoá",
+    "deleteConfirmDesc": "Bạn có chắc muốn xoá mục này không?",
+    "deleteOk": "Xoá",
+    "deleteCancel": "Huỷ",
+    "perPage": "trang",
+    "emptySearch": "Không tìm thấy dữ liệu phù hợp",
+    "emptyData": "Không có dữ liệu"
+  },
+  "form": {
+    "titleView": "Chi tiết",
+    "titleEdit": "Chỉnh sửa",
+    "titleCreate": "Tạo mới",
+    "save": "Lưu",
+    "create": "Tạo mới",
+    "cancel": "Huỷ",
+    "close": "Đóng"
+  },
+  "profile": {
+    "resetPassword": "Đổi mật khẩu",
+    "logout": "Đăng xuất"
+  },
+  "sidebar": {
+    "drinks": "Đồ Uống",
+    "orders": "Đơn Hàng",
+    "categories": "Danh Mục",
+    "revenues": "Doanh Thu",
+    "staffs": "Nhân Viên",
+    "branchShops": "Chi Nhánh"
+  },
+  "login": {
+    "title": "Chào Mừng Trở Lại",
+    "usernamePlaceholder": "Nhập tên đăng nhập",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "usernameRequired": "Vui lòng nhập tên đăng nhập.",
+    "passwordRequired": "Vui lòng nhập mật khẩu.",
+    "submit": "Đăng Nhập",
+    "toastLoading": "Đang đăng nhập...",
+    "toastSuccess": "Đăng nhập thành công!"
+  },
+  "responses": {
+    "S0001": "Thành công.",
+    "ER001": "Yêu cầu không hợp lệ.",
+    "ER002": "Chưa xác thực. Vui lòng đăng nhập.",
+    "ER003": "Truy cập bị từ chối.",
+    "ER004": "Không tìm thấy tài nguyên.",
+    "ER005": "Dữ liệu bị xung đột.",
+    "ER006": "Phương thức không được phép.",
+    "ER007": "Loại phương tiện không được hỗ trợ.",
+    "ER008": "Dữ liệu yêu cầu không hợp lệ.",
+    "ER009": "Tên đăng nhập hoặc mật khẩu không đúng.",
+    "ER010": "Tài khoản của bạn đã bị vô hiệu hóa.",
+    "ER500": "Đã xảy ra lỗi máy chủ nội bộ. Vui lòng thử lại sau.",
+    "EV001": "Trường này là bắt buộc.",
+    "EV002": "Mật khẩu không đúng độ dài yêu cầu."
+  }
+}
+
