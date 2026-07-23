@@ -35,6 +35,14 @@ export function useLogin(form: FormInstance<LoginRequest>) {
             errors: [getResponseMessage(detail.message)],
           })),
         );
+      } else if (
+        data?.code === RESPONSE_CODE.NOT_FOUND ||
+        data?.code === RESPONSE_CODE.EMAIL_OR_PASSWORD_INCORRECT
+      ) {
+        form.setFields([
+          { name: 'username', errors: [getResponseMessage(data.code)] },
+          { name: 'password', errors: [getResponseMessage(data.code)] },
+        ]);
       }
     } finally {
       setLoading(false);

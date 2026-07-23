@@ -6,6 +6,15 @@ import { store } from '@/store/store';
 import { clearProfile } from '@/store/authSlice';
 import { getResponseMessage } from '@/utils/getResponseMessage';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    suppressCodes?: string[];
+  }
+  interface InternalAxiosRequestConfig {
+    suppressCodes?: string[];
+  }
+}
+
 interface ApiErrorDetail {
   field: string;
   message: string;
@@ -46,7 +55,8 @@ api.interceptors.response.use(
     }
 
     // Validation errors (ER008) are handled at the call site with field-level messages
-    if (code !== RESPONSE_CODE.INVALID_REQUEST) {
+    const suppressCodes = error.config?.suppressCodes ?? [];
+    if (code !== RESPONSE_CODE.INVALID_REQUEST && !suppressCodes.includes(code)) {
       notification.error({
         message: 'Lỗi',
         description: getResponseMessage(code),

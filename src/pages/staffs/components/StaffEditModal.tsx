@@ -1,14 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react'; // 1. Import useRef
 import { Modal, Form, Input, Select, Button, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { ROLES } from '@/permission/roles';
+import axios from 'axios';
+import { RESPONSE_CODE } from '@/constants/messages';
 import type { StaffItem } from '../types';
 
 export interface StaffEditValues {
   fullName: string;
   phoneNumber: string;
-  roleName: string;
-  shopName: string;
+  roleId: string;
+  shopId: string;
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
 }
 
 interface StaffEditModalProps {
@@ -17,9 +23,10 @@ interface StaffEditModalProps {
   record: StaffItem | null;
   onSubmit: (values: StaffEditValues) => Promise<void> | void;
   loading?: boolean;
+  roleOptions: SelectOption[];
+  shopOptions: SelectOption[];
+  optionsLoading?: boolean;
 }
-
-const ROLE_OPTIONS = Object.values(ROLES).map((role) => ({ value: role, label: role }));
 
 export function StaffEditModal({
   open,
@@ -27,29 +34,64 @@ export function StaffEditModal({
   record,
   onSubmit,
   loading = false,
+  roleOptions,
+  shopOptions,
+  optionsLoading = false,
 }: StaffEditModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<StaffEditValues>();
 
+  // Ref to ensure fields are ONLY reset when opening the modal, NOT on parent re-renders
+  const isOpenedRef = useRef(false);
+
   useEffect(() => {
-    if (!open || !record) return;
-    form.resetFields();
-    form.setFieldsValue({
-      fullName: record.fullName,
-      phoneNumber: record.phoneNumber,
-      roleName: record.roleName,
-      shopName: record.shopName ?? '',
-    });
-  }, [open, record]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!open) {
+      isOpenedRef.current = false;
+      return;
+    }
+
+    // Only populate fields ONCE when the modal transitions from closed -> open
+    if (!isOpenedRef.current && record) {
+      isOpenedRef.current = true;
+      form.resetFields();
+
+      const matchedRole = roleOptions.find(
+        (r) => r.label.trim().toLowerCase() === record.roleName?.trim().toLowerCase(),
+      );
+      const matchedShop = shopOptions.find(
+        (s) => s.label.trim().toLowerCase() === record.shopName?.trim().toLowerCase(),
+      );
+
+      form.setFieldsValue({
+        fullName: record.fullName,
+        phoneNumber: record.phoneNumber,
+        roleId: matchedRole?.value,
+        shopId: matchedShop?.value,
+      });
+    }
+  }, [open, record, roleOptions, shopOptions, form]);
 
   const handleClose = () => {
+    isOpenedRef.current = false;
     form.resetFields();
     onClose();
   };
 
   const handleSubmit = async (values: StaffEditValues) => {
-    await onSubmit(values);
-    handleClose();
+    try {
+      await onSubmit(values);
+      handleClose();
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.CONFLICT) {
+        // Set error message directly on the field
+        form.setFields([
+          {
+            name: 'phoneNumber',
+            errors: [t('staffs.phoneNumberConflict')],
+          },
+        ]);
+      }
+    }
   };
 
   return (
@@ -84,7 +126,21 @@ export function StaffEditModal({
 
       <Divider className="my-3!" />
 
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        onValuesChange={(changedValues) => {
+          if ('phoneNumber' in changedValues) {
+            form.setFields([
+              {
+                name: 'phoneNumber',
+                errors: [],
+              },
+            ]);
+          }
+        }}
+      >
         <div className="grid grid-cols-2 gap-x-4">
           <Form.Item
             name="fullName"
@@ -98,12 +154,16 @@ export function StaffEditModal({
             <Input />
           </Form.Item>
 
-          <Form.Item name="roleName" label={t('staffs.role')} rules={[{ required: true }]}>
-            <Select options={ROLE_OPTIONS} />
+          <Form.Item
+            name="roleId"
+            label={t('staffs.role')}
+            rules={[{ required: true, message: t('staffs.roleRequired') }]}
+          >
+            <Select options={roleOptions} loading={optionsLoading} />
           </Form.Item>
 
-          <Form.Item name="shopName" label={t('staffs.shopName')}>
-            <Input />
+          <Form.Item name="shopId" label={t('staffs.shopName')}>
+            <Select options={shopOptions} loading={optionsLoading} allowClear />
           </Form.Item>
         </div>
       </Form>

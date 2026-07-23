@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Typography } from 'antd';
+import { Typography, Button } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
+import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { AppFormDrawer, type FormFieldConfig } from '@/components/form/AppFormDrawer';
 import { StaffEditModal } from './components/StaffEditModal';
+import { StaffCreateModal } from './components/StaffCreateModal';
 import { useStaffs } from './hooks/useStaffs';
 import type { StaffItem } from './types';
 
@@ -35,10 +38,22 @@ export function StaffsPage() {
     closeEmptyModal,
     handleSearch,
     handlePageChange,
+    editStaff,
+    editLoading,
+    createStaff,
+    createLoading,
+    deleteStaff,
+    deleteLoading,
+    roleOptions,
+    shopOptions,
+    optionsLoading,
   } = useStaffs();
+
+  const { confirm: confirmDelete } = useConfirmModal();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<StaffItem | null>(null);
 
   useEffect(() => {
@@ -141,17 +156,24 @@ export function StaffsPage() {
         {t('staffs.title')}
       </Typography.Title>
 
-      <SearchInput
-        onSearch={handleSearch}
-        loading={searchLoading}
-        placeholder={t('staffs.searchPlaceholder')}
-      />
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <SearchInput
+            onSearch={handleSearch}
+            loading={searchLoading}
+            placeholder={t('staffs.searchPlaceholder')}
+          />
+        </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+          {t('form.create')}
+        </Button>
+      </div>
 
       <TableGrid<StaffItem>
         rowKey="profileId"
         columns={columns}
         dataSource={items}
-        loading={loading}
+        loading={loading || deleteLoading}
         emptyText={searchKeyword.trim() ? t('table.emptySearch') : t('table.emptyData')}
         total={pagination?.totalElements}
         currentPage={currentPage}
@@ -165,7 +187,16 @@ export function StaffsPage() {
           setSelectedRecord(record);
           setEditOpen(true);
         }}
-        onDelete={(record) => console.log('delete', record)}
+        onDeleteClick={(record) => {
+          confirmDelete({
+            title: t('table.deleteConfirmTitle'),
+            content: t('table.deleteConfirmDesc'),
+            okText: t('table.deleteOk'),
+            cancelText: t('table.deleteCancel'),
+            okDanger: true,
+            onConfirm: () => deleteStaff(record.profileId),
+          });
+        }}
       />
 
       <AppFormDrawer<StaffItem>
@@ -179,7 +210,21 @@ export function StaffsPage() {
         open={editOpen}
         onClose={() => setEditOpen(false)}
         record={selectedRecord}
-        onSubmit={(values) => console.log('submit', values)}
+        onSubmit={(values) => editStaff(selectedRecord!.profileId, values)}
+        loading={editLoading}
+        roleOptions={roleOptions}
+        shopOptions={shopOptions}
+        optionsLoading={optionsLoading}
+      />
+
+      <StaffCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSubmit={createStaff}
+        loading={createLoading}
+        roleOptions={roleOptions}
+        shopOptions={shopOptions}
+        optionsLoading={optionsLoading}
       />
     </div>
   );

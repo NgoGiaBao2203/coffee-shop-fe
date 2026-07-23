@@ -1,40 +1,36 @@
-import { Modal } from 'antd';
+import { App } from 'antd';
 import type { ReactNode } from 'react';
 
-interface ConfirmModalProps {
-  open: boolean;
+interface ConfirmOptions {
   title?: ReactNode;
-  description?: ReactNode;
+  content?: ReactNode;
   okText?: string;
   cancelText?: string;
-  loading?: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
+  okDanger?: boolean;
+  onConfirm: () => void | Promise<void>;
 }
 
-export function ConfirmModal({
-  open,
-  title = 'Confirm',
-  description,
-  okText = 'Confirm',
-  cancelText = 'Cancel',
-  loading = false,
-  onConfirm,
-  onCancel,
-}: ConfirmModalProps) {
-  return (
-    <Modal
-      open={open}
-      title={title}
-      okText={okText}
-      cancelText={cancelText}
-      onOk={onConfirm}
-      onCancel={onCancel}
-      confirmLoading={loading}
-      centered
-      destroyOnHidden
-    >
-      {description}
-    </Modal>
-  );
+export function useConfirmModal() {
+  const { modal } = App.useApp();
+
+  const confirm = ({
+    title,
+    content,
+    okText,
+    cancelText,
+    okDanger = false,
+    onConfirm,
+  }: ConfirmOptions) => {
+    modal.confirm({
+      title,
+      content,
+      okText,
+      cancelText,
+      okButtonProps: { danger: okDanger },
+      onOk: onConfirm,
+      centered: true,
+    });
+  };
+
+  return { confirm };
 }

@@ -30,6 +30,8 @@ export interface TableGridProps<T extends object> {
   onEdit?: (record: T) => void;
   /** Called with the row record after the delete popconfirm is confirmed */
   onDelete?: (record: T) => void;
+  /** Called with the row record when the delete button is clicked — no built-in confirmation; the caller is responsible for showing a confirmation UI */
+  onDeleteClick?: (record: T) => void;
   /** Total records count for server-side pagination */
   total?: number;
   /** Current page number (controlled) */
@@ -53,6 +55,7 @@ export function TableGrid<T extends object>({
   emptyText,
   onEdit,
   onDelete,
+  onDeleteClick,
   total,
   currentPage,
   currentPageSize,
@@ -79,6 +82,18 @@ export function TableGrid<T extends object>({
             onClick={(e) => {
               e.stopPropagation();
               onEdit(record);
+            }}
+          />
+        )}
+        {onDeleteClick && (
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteClick(record);
             }}
           />
         )}
@@ -110,7 +125,7 @@ export function TableGrid<T extends object>({
   const pageSizeOptions = [10, 15, 20];
 
   const allColumns: AppColumnType<T>[] =
-    onEdit || onDelete ? [...columns, actionColumn as AppColumnType<T>] : columns;
+    onEdit || onDelete || onDeleteClick ? [...columns, actionColumn as AppColumnType<T>] : columns;
 
   // Apply color to header + cells for columns that define it
   const processedColumns: TableColumnType<T>[] = allColumns.map((col) => {

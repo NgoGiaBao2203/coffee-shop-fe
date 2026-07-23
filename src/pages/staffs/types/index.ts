@@ -33,3 +33,66 @@ export interface StaffListResponse {
   items: StaffItem[];
   pagination: PaginationInfo;
 }
+
+export interface EditStaffRequest {
+  profileId: string;
+  fullName: string;
+  phoneNumber: string;
+  roleId: string;
+  shopId: string;
+}
+
+export interface EditStaffResponse {
+  code: string;
+  message: string;
+  traceId: string;
+}
+
+export interface DeleteStaffRequest {
+  profileId: string;
+}
+
+export interface DeleteStaffResponse {
+  code: string;
+  message: string;
+  traceId: string;
+}
+
+export interface CreateStaffRequest {
+  email: string;
+  username: string;
+  fullName: string;
+  phoneNumber?: string;
+  roleId: string;
+  shopId?: string;
+}
+
+export interface CreateStaffResponse {
+  code: string;
+  message: string;
+  traceId: string;
+}
+
+export interface RoleItem {
+  roleId: string;
+  roleDisplayName: string;
+}
+
+export interface RoleListResponse {
+  code: string;
+  message: string;
+  traceId: string;
+  roleResult: RoleItem[];
+}
+
+export interface ShopNameItem {
+  shopId: string;
+  shopName: string;
+}
+
+export interface ShopNameListResponse {
+  code: string;
+  message: string;
+  traceId: string;
+  shopNameResults: ShopNameItem[];
+}

@@ -20,8 +20,19 @@
     "emptySearch": "Không tìm thấy nhân viên nào phù hợp với từ khóa tìm kiếm.",
     "editTitle": "Chỉnh sửa nhân viên",
     "fullNameRequired": "Vui lòng nhập họ và tên.",
+    "phoneNumberConflict": "Số điện thoại đã tồn tại.",
     "createdAt": "Ngày tạo",
-    "updatedAt": "Ngày cập nhật"
+    "updatedAt": "Ngày cập nhật",
+    "deleteSuccess": "Xoá nhân viên thành công.",
+    "editSuccess": "Chỉnh sửa nhân viên thành công.",
+    "createTitle": "Thêm nhân viên",
+    "createSuccess": "Thêm nhân viên thành công.",
+    "emailRequired": "Vui lòng nhập email.",
+    "emailInvalid": "Email không hợp lệ.",
+    "usernameRequired": "Vui lòng nhập tên đăng nhập.",
+    "usernameConflict": "Tên đăng nhập đã tồn tại.",
+    "phoneConflict": "Số điện thoại đã tồn tại.",
+    "emailConflict": "Email đã tồn tại."
   },
   "table": {
     "actions": "Thao tác",
