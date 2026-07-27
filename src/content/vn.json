@@ -2,8 +2,21 @@
   "common": {
     "appName": "Hoa Yên Coffee",
     "appNameShort": "HYC",
+    "loading": "Đang tải...",
     "ok": "OK",
     "error": "Lỗi"
+  },
+  "drinks": {
+    "title": "Đồ Uống",
+    "name": "Tên",
+    "price": "Giá",
+    "size": "Kích cỡ",
+    "status": "Trạng thái",
+    "image": "Hình ảnh",
+    "empty": "Không có dữ liệu đồ uống",
+    "chooseSize": "Chọn kích cỡ",
+    "searchPlaceholder": "Tìm kiếm đồ uống...",
+    "drinks.emptySearch": "Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm."
   },
   "search": {
     "placeholder": "Tìm kiếm..."
@@ -94,4 +107,3 @@
     "EV002": "Mật khẩu không đúng độ dài yêu cầu."
   }
 }
-
