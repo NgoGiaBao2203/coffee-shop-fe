@@ -14,6 +14,8 @@ export interface StaffItem {
 export interface StaffListParams {
   page: number;
   size: number;
+  roleId: string;
+  branchShopId: string;
   search: string;
   sortBy: string;
   sortDirection: 'ASC' | 'DESC';

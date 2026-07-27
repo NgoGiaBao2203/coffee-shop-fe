@@ -32,7 +32,9 @@
     "usernameRequired": "Vui lòng nhập tên đăng nhập.",
     "usernameConflict": "Tên đăng nhập đã tồn tại.",
     "phoneConflict": "Số điện thoại đã tồn tại.",
-    "emailConflict": "Email đã tồn tại."
+    "emailConflict": "Email đã tồn tại.",
+    "filterRole": "Lọc theo vai trò",
+    "filterShop": "Lọc theo chi nhánh"
   },
   "table": {
     "actions": "Thao tác",

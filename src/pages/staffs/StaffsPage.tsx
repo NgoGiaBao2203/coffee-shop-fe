@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Typography, Button } from 'antd';
+import { Typography, Button, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '@/store/hooks';
+import { ROLES } from '@/permission/roles';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
@@ -26,6 +28,8 @@ const formatDate = (value: unknown) =>
 export function StaffsPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
+  const roleName = useAppSelector((state) => state.auth.profile?.roleName);
+  const isManager = roleName === ROLES.MANAGER;
   const {
     items,
     pagination,
@@ -34,9 +38,13 @@ export function StaffsPage() {
     loading,
     searchLoading,
     searchKeyword,
+    currentRoleId,
+    currentBranchShopId,
     showEmptyModal,
     closeEmptyModal,
     handleSearch,
+    handleRoleFilter,
+    handleShopFilter,
     handlePageChange,
     editStaff,
     editLoading,
@@ -85,7 +93,6 @@ export function StaffsPage() {
       dataIndex: 'fullName',
       title: t('staffs.fullName'),
       width: 160,
-      sorter: true,
     },
     {
       key: 'username',
@@ -156,14 +163,36 @@ export function StaffsPage() {
         {t('staffs.title')}
       </Typography.Title>
 
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex-1 min-w-48">
           <SearchInput
             onSearch={handleSearch}
             loading={searchLoading}
             placeholder={t('staffs.searchPlaceholder')}
           />
         </div>
+        {!isManager && (
+          <>
+            <Select
+              allowClear
+              placeholder={t('staffs.filterRole')}
+              options={roleOptions}
+              loading={optionsLoading}
+              value={currentRoleId || undefined}
+              onChange={(val) => handleRoleFilter(val ?? '')}
+              className="w-44"
+            />
+            <Select
+              allowClear
+              placeholder={t('staffs.filterShop')}
+              options={shopOptions}
+              loading={optionsLoading}
+              value={currentBranchShopId || undefined}
+              onChange={(val) => handleShopFilter(val ?? '')}
+              className="w-52"
+            />
+          </>
+        )}
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
           {t('form.create')}
         </Button>
@@ -215,6 +244,7 @@ export function StaffsPage() {
         roleOptions={roleOptions}
         shopOptions={shopOptions}
         optionsLoading={optionsLoading}
+        isManager={isManager}
       />
 
       <StaffCreateModal
@@ -225,6 +255,7 @@ export function StaffsPage() {
         roleOptions={roleOptions}
         shopOptions={shopOptions}
         optionsLoading={optionsLoading}
+        isManager={isManager}
       />
     </div>
   );

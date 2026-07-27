@@ -3,8 +3,10 @@ import { Modal, Form, Input, Select, Button, Divider, notification } from 'antd'
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { RESPONSE_CODE } from '@/constants/messages';
+import { ROLES } from '@/permission/roles';
+import { useAppSelector } from '@/store/hooks';
 
-const DEFAULT_ROLE_LABEL = 'NHÂN VIÊN';
+const DEFAULT_ROLE_LABEL = ROLES.STAFF;
 
 export interface StaffCreateValues {
   email: string;
@@ -28,6 +30,7 @@ interface StaffCreateModalProps {
   roleOptions: SelectOption[];
   shopOptions: SelectOption[];
   optionsLoading?: boolean;
+  isManager?: boolean;
 }
 
 export function StaffCreateModal({
@@ -38,9 +41,13 @@ export function StaffCreateModal({
   roleOptions,
   shopOptions,
   optionsLoading = false,
+  isManager = false,
 }: StaffCreateModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<StaffCreateValues>();
+  const profileShopName = useAppSelector((state) => state.auth.profile?.shopName);
+  const roleName = useAppSelector((state) => state.auth.profile?.roleName);
+  const isOwner = roleName === ROLES.OWNER;
 
   useEffect(() => {
     if (!open || roleOptions.length === 0) return;
@@ -48,7 +55,17 @@ export function StaffCreateModal({
     if (defaultRole) {
       form.setFieldValue('roleId', defaultRole.value);
     }
-  }, [open, roleOptions]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (shopOptions.length > 0) {
+      if (isManager && profileShopName) {
+        const matchedShop = shopOptions.find(
+          (s) => s.label.trim().toLowerCase() === profileShopName.trim().toLowerCase(),
+        );
+        form.setFieldValue('shopId', matchedShop?.value ?? shopOptions[0].value);
+      } else if (isOwner) {
+        form.setFieldValue('shopId', shopOptions[0].value);
+      }
+    }
+  }, [open, roleOptions, shopOptions, isManager, isOwner, profileShopName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClose = () => {
     form.resetFields();
@@ -139,11 +156,16 @@ export function StaffCreateModal({
           </Form.Item>
 
           <Form.Item name="roleId" label={t('staffs.role')}>
-            <Select options={roleOptions} loading={optionsLoading} />
+            <Select options={roleOptions} loading={optionsLoading} disabled={isManager} />
           </Form.Item>
 
           <Form.Item name="shopId" label={t('staffs.shopName')}>
-            <Select options={shopOptions} loading={optionsLoading} allowClear />
+            <Select
+              options={shopOptions}
+              loading={optionsLoading}
+              allowClear
+              disabled={isManager}
+            />
           </Form.Item>
         </div>
       </Form>

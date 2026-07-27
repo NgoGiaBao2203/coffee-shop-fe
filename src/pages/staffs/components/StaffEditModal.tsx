@@ -3,6 +3,7 @@ import { Modal, Form, Input, Select, Button, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { RESPONSE_CODE } from '@/constants/messages';
+import { ROLES } from '@/permission/roles';
 import type { StaffItem } from '../types';
 
 export interface StaffEditValues {
@@ -26,6 +27,7 @@ interface StaffEditModalProps {
   roleOptions: SelectOption[];
   shopOptions: SelectOption[];
   optionsLoading?: boolean;
+  isManager?: boolean;
 }
 
 export function StaffEditModal({
@@ -37,6 +39,7 @@ export function StaffEditModal({
   roleOptions,
   shopOptions,
   optionsLoading = false,
+  isManager = false,
 }: StaffEditModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<StaffEditValues>();
@@ -55,9 +58,14 @@ export function StaffEditModal({
       isOpenedRef.current = true;
       form.resetFields();
 
-      const matchedRole = roleOptions.find(
-        (r) => r.label.trim().toLowerCase() === record.roleName?.trim().toLowerCase(),
+      const staffRoleOption = roleOptions.find(
+        (r) => r.label.trim().toLowerCase() === ROLES.STAFF.trim().toLowerCase(),
       );
+      const matchedRole = isManager
+        ? staffRoleOption
+        : roleOptions.find(
+            (r) => r.label.trim().toLowerCase() === record.roleName?.trim().toLowerCase(),
+          );
       const matchedShop = shopOptions.find(
         (s) => s.label.trim().toLowerCase() === record.shopName?.trim().toLowerCase(),
       );
@@ -69,7 +77,7 @@ export function StaffEditModal({
         shopId: matchedShop?.value,
       });
     }
-  }, [open, record, roleOptions, shopOptions, form]);
+  }, [open, record, roleOptions, shopOptions, form, isManager]);
 
   const handleClose = () => {
     isOpenedRef.current = false;
@@ -159,11 +167,16 @@ export function StaffEditModal({
             label={t('staffs.role')}
             rules={[{ required: true, message: t('staffs.roleRequired') }]}
           >
-            <Select options={roleOptions} loading={optionsLoading} />
+            <Select options={roleOptions} loading={optionsLoading} disabled={isManager} />
           </Form.Item>
 
           <Form.Item name="shopId" label={t('staffs.shopName')}>
-            <Select options={shopOptions} loading={optionsLoading} allowClear />
+            <Select
+              options={shopOptions}
+              loading={optionsLoading}
+              allowClear
+              disabled={isManager}
+            />
           </Form.Item>
         </div>
       </Form>

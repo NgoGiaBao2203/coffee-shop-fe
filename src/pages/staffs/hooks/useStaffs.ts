@@ -19,6 +19,8 @@ import type { StaffCreateValues } from '../components/StaffCreateModal';
 const DEFAULT_PARAMS: StaffListParams = {
   page: 1,
   size: 10,
+  roleId: '',
+  branchShopId: '',
   search: '',
   sortBy: 'profileId',
   sortDirection: 'ASC',
@@ -82,6 +84,16 @@ export function useStaffs() {
     setParams((prev) => ({ ...prev, search, page: 1 }));
   };
 
+  const handleRoleFilter = (roleId: string) => {
+    setIsSearch(false);
+    setParams((prev) => ({ ...prev, roleId, page: 1 }));
+  };
+
+  const handleShopFilter = (branchShopId: string) => {
+    setIsSearch(false);
+    setParams((prev) => ({ ...prev, branchShopId, page: 1 }));
+  };
+
   const handlePageChange = (page: number, size: number) => {
     setIsSearch(false);
     setParams((prev) => ({ ...prev, page, size }));
@@ -112,7 +124,12 @@ export function useStaffs() {
       try {
         await deleteStaffApi({ profileId });
         toast.success(t('staffs.deleteSuccess'));
-        await fetchStaffs(params);
+        const isLastItemOnPage = items.length === 1 && params.page > 1;
+        if (isLastItemOnPage) {
+          setParams((prev) => ({ ...prev, page: prev.page - 1 }));
+        } else {
+          await fetchStaffs(params);
+        }
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
           toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
@@ -121,7 +138,7 @@ export function useStaffs() {
         setDeleteLoading(false);
       }
     },
-    [params, fetchStaffs], // eslint-disable-line react-hooks/exhaustive-deps
+    [params, fetchStaffs, items.length], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const createStaff = useCallback(
@@ -152,11 +169,15 @@ export function useStaffs() {
     currentPage: params.page,
     currentPageSize: params.size,
     searchKeyword: params.search,
+    currentRoleId: params.roleId,
+    currentBranchShopId: params.branchShopId,
     loading,
     searchLoading,
     showEmptyModal,
     closeEmptyModal: () => setShowEmptyModal(false),
     handleSearch,
+    handleRoleFilter,
+    handleShopFilter,
     handlePageChange,
     editStaff,
     editLoading,
