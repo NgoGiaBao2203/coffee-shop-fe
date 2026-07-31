@@ -1,11 +1,13 @@
 import { Card, Typography } from 'antd';
 import type { DrinkItem } from '../types';
 
+// Component props interface
 interface Props {
   record: DrinkItem;
   onClick?: (record: DrinkItem) => void;
 }
 
+// Single drink item card component
 export function DrinkCard({ record, onClick }: Props) {
   return (
     <Card
@@ -16,6 +18,7 @@ export function DrinkCard({ record, onClick }: Props) {
       style={{ border: '1px solid rgba(0,0,0,0.06)', background: '#fff' }}
     >
       <div className="flex flex-col items-start gap-2">
+        {/* Drink Thumbnail Image */}
         <div className="w-full flex items-center justify-center">
           {record.imageUrl ? (
             <img
@@ -28,6 +31,7 @@ export function DrinkCard({ record, onClick }: Props) {
           )}
         </div>
 
+        {/* Drink Details Section */}
         <div className="w-full flex flex-col">
           <Typography.Title level={5} className="mb-0!">
             {record.drinkName}
