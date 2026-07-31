@@ -16,7 +16,24 @@
     "empty": "Không có dữ liệu đồ uống",
     "chooseSize": "Chọn kích cỡ",
     "searchPlaceholder": "Tìm kiếm đồ uống...",
-    "drinks.emptySearch": "Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm."
+    "emptySearch": "Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm.",
+    "uploadImage": "Tải ảnh lên",
+    "noCategory": "Chưa có dữ liệu danh mục",
+    "imageTooLong": "Đường dẫn hình ảnh quá dài (tối đa 500 ký tự). Vui lòng chọn ảnh có dung lượng nhỏ hơn hoặc sử dụng đường dẫn ngắn hơn!",
+    "statusActive": "Đang bán",
+    "statusInactive": "Ngừng bán",
+    "createSuccess": "Thêm đồ uống thành công!",
+    "editSuccess": "Cập nhật đồ uống thành công!",
+    "editError": "Cập nhật đồ uống thất bại!",
+    "deleteSuccess": "Xoá đồ uống thành công!",
+    "deleteError": "Xoá đồ uống thất bại!",
+    "originalName": "Tên gốc",
+    "validation": {
+      "nameRequired": "Vui lòng nhập tên đồ uống!",
+      "categoryRequired": "Vui lòng chọn danh mục!",
+      "priceRequired": "Vui lòng nhập giá!",
+      "sizeRequired": "Vui lòng chọn kích cỡ!"
+    }
   },
   "search": {
     "placeholder": "Tìm kiếm..."
@@ -66,7 +83,9 @@
     "save": "Lưu",
     "create": "Tạo mới",
     "cancel": "Huỷ",
-    "close": "Đóng"
+    "close": "Đóng",
+    "selectCategoryPlaceholder": "Chọn danh mục",
+    "inputNamePlaceholder": "Nhập tên..."
   },
   "profile": {
     "resetPassword": "Đổi mật khẩu",

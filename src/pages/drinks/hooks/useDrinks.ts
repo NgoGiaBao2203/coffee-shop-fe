@@ -1,74 +1,89 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { getDrinksApi } from '../api/drinksAPI';
-import type { DrinkItem, GetDrinksRequest } from '../types';
+import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useToast } from '@/components/toast/useToast';
+import { getDrinksApi, createDrinkApi, editDrinkApi, deleteDrinkApi } from '../api/drinksAPI';
+import type { DrinkItem, GetDrinksRequest, CreateDrinkRequest, EditDrinkRequest } from '../types';
 
+// Default pagination parameters
 const DEFAULT_PARAMS: GetDrinksRequest = {
   page: 1,
   size: 10,
-  keyword: '',
+  search: '',
+  sortBy: 'drinkName',
+  sortDirection: 'ASC',
 };
 
+// Custom hook for managing drinks data and operations
 export function useDrinks(initialPage = 1, initialSize = 10) {
+  const toast = useToast();
+  const { t } = useTranslation();
+
+  // Query parameters state
   const [params, setParams] = useState<GetDrinksRequest>({
     ...DEFAULT_PARAMS,
     page: initialPage,
     size: initialSize,
   });
 
+  // API response data states
   const [items, setItems] = useState<DrinkItem[]>([]);
   const [totalElements, setTotalElements] = useState<number>(0);
+
+  // UI loading states
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
+  const [isSearch, setIsSearch] = useState(false);
 
-  // Track whether the current action was triggered by explicit user search
-  const isSearchActionRef = useRef(false);
+  // Core data fetching function
+  const fetchDrinks = useCallback(
+    async (currentParams: GetDrinksRequest, isSearchAction = false) => {
+      setLoading(true);
+      if (isSearchAction) setSearchLoading(true);
 
-  // Core API fetcher function
-  const fetchDrinks = useCallback(async (currentParams: GetDrinksRequest) => {
-    const isSearchAction = isSearchActionRef.current;
-    isSearchActionRef.current = false;
+      try {
+        const payload: GetDrinksRequest = {
+          page: currentParams.page,
+          size: currentParams.size,
+          search: currentParams.search?.trim() || '',
+          sortBy: currentParams.sortBy || 'drinkName',
+          sortDirection: currentParams.sortDirection || 'ASC',
+        };
 
-    setLoading(true);
-    if (isSearchAction) setSearchLoading(true);
+        const response = await getDrinksApi(payload);
+        const resItems = response.items ?? [];
 
-    try {
-      const payload: GetDrinksRequest = {
-        page: currentParams.page,
-        size: currentParams.size,
-        keyword: currentParams.keyword?.trim() || undefined,
-      };
+        setItems(resItems);
+        setTotalElements(response.pagination?.totalElements ?? resItems.length ?? 0);
 
-      const response = await getDrinksApi(payload);
-      const resItems = response.items ?? [];
-
-      setItems(resItems);
-      setTotalElements(response.pagination?.totalElements ?? resItems.length ?? 0);
-
-      // Show error modal if user explicitly searched but got empty result
-      if (isSearchAction && currentParams.keyword?.trim() && resItems.length === 0) {
-        setShowEmptyModal(true);
+        if (isSearchAction && currentParams.search?.trim() && resItems.length === 0) {
+          setShowEmptyModal(true);
+        }
+      } catch (err) {
+        console.error('Failed to fetch drinks:', err);
+        if (isSearchAction && currentParams.search?.trim()) {
+          setShowEmptyModal(true);
+        }
+        setItems([]);
+        setTotalElements(0);
+      } finally {
+        setLoading(false);
+        setSearchLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to fetch drinks:', err);
-      if (isSearchAction && currentParams.keyword?.trim()) {
-        setShowEmptyModal(true);
-      }
-      setItems([]);
-      setTotalElements(0);
-    } finally {
-      setLoading(false);
-      setSearchLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
-  // Synchronize data fetching with params update using asynchronous IIFE
+  // Auto fetch data when params or search mode change
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
       if (isMounted) {
-        await fetchDrinks(params);
+        await fetchDrinks(params, isSearch);
       }
     };
 
@@ -77,21 +92,76 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     return () => {
       isMounted = false;
     };
-  }, [params, fetchDrinks]);
+  }, [params, fetchDrinks, isSearch]);
 
-  // Handle keyword search and reset pagination to page 1
-  const handleSearch = (keyword: string) => {
-    isSearchActionRef.current = true;
+  // Handler for creating a new drink
+  const createDrink = useCallback(
+    async (values: CreateDrinkRequest) => {
+      setCreateLoading(true);
+      try {
+        await createDrinkApi(values);
+        toast.success(t('drinks.createSuccess') || 'Thêm đồ uống thành công!');
+        await fetchDrinks(params);
+      } catch (error) {
+        console.error('Failed to create drink:', error);
+        throw error;
+      } finally {
+        setCreateLoading(false);
+      }
+    },
+    [params, fetchDrinks, toast, t],
+  );
+
+  // Handler for editing an existing drink
+  const editDrink = useCallback(
+    async (values: EditDrinkRequest) => {
+      setEditLoading(true);
+      try {
+        await editDrinkApi(values);
+        toast.success(t('drinks.editSuccess') || 'Cập nhật đồ uống thành công!');
+        await fetchDrinks(params);
+      } catch (error) {
+        console.error('Failed to edit drink:', error);
+        toast.error(t('drinks.editError') || 'Cập nhật đồ uống thất bại!');
+        throw error;
+      } finally {
+        setEditLoading(false);
+      }
+    },
+    [params, fetchDrinks, toast, t],
+  );
+
+  // Handler for deleting a drink
+  const deleteDrink = useCallback(
+    async (drinkId: string) => {
+      setDeleteLoading(true);
+      try {
+        await deleteDrinkApi({ drinkId });
+        toast.success(t('drinks.deleteSuccess') || 'Xoá đồ uống thành công!');
+        await fetchDrinks(params);
+      } catch (error) {
+        console.error('Failed to delete drink:', error);
+        toast.error(t('drinks.deleteError') || 'Xoá đồ uống thất bại!');
+      } finally {
+        setDeleteLoading(false);
+      }
+    },
+    [params, fetchDrinks, toast, t],
+  );
+
+  // Handle keyword search
+  const handleSearch = (searchKeyword: string) => {
+    setIsSearch(true);
     setParams((prev) => ({
       ...prev,
-      keyword: keyword.trim(),
+      search: searchKeyword.trim(),
       page: 1,
     }));
   };
 
-  // Handle page or page size changes
+  // Handle page navigation
   const handlePageChange = (page: number, size?: number) => {
-    isSearchActionRef.current = false;
+    setIsSearch(false);
     setParams((prev) => ({
       ...prev,
       page,
@@ -104,13 +174,19 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     totalElements,
     currentPage: params.page,
     currentPageSize: params.size,
-    searchKeyword: params.keyword ?? '',
+    searchKeyword: params.search ?? '',
     loading,
     searchLoading,
+    createLoading,
+    editLoading,
+    deleteLoading,
     showEmptyModal,
     closeEmptyModal: () => setShowEmptyModal(false),
     handleSearch,
     handlePageChange,
-    refresh: () => fetchDrinks(params),
+    createDrink,
+    editDrink,
+    deleteDrink,
+    refresh: () => fetchDrinks(params, false),
   };
 }
