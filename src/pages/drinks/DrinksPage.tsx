@@ -1,9 +1,7 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 import {
-  Row,
-  Col,
   Pagination,
   Empty,
   Spin,
@@ -20,51 +18,25 @@ import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
 import { useDrinks } from './hooks/useDrinks';
-import type { DrinkItem, EditDrinkRequest, CategoryOption } from './types';
-import { DrinkCardGrouped, type GroupedDrink } from './components/DrinkCardGrouped';
+import type { DrinkItem } from './types';
+import { DrinkCardGrouped } from './components/DrinkCardGrouped';
 import { DrinkCreateModal } from './components/DrinkCreateModal';
-import { DrinkEditModal } from './components/DrinkEditModal';
-
-// Group drink size variants into a single object
-function groupDrinks(items: DrinkItem[]): GroupedDrink[] {
-  const map = new Map<string, GroupedDrink>();
-  for (const it of items) {
-    const key = it.drinkName || it.drinkId;
-    const existing = map.get(key);
-    const variant = { drinkId: it.drinkId, size: it.size, price: it.price };
-    if (existing) {
-      existing.variants.push(variant);
-    } else {
-      map.set(key, {
-        drinkName: it.drinkName,
-        imageUrl: it.imageUrl,
-        drinkCategoryId: it.drinkCategoryId,
-        id: it.drinkId,
-        status: it.status,
-        isDeleted: it.isDeleted,
-        variants: [variant],
-      } as unknown as GroupedDrink);
-    }
-  }
-  return Array.from(map.values());
-}
 
 export function DrinksPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
 
-  // Check role permission (STAFF role cannot edit or delete)
+  // Check role permission (STAFF role cannot see create/delete buttons)
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isStaff = roleName === ROLES.STAFF;
 
-  // Custom hook for managing drinks state and API calls
+  // Fetch drinks data and handlers from custom hook
   const {
     items,
     totalElements,
     loading,
     searchLoading,
     createLoading,
-    editLoading,
     currentPage,
     currentPageSize,
     showEmptyModal,
@@ -72,7 +44,6 @@ export function DrinksPage() {
     handleSearch,
     handlePageChange,
     createDrink,
-    editDrink,
     deleteDrink,
   } = useDrinks(1, 10);
 
@@ -87,51 +58,24 @@ export function DrinksPage() {
     }
   }, [showEmptyModal]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Group drinks list whenever raw items change
-  const grouped = useMemo(() => groupDrinks(items ?? []), [items]);
-
-  // Leave categoryOptions empty for now until backend Category API is integrated
-  const categoryOptions: CategoryOption[] = useMemo(() => {
-    return [];
-  }, []);
-
-  // UI state management
+  // Drawer and variant selection states
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [selected, setSelected] = useState<GroupedDrink | null>(null);
-  const [editingRecord, setEditingRecord] = useState<GroupedDrink | null>(null);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<DrinkItem | null>(null);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
 
   const fallbackImage = 'https://placehold.co/600x400?text=No+Image';
 
-  // Open detail drawer and select first variant
-  const onCardClick = (g: GroupedDrink) => {
+  // Open detail drawer and select the first size variant by default
+  const onCardClick = (g: DrinkItem) => {
     setSelected(g);
-    if (g.variants && g.variants.length > 0) {
-      setSelectedVariantId(g.variants[0]?.drinkId ?? null);
-    } else {
-      setSelectedVariantId(null);
-    }
+    setSelectedVariantIndex(0);
     setDrawerOpen(true);
   };
 
-  // Open edit modal for selected drink
-  const handleOpenEdit = (g: GroupedDrink) => {
-    setEditingRecord(g);
-    setEditOpen(true);
-  };
-
-  // Submit edit request to API
-  const handleEditSubmit = async (values: EditDrinkRequest) => {
-    await editDrink(values);
-    setEditOpen(false);
-    setEditingRecord(null);
-  };
-
-  // Open delete confirmation modal
-  const handleDeleteDrink = (g: GroupedDrink) => {
-    const targetId = g.id || g.variants[0]?.drinkId;
+  // Open central delete confirmation modal matching the staff page style
+  const handleDeleteDrink = (g: DrinkItem) => {
+    const targetId = g.drinkId;
     if (!targetId) return;
 
     Modal.confirm({
@@ -148,10 +92,10 @@ export function DrinksPage() {
     });
   };
 
-  // Get price for selected size variant
+  // Get price for the currently selected size variant
   const priceForSelected = () => {
-    if (!selected || !selectedVariantId) return '—';
-    const v = selected.variants.find((x) => x.drinkId === selectedVariantId);
+    if (!selected || !selected.variants || selected.variants.length === 0) return '—';
+    const v = selected.variants[selectedVariantIndex];
     return v?.price ?? '—';
   };
 
@@ -167,55 +111,45 @@ export function DrinksPage() {
           <SearchInput
             onSearch={(val) => handleSearch(val)}
             loading={searchLoading}
-            placeholder={t('drinks.searchPlaceholder') || 'Tìm kiếm đồ uống...'}
+            placeholder={t('drinks.searchPlaceholder') || 'Search drink...'}
           />
         </div>
 
-        {/* Create button (Hidden for STAFF role) */}
+        {/* Create new button in the right corner; hidden for the STAFF role. */}
         {!isStaff && (
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             {t('form.create') || 'Tạo mới'}
           </Button>
         )}
       </div>
-
-      {/* Drink Cards Grid */}
-      <Spin spinning={loading} description={t('common.loading')}>
-        {grouped.length === 0 && !loading ? (
-          <div className="py-8">
-            <Empty description={t('drinks.empty') || 'Không có dữ liệu đồ uống'} />
-          </div>
-        ) : (
-          <Row gutter={[16, 16]}>
-            {grouped.map((g) => (
-              <Col key={g.id ?? g.drinkName} xs={24} sm={12} md={8} lg={6}>
+      {/* Scrollable card container with fixed height to prevent layout shift during pagination */}
+      <div className="w-full border border-gray-200 rounded-lg p-3 h-[calc(100vh-295px)] min-h-[460px] overflow-y-auto bg-gray-50/30">
+        <Spin spinning={loading} description={t('common.loading')}>
+          {items.length === 0 && !loading ? (
+            <div className="py-16 flex justify-center items-center">
+              <Empty description={t('drinks.empty') || 'not found any data drink'} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 items-start justify-start">
+              {items.map((g) => (
                 <DrinkCardGrouped
+                  key={g.drinkId}
                   record={g}
                   onClick={() => onCardClick(g)}
-                  onEdit={handleOpenEdit}
                   onDelete={handleDeleteDrink}
                   isStaff={isStaff}
                 />
-              </Col>
-            ))}
-          </Row>
-        )}
-      </Spin>
+              ))}
+            </div>
+          )}
+        </Spin>
+      </div>
 
       {/* Pagination Controls */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginTop: 24,
-          position: 'relative',
-          width: '100%',
-        }}
-      >
-        <div style={{ flex: 1 }} />
+      <div className="flex items-center justify-between mt-1 w-full">
+        <div className="flex-1" />
 
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <div className="flex-1 flex justify-center">
           <Pagination
             current={currentPage}
             pageSize={currentPageSize}
@@ -225,14 +159,14 @@ export function DrinksPage() {
           />
         </div>
 
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="flex-1 flex justify-end">
           <Select
             value={currentPageSize}
             onChange={(val) => handlePageChange(1, Number(val))}
             options={[
-              { value: 10, label: `10 / ${t('table.perPage') || 'trang'}` },
-              { value: 15, label: `15 / ${t('table.perPage') || 'trang'}` },
-              { value: 20, label: `20 / ${t('table.perPage') || 'trang'}` },
+              { value: 10, label: '10 / trang' },
+              { value: 15, label: '15 / trang' },
+              { value: 20, label: '20 / trang' },
             ]}
             style={{ width: 120 }}
           />
@@ -253,7 +187,8 @@ export function DrinksPage() {
       >
         {selected && (
           <div className="flex flex-col gap-4">
-            <div className="w-full h-64 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center border border-gray-100">
+            {/* Drink Image */}
+            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center border border-gray-100">
               <img
                 src={selected.imageUrl || fallbackImage}
                 alt="drink"
@@ -267,6 +202,7 @@ export function DrinksPage() {
               />
             </div>
 
+            {/* Drink Title & Size Badge */}
             <div className="flex items-center gap-2 flex-wrap">
               <Typography.Title level={4} className="mb-0!">
                 {selected.drinkName}
@@ -276,17 +212,18 @@ export function DrinksPage() {
               )}
             </div>
 
+            {/* Variant Selector */}
             <div>
               <Typography.Text strong>{t('drinks.chooseSize') || 'Chọn kích cỡ'}</Typography.Text>
               <div className="mt-2 w-full overflow-x-auto">
                 <Radio.Group
-                  value={selectedVariantId}
-                  onChange={(e) => setSelectedVariantId(e.target.value)}
+                  value={selectedVariantIndex}
+                  onChange={(e) => setSelectedVariantIndex(Number(e.target.value))}
                   buttonStyle="solid"
                   className="flex flex-wrap gap-2"
                 >
-                  {selected.variants.map((v) => (
-                    <Radio.Button key={v.drinkId} value={v.drinkId}>
+                  {selected.variants?.map((v, idx) => (
+                    <Radio.Button key={v.drinkId || idx} value={idx}>
                       {v.size.trim()} - {v.price}
                     </Radio.Button>
                   ))}
@@ -294,6 +231,7 @@ export function DrinksPage() {
               </div>
             </div>
 
+            {/* Price and Status Row */}
             <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-100">
               <div>
                 <div className="text-sm text-gray-500">{t('drinks.price') || 'Giá'}</div>
@@ -302,7 +240,7 @@ export function DrinksPage() {
               <div className="text-right">
                 <div className="text-sm text-gray-500">{t('drinks.status') || 'Trạng thái'}</div>
                 <Tag
-                  color={selected.status === t('drinks.statusActive') ? 'green' : 'default'}
+                  color={selected.status === 'Đang bán' ? 'green' : 'default'}
                   className="mt-1 mr-0"
                 >
                   {selected.status ?? '—'}
@@ -313,26 +251,12 @@ export function DrinksPage() {
         )}
       </Drawer>
 
-      {/* Create Modal */}
+      {/* Create drink Modal */}
       <DrinkCreateModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onSubmit={createDrink}
         loading={createLoading}
-        categoryOptions={categoryOptions}
-      />
-
-      {/* Edit Modal */}
-      <DrinkEditModal
-        open={editOpen}
-        onClose={() => {
-          setEditOpen(false);
-          setEditingRecord(null);
-        }}
-        onSubmit={handleEditSubmit}
-        loading={editLoading}
-        record={editingRecord}
-        categoryOptions={categoryOptions}
       />
     </div>
   );

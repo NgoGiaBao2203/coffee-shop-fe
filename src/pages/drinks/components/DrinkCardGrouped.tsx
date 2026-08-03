@@ -1,35 +1,19 @@
 import { Card, Typography, Button } from 'antd';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined } from '@ant-design/icons';
+import type { DrinkItem } from '../types';
 
-// Interface for individual size variant
-export interface Variant {
-  drinkId: string;
-  size: string;
-  price: string;
-}
-
-// Interface for grouped drink record
-export interface GroupedDrink {
-  drinkName: string;
-  imageUrl?: string | null;
-  drinkCategoryId?: string | null;
-  id?: string;
-  status?: string | null;
-  isDeleted?: boolean;
-  variants: Variant[];
-}
-
+// Component props interface
 interface Props {
-  record: GroupedDrink;
-  onClick?: (record: GroupedDrink) => void;
-  onEdit?: (record: GroupedDrink) => void;
-  onDelete?: (record: GroupedDrink) => void;
+  record: DrinkItem;
+  onClick?: (record: DrinkItem) => void;
+  onDelete?: (record: DrinkItem) => void;
   isStaff?: boolean;
 }
 
-export function DrinkCardGrouped({ record, onClick, onEdit, onDelete, isStaff = false }: Props) {
-  // Find the lowest price among available size variants
-  const lowest = record.variants.reduce((acc, v) => {
+// Component to display drink card with starting price
+export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }: Props) {
+  // Calculate lowest price among available size variants
+  const lowest = record.variants?.reduce((acc, v) => {
     const num = Number(String(v.price).replace(/[^0-9.-]+/g, '')) || 0;
     return acc === 0 || num < acc ? num : acc;
   }, 0);
@@ -37,80 +21,76 @@ export function DrinkCardGrouped({ record, onClick, onEdit, onDelete, isStaff = 
   // Format display price text
   const priceText = lowest
     ? `Từ ${lowest.toLocaleString('vi-VN')}đ`
-    : (record.variants[0]?.price ?? '—');
+    : (record.variants?.[0]?.price ?? '—');
 
-  // Fallback image URL when image fails to load
-  const fallbackImage = 'https://placehold.co/400x300?text=No+Image';
+  // Fallback image URL when drink image fails to load or is null
+  const fallbackImage = 'https://placehold.co/400x400?text=No+Image';
 
   return (
     <Card
       hoverable
       onClick={() => onClick?.(record)}
       cover={
-        /* Drink Image Cover */
-        <img
-          alt="cover"
-          src={record.imageUrl || fallbackImage}
-          style={{ height: 220, width: '100%', objectFit: 'cover' }}
-          onError={(e) => {
-            const el = e.currentTarget as HTMLImageElement;
-            if (el.src !== fallbackImage) {
-              el.src = fallbackImage;
-            }
-          }}
-        />
+        /* Square aspect ratio image container */
+        <div className="w-full aspect-[4/3] overflow-hidden bg-gray-50 rounded-t-lg">
+          <img
+            alt="cover"
+            src={record.imageUrl || fallbackImage}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const el = e.currentTarget as HTMLImageElement;
+              if (el.src !== fallbackImage) {
+                el.src = fallbackImage;
+              }
+            }}
+          />
+        </div>
       }
-      styles={{ body: { padding: 12 } }}
-      style={{ border: '1px solid rgba(0,0,0,0.06)', background: '#fff' }}
+      styles={{ body: { padding: '8px 10px' } }}
+      style={{
+        width: '100%',
+        border: '1px solid rgba(0,0,0,0.06)',
+        background: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+      }}
     >
-      {/* Drink Name & Action Icons (Edit + Delete) */}
-      <div className="flex items-center justify-between gap-2">
-        <Typography.Title level={5} className="mb-0! flex-1 truncate">
-          {record.drinkName}
-        </Typography.Title>
+      <div className="flex flex-col justify-between gap-2">
+        {/* Drink Name Display Row - Full text wrapping up to 2 lines */}
+        <div>
+          <Typography.Paragraph
+            ellipsis={{ rows: 2 }}
+            className="mb-0! text-xs font-semibold leading-snug text-gray-800"
+            title={record.drinkName}
+          >
+            {record.drinkName}
+          </Typography.Paragraph>
+        </div>
 
-        {/* Hide action icons if user role is STAFF */}
-        {!isStaff && (
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            {/* Edit button icon */}
-            {onEdit && (
-              <Button
-                type="text"
-                shape="circle"
-                size="small"
-                icon={<EditOutlined style={{ color: '#000' }} />}
-                onClick={(e) => {
-                  e.stopPropagation(); // Stop opening detail drawer
-                  onEdit(record);
-                }}
-              />
-            )}
-
-            {/* Delete button icon */}
-            {onDelete && (
-              <Button
-                danger
-                type="text"
-                shape="circle"
-                size="small"
-                icon={<DeleteOutlined />}
-                onClick={(e) => {
-                  e.stopPropagation(); // Stop opening detail drawer
-                  onDelete(record);
-                }}
-              />
-            )}
+        {/* Bottom Price & Delete Button Row */}
+        <div className="flex items-end justify-between gap-1 mt-1">
+          <div>
+            <span className="text-green-600 font-semibold text-xs">{priceText}</span>
           </div>
-        )}
-      </div>
 
-      {/* Price display */}
-      <div className="mt-1">
-        <span className="text-green-600 font-semibold">{priceText}</span>
+          {/* Delete Button */}
+          {!isStaff && onDelete && (
+            <Button
+              danger
+              type="text"
+              shape="circle"
+              size="small"
+              className="flex items-center justify-center min-w-[24px] w-6 h-6"
+              icon={<DeleteOutlined style={{ fontSize: 13 }} />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(record);
+              }}
+            />
+          )}
+        </div>
       </div>
-
-      {/* Variant count */}
-      <div className="text-sm text-gray-500 mt-1">{record.variants?.length ?? 1} Tổng size</div>
     </Card>
   );
 }
