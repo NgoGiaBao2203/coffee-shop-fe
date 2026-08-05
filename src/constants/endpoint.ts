@@ -16,8 +16,4 @@ export const ENDPOINT = {
   GET_DRINKS: '/drinks',
   CREATE_DRINK: '/drink/create',
   DELETE_DRINK: '/drink/delete',
-  EDIT_DRINK: '/drink/edit',
-
-  // Categories
-  GET_CATEGORIES: '/categories',
 } as const;

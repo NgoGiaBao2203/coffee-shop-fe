@@ -4,7 +4,8 @@
     "appNameShort": "HYC",
     "loading": "Đang tải...",
     "ok": "OK",
-    "error": "Lỗi"
+    "error": "Lỗi",
+    "from": "Từ"
   },
   "drinks": {
     "title": "Đồ Uống",
@@ -23,11 +24,13 @@
     "statusActive": "Đang bán",
     "statusInactive": "Ngừng bán",
     "createSuccess": "Thêm đồ uống thành công!",
-    "editSuccess": "Cập nhật đồ uống thành công!",
-    "editError": "Cập nhật đồ uống thất bại!",
     "deleteSuccess": "Xoá đồ uống thành công!",
     "deleteError": "Xoá đồ uống thất bại!",
-    "originalName": "Tên gốc",
+    "sizeOptions": {
+      "S": "Kích cỡ S",
+      "M": "Kích cỡ M",
+      "L": "Kích cỡ L"
+    },
     "validation": {
       "nameRequired": "Vui lòng nhập tên đồ uống!",
       "categoryRequired": "Vui lòng chọn danh mục!",
