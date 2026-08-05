@@ -1,5 +1,6 @@
 import { Card, Typography, Button } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import type { DrinkItem } from '../types';
 
 // Component props interface
@@ -12,6 +13,8 @@ interface Props {
 
 // Component to display drink card with starting price
 export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }: Props) {
+  const { t } = useTranslation();
+
   // Calculate lowest price among available size variants
   const lowest = record.variants?.reduce((acc, v) => {
     const num = Number(String(v.price).replace(/[^0-9.-]+/g, '')) || 0;
@@ -20,7 +23,7 @@ export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }:
 
   // Format display price text
   const priceText = lowest
-    ? `Từ ${lowest.toLocaleString('vi-VN')}đ`
+    ? `${t('common.from')} ${lowest.toLocaleString('vi-VN')}đ`
     : (record.variants?.[0]?.price ?? '—');
 
   // Fallback image URL when drink image fails to load or is null

@@ -50,10 +50,7 @@ export function DrinksPage() {
   // Show error modal when user search returns no results
   useEffect(() => {
     if (showEmptyModal) {
-      showError(
-        t('drinks.emptySearch') || 'Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm.',
-        t('common.error') || 'Lỗi',
-      );
+      showError(t('drinks.emptySearch'), t('common.error'));
       closeEmptyModal();
     }
   }, [showEmptyModal]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -79,12 +76,12 @@ export function DrinksPage() {
     if (!targetId) return;
 
     Modal.confirm({
-      title: t('table.deleteConfirmTitle') || 'Xác nhận xoá',
+      title: t('table.deleteConfirmTitle'),
       icon: <ExclamationCircleFilled style={{ color: '#faad14' }} />,
-      content: t('table.deleteConfirmDesc') || 'Bạn có chắc muốn xoá mục này không?',
-      okText: t('table.deleteOk') || 'Xoá',
+      content: t('table.deleteConfirmDesc'),
+      okText: t('table.deleteOk'),
       okType: 'danger',
-      cancelText: t('table.deleteCancel') || 'Huỷ',
+      cancelText: t('table.deleteCancel'),
       centered: true,
       async onOk() {
         await deleteDrink(targetId);
@@ -94,15 +91,22 @@ export function DrinksPage() {
 
   // Get price for the currently selected size variant
   const priceForSelected = () => {
-    if (!selected || !selected.variants || selected.variants.length === 0) return '—';
+    if (!selected || !selected.variants || selected.variants.length === 0) return 0;
     const v = selected.variants[selectedVariantIndex];
-    return v?.price ?? '—';
+    return v?.price ?? 0;
+  };
+
+  // Helper format currency
+  const formatCurrency = (amount: number | string | undefined | null) => {
+    if (amount === undefined || amount === null || amount === '—') return '—';
+    const num = Number(String(amount).replace(/[^0-9.-]+/g, '')) || 0;
+    return `${num.toLocaleString('vi-VN')}đ`;
   };
 
   return (
     <div className="flex flex-col gap-3 rounded-xl p-4 bg-white shadow-sm">
       <Typography.Title level={4} className="mb-0!">
-        {t('drinks.title') || 'Đồ Uống'}
+        {t('drinks.title')}
       </Typography.Title>
 
       {/* Search Input & Action Bar */}
@@ -111,23 +115,24 @@ export function DrinksPage() {
           <SearchInput
             onSearch={(val) => handleSearch(val)}
             loading={searchLoading}
-            placeholder={t('drinks.searchPlaceholder') || 'Search drink...'}
+            placeholder={t('drinks.searchPlaceholder')}
           />
         </div>
 
         {/* Create new button in the right corner; hidden for the STAFF role. */}
         {!isStaff && (
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            {t('form.create') || 'Tạo mới'}
+            {t('form.create')}
           </Button>
         )}
       </div>
+
       {/* Scrollable card container with fixed height to prevent layout shift during pagination */}
       <div className="w-full border border-gray-200 rounded-lg p-3 h-[calc(100vh-295px)] min-h-[460px] overflow-y-auto bg-gray-50/30">
         <Spin spinning={loading} description={t('common.loading')}>
           {items.length === 0 && !loading ? (
             <div className="py-16 flex justify-center items-center">
-              <Empty description={t('drinks.empty') || 'not found any data drink'} />
+              <Empty description={t('drinks.empty')} />
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 items-start justify-start">
@@ -164,9 +169,9 @@ export function DrinksPage() {
             value={currentPageSize}
             onChange={(val) => handlePageChange(1, Number(val))}
             options={[
-              { value: 10, label: '10 / trang' },
-              { value: 15, label: '15 / trang' },
-              { value: 20, label: '20 / trang' },
+              { value: 10, label: `10 / ${t('table.perPage')}` },
+              { value: 15, label: `15 / ${t('table.perPage')}` },
+              { value: 20, label: `20 / ${t('table.perPage')}` },
             ]}
             style={{ width: 120 }}
           />
@@ -181,7 +186,7 @@ export function DrinksPage() {
         title={selected?.drinkName}
         footer={
           <div className="flex justify-end">
-            <Button onClick={() => setDrawerOpen(false)}>{t('form.close') || 'Đóng'}</Button>
+            <Button onClick={() => setDrawerOpen(false)}>{t('form.close')}</Button>
           </div>
         }
       >
@@ -214,7 +219,7 @@ export function DrinksPage() {
 
             {/* Variant Selector */}
             <div>
-              <Typography.Text strong>{t('drinks.chooseSize') || 'Chọn kích cỡ'}</Typography.Text>
+              <Typography.Text strong>{t('drinks.chooseSize')}</Typography.Text>
               <div className="mt-2 w-full overflow-x-auto">
                 <Radio.Group
                   value={selectedVariantIndex}
@@ -224,7 +229,7 @@ export function DrinksPage() {
                 >
                   {selected.variants?.map((v, idx) => (
                     <Radio.Button key={v.drinkId || idx} value={idx}>
-                      {v.size.trim()} - {v.price}
+                      {v.size.trim()} - {formatCurrency(v.price)}
                     </Radio.Button>
                   ))}
                 </Radio.Group>
@@ -234,16 +239,24 @@ export function DrinksPage() {
             {/* Price and Status Row */}
             <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-100">
               <div>
-                <div className="text-sm text-gray-500">{t('drinks.price') || 'Giá'}</div>
-                <div className="text-xl font-bold text-green-600">{priceForSelected()}</div>
+                <div className="text-sm text-gray-500">{t('drinks.price')}</div>
+
+                <div className="text-xl font-bold text-green-600">
+                  {formatCurrency(priceForSelected())}
+                </div>
               </div>
+
               <div className="text-right">
-                <div className="text-sm text-gray-500">{t('drinks.status') || 'Trạng thái'}</div>
+                <div className="text-sm text-gray-500">{t('drinks.status')}</div>
                 <Tag
-                  color={selected.status === 'Đang bán' ? 'green' : 'default'}
+                  color={
+                    selected?.status === 'Đang bán' || selected?.status === t('drinks.statusActive')
+                      ? 'green'
+                      : 'default'
+                  }
                   className="mt-1 mr-0"
                 >
-                  {selected.status ?? '—'}
+                  {selected?.status ?? '—'}
                 </Tag>
               </div>
             </div>

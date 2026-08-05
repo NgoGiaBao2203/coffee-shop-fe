@@ -101,7 +101,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
       setCreateLoading(true);
       try {
         await createDrinkApi(values);
-        toast.success(t('drinks.createSuccess') || 'Thêm đồ uống thành công!');
+        toast.success(t('drinks.createSuccess'));
         await fetchDrinks(params);
       } catch (error) {
         console.error('Failed to create drink:', error);
@@ -119,11 +119,11 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
       setDeleteLoading(true);
       try {
         await deleteDrinkApi({ drinkId });
-        toast.success(t('drinks.deleteSuccess') || 'Xoá đồ uống thành công!');
+        toast.success(t('drinks.deleteSuccess'));
         await fetchDrinks(params);
       } catch (error) {
         console.error('Failed to delete drink:', error);
-        toast.error(t('drinks.deleteError') || 'Xoá đồ uống thất bại!');
+        toast.error(t('drinks.deleteError'));
       } finally {
         setDeleteLoading(false);
       }

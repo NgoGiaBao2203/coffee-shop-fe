@@ -58,9 +58,7 @@ export function DrinkCreateModal({
 
       // Check if the image path exceeds the database string length limit
       if (imageUrl.length > MAX_IMAGE_URL_LENGTH) {
-        message.error(
-          `Image URL is too long (${imageUrl.length} characters). Please select a smaller file or provide a shorter URL.`,
-        );
+        message.error(t('drinks.imageTooLong'));
         return;
       }
 
@@ -83,9 +81,9 @@ export function DrinkCreateModal({
   return (
     <Modal
       open={open}
-      title={t('form.titleCreate') || 'Tạo mới'}
-      okText={t('form.create') || 'Tạo mới'}
-      cancelText={t('form.cancel') || 'Huỷ'}
+      title={t('form.titleCreate')}
+      okText={t('form.create')}
+      cancelText={t('form.cancel')}
       confirmLoading={loading}
       onOk={handleOk}
       onCancel={() => {
@@ -99,22 +97,22 @@ export function DrinkCreateModal({
         {/* Drink Name Field */}
         <Form.Item
           name="drinkName"
-          label={t('drinks.name') || 'Tên'}
-          rules={[{ required: true, message: 'Vui lòng nhập tên đồ uống!' }]}
+          label={t('drinks.name')}
+          rules={[{ required: true, message: t('drinks.validation.nameRequired') }]}
         >
-          <Input placeholder="Nhập tên..." />
+          <Input placeholder={t('form.inputNamePlaceholder')} />
         </Form.Item>
 
         {/* Category Selection - Fetched dynamically from DB */}
         <Form.Item
           name="drinkCategoryId"
-          label={t('sidebar.categories') || 'Danh Mục'}
-          rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}
+          label={t('sidebar.categories')}
+          rules={[{ required: true, message: t('drinks.validation.categoryRequired') }]}
         >
           <Select
-            placeholder="Chọn danh mục"
+            placeholder={t('form.selectCategoryPlaceholder')}
             options={categoryOptions}
-            notFoundContent={categoryOptions.length === 0 ? 'Chưa có dữ liệu danh mục' : undefined}
+            notFoundContent={categoryOptions.length === 0 ? t('drinks.noCategory') : undefined}
           />
         </Form.Item>
 
@@ -122,8 +120,8 @@ export function DrinkCreateModal({
         <div className="grid grid-cols-2 gap-3">
           <Form.Item
             name="price"
-            label={t('drinks.price') || 'Giá'}
-            rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}
+            label={t('drinks.price')}
+            rules={[{ required: true, message: t('drinks.validation.priceRequired') }]}
           >
             <InputNumber
               className="w-full"
@@ -136,21 +134,21 @@ export function DrinkCreateModal({
 
           <Form.Item
             name="size"
-            label={t('drinks.size') || 'Kích cỡ'}
-            rules={[{ required: true, message: 'Vui lòng chọn size!' }]}
+            label={t('drinks.size')}
+            rules={[{ required: true, message: t('drinks.validation.sizeRequired') }]}
           >
             <Select
               options={[
-                { value: 'S', label: 'Size S' },
-                { value: 'M', label: 'Size M' },
-                { value: 'L', label: 'Size L' },
+                { value: 'S', label: t('drinks.sizeOptions.S') },
+                { value: 'M', label: t('drinks.sizeOptions.M') },
+                { value: 'L', label: t('drinks.sizeOptions.L') },
               ]}
             />
           </Form.Item>
         </div>
 
         {/* Image Upload Component */}
-        <Form.Item label={t('drinks.image') || 'Hình ảnh'}>
+        <Form.Item label={t('drinks.image')}>
           <Upload
             listType="picture-card"
             fileList={fileList}
@@ -162,18 +160,18 @@ export function DrinkCreateModal({
             {fileList.length < 1 && (
               <div className="flex flex-col items-center justify-center">
                 <PlusOutlined />
-                <div style={{ marginTop: 8 }}>Tải ảnh lên</div>
+                <div style={{ marginTop: 8 }}>{t('drinks.uploadImage')}</div>
               </div>
             )}
           </Upload>
         </Form.Item>
 
         {/* Status Selection */}
-        <Form.Item name="status" label={t('drinks.status') || 'Trạng thái'}>
+        <Form.Item name="status" label={t('drinks.status')}>
           <Select
             options={[
-              { value: 1, label: 'Đang bán' },
-              { value: 0, label: 'Ngừng bán' },
+              { value: 1, label: t('drinks.statusActive') },
+              { value: 0, label: t('drinks.statusInactive') },
             ]}
           />
         </Form.Item>
