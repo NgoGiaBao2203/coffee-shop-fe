@@ -129,7 +129,11 @@ export function DrinksPage() {
 
       {/* Scrollable card container with fixed height to prevent layout shift during pagination */}
       <div className="w-full border border-gray-200 rounded-lg p-3 h-[calc(100vh-295px)] min-h-[460px] overflow-y-auto bg-gray-50/30">
-        <Spin spinning={loading} description={t('common.loading')}>
+        <Spin
+          spinning={loading}
+          tip={t('common.loading')}
+          wrapperClassName="w-full h-full flex items-center justify-center"
+        >
           {items.length === 0 && !loading ? (
             <div className="py-16 flex justify-center items-center">
               <Empty description={t('drinks.empty')} />
