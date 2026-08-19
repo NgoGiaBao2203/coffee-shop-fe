@@ -1,17 +1,18 @@
 export interface DrinkVariantItem {
   drinkId?: string;
   size: string;
-  price: string;
+  price: number | string;
 }
 
 export interface DrinkItem {
   drinkCategoryId: string;
   drinkId: string;
+  shopId: string;
   drinkName: string;
   imageUrl?: string | null;
   isDeleted: boolean;
   status: string;
-  variants: DrinkVariantItem[];
+  variants: DrinkVariantItem[] | null;
 }
 
 export interface DrinksPagination {
@@ -29,9 +30,17 @@ export interface DrinksResponse {
   pagination: DrinksPagination;
 }
 
+export interface GetDrinkDetailResponse {
+  code: string;
+  message: string;
+  traceId: string;
+  item: DrinkItem;
+}
+
 export interface GetDrinksRequest {
   page: number;
   size: number;
+  branchShopId: string;
   search?: string;
   sortBy?: string;
   sortDirection?: 'ASC' | 'DESC';

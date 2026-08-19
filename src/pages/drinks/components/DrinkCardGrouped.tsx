@@ -1,9 +1,7 @@
 import { Card, Typography, Button } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
 import type { DrinkItem } from '../types';
 
-// Component props interface
 interface Props {
   record: DrinkItem;
   onClick?: (record: DrinkItem) => void;
@@ -11,35 +9,24 @@ interface Props {
   isStaff?: boolean;
 }
 
-// Component to display drink card with starting price
 export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }: Props) {
-  const { t } = useTranslation();
-
-  // Calculate lowest price among available size variants
-  const lowest = record.variants?.reduce((acc, v) => {
-    const num = Number(String(v.price).replace(/[^0-9.-]+/g, '')) || 0;
-    return acc === 0 || num < acc ? num : acc;
-  }, 0);
-
-  // Format display price text
-  const priceText = lowest
-    ? `${t('common.from')} ${lowest.toLocaleString('vi-VN')}đ`
-    : (record.variants?.[0]?.price ?? '—');
-
-  // Fallback image URL when drink image fails to load or is null
-  const fallbackImage = 'https://placehold.co/400x400?text=No+Image';
+  const fallbackImage = 'https://placehold.co/400x300?text=No+Image';
 
   return (
     <Card
       hoverable
       onClick={() => onClick?.(record)}
+      className="drink-card group transition-all duration-200 hover:shadow-md"
       cover={
-        /* Square aspect ratio image container */
-        <div className="w-full aspect-[4/3] overflow-hidden bg-gray-50 rounded-t-lg">
+        <div
+          className="w-full aspect-[4/3] overflow-hidden bg-gray-50 relative"
+          style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
+        >
           <img
-            alt="cover"
+            alt={record.drinkName}
             src={record.imageUrl || fallbackImage}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
             onError={(e) => {
               const el = e.currentTarget as HTMLImageElement;
               if (el.src !== fallbackImage) {
@@ -49,50 +36,49 @@ export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }:
           />
         </div>
       }
-      styles={{ body: { padding: '8px 10px' } }}
+      styles={{
+        body: {
+          padding: '10px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          minHeight: '76px',
+        },
+      }}
       style={{
         width: '100%',
-        border: '1px solid rgba(0,0,0,0.06)',
+        borderRadius: 12,
+        overflow: 'hidden',
+        border: '1px solid #f0f0f0',
         background: '#fff',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
       }}
     >
-      <div className="flex flex-col justify-between gap-2">
-        {/* Drink Name Display Row - Full text wrapping up to 2 lines */}
-        <div>
-          <Typography.Paragraph
-            ellipsis={{ rows: 2 }}
-            className="mb-0! text-xs font-semibold leading-snug text-gray-800"
-            title={record.drinkName}
-          >
-            {record.drinkName}
-          </Typography.Paragraph>
-        </div>
+      {/* Information below the image. */}
+      <div className="flex flex-col justify-between h-full gap-1">
+        <Typography.Paragraph
+          ellipsis={{ rows: 2, expandable: false }}
+          className="mb-0! text-sm font-semibold text-gray-800 leading-snug"
+          title={record.drinkName}
+        >
+          {record.drinkName}
+        </Typography.Paragraph>
 
-        {/* Bottom Price & Delete Button Row */}
-        <div className="flex items-end justify-between gap-1 mt-1">
-          <div>
-            <span className="text-green-600 font-semibold text-xs">{priceText}</span>
-          </div>
-
-          {/* Delete Button */}
-          {!isStaff && onDelete && (
+        {!isStaff && onDelete && (
+          <div className="flex items-center justify-end">
             <Button
               danger
               type="text"
               shape="circle"
               size="small"
-              className="flex items-center justify-center min-w-[24px] w-6 h-6"
-              icon={<DeleteOutlined style={{ fontSize: 13 }} />}
+              className="flex items-center justify-center opacity-70 group-hover:opacity-100 hover:bg-red-50"
+              icon={<DeleteOutlined style={{ fontSize: 14 }} />}
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(record);
               }}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Card>
   );
