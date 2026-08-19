@@ -2,6 +2,7 @@ import { api } from '@/api/api';
 import { ENDPOINT } from '@/constants/endpoint';
 import type {
   DrinksResponse,
+  GetDrinkDetailResponse,
   GetDrinksRequest,
   CreateDrinkRequest,
   CreateDrinkResponse,
@@ -11,6 +12,12 @@ import type {
 
 export async function getDrinksApi(payload: GetDrinksRequest): Promise<DrinksResponse> {
   const response = await api.post<DrinksResponse>(ENDPOINT.GET_DRINKS, payload);
+  return response.data;
+}
+
+// Fetch single drink detail including variants (size & price) via GET method
+export async function getDrinkDetailApi(drinkId: string): Promise<GetDrinkDetailResponse> {
+  const response = await api.get<GetDrinkDetailResponse>(`${ENDPOINT.GET_DRINK_DETAIL}/${drinkId}`);
   return response.data;
 }
 

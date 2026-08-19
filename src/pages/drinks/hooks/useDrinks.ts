@@ -2,18 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast/useToast';
 import { getDrinksApi, createDrinkApi, deleteDrinkApi } from '../api/drinksAPI';
+import { getShopNamesApi } from '@/pages/staffs/api/staffsApi';
 import type { DrinkItem, GetDrinksRequest, CreateDrinkRequest } from '../types';
+import type { ShopNameItem } from '@/pages/staffs/types';
 
-// Default pagination and sorting parameters
+// Default pagination, search, and shop filter parameters
 const DEFAULT_PARAMS: GetDrinksRequest = {
   page: 1,
   size: 10,
+  branchShopId: '',
   search: '',
   sortBy: 'drinkName',
   sortDirection: 'ASC',
 };
 
-// Custom hook to handle drinks API fetching, searching, and pagination state
+// Custom hook managing drinks listing, filtering, and CRUD state
 export function useDrinks(initialPage = 1, initialSize = 10) {
   const toast = useToast();
   const { t } = useTranslation();
@@ -25,29 +28,31 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     size: initialSize,
   });
 
-  // API data states
+  // Data states
   const [items, setItems] = useState<DrinkItem[]>([]);
   const [totalElements, setTotalElements] = useState<number>(0);
+  const [shopNames, setShopNames] = useState<ShopNameItem[]>([]);
 
-  // Loading and modal UI states
+  // UI loading and status states
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [optionsLoading, setOptionsLoading] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
   const [isSearch, setIsSearch] = useState(false);
 
-  // Core API requester function
+  // Core API request function
   const fetchDrinks = useCallback(
     async (currentParams: GetDrinksRequest, isSearchAction = false) => {
       setLoading(true);
       if (isSearchAction) setSearchLoading(true);
 
       try {
-        // Build payload matching backend API requirements
         const payload: GetDrinksRequest = {
           page: currentParams.page,
           size: currentParams.size,
+          branchShopId: currentParams.branchShopId || '',
           search: currentParams.search?.trim() || '',
           sortBy: currentParams.sortBy || 'drinkName',
           sortDirection: currentParams.sortDirection || 'ASC',
@@ -59,7 +64,6 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         setItems(resItems);
         setTotalElements(response.pagination?.totalElements ?? resItems.length ?? 0);
 
-        // Trigger empty state modal if search yields no records
         if (isSearchAction && currentParams.search?.trim() && resItems.length === 0) {
           setShowEmptyModal(true);
         }
@@ -78,7 +82,23 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     [],
   );
 
-  // Refetch data whenever query params or search flag changes
+  // Fetch shop list for the OWNER filter dropdown
+  useEffect(() => {
+    async function fetchOptions() {
+      setOptionsLoading(true);
+      try {
+        const shopNamesRes = await getShopNamesApi();
+        setShopNames(shopNamesRes.shopNameResults || []);
+      } catch (err) {
+        console.error('Failed to fetch shop options:', err);
+      } finally {
+        setOptionsLoading(false);
+      }
+    }
+    void fetchOptions();
+  }, []);
+
+  // Synchronize data fetching on parameter changes
   useEffect(() => {
     let isMounted = true;
 
@@ -95,7 +115,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     };
   }, [params, fetchDrinks, isSearch]);
 
-  // Handler for creating new drink
+  // Handler for creating a new drink
   const createDrink = useCallback(
     async (values: CreateDrinkRequest) => {
       setCreateLoading(true);
@@ -113,7 +133,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     [params, fetchDrinks, toast, t],
   );
 
-  // Handler for deleting drink (Soft Delete)
+  // Handler for deleting a drink
   const deleteDrink = useCallback(
     async (drinkId: string) => {
       setDeleteLoading(true);
@@ -131,7 +151,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     [params, fetchDrinks, toast, t],
   );
 
-  // Handler for explicit search actions (resets page to 1)
+  // Handler for search keyword changes
   const handleSearch = (searchKeyword: string) => {
     setIsSearch(true);
     setParams((prev) => ({
@@ -141,7 +161,17 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     }));
   };
 
-  // Handler for pagination page or page size changes
+  // Handler for shop filter changes
+  const handleShopFilter = (branchShopId: string) => {
+    setIsSearch(false);
+    setParams((prev) => ({
+      ...prev,
+      branchShopId,
+      page: 1,
+    }));
+  };
+
+  // Handler for pagination changes
   const handlePageChange = (page: number, size?: number) => {
     setIsSearch(false);
     setParams((prev) => ({
@@ -151,19 +181,29 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     }));
   };
 
+  // Map shop list to Ant Design Select options
+  const shopOptions = shopNames.map((s) => ({
+    value: s.shopId,
+    label: s.shopName,
+  }));
+
   return {
     items,
     totalElements,
     currentPage: params.page,
     currentPageSize: params.size,
     searchKeyword: params.search ?? '',
+    currentBranchShopId: params.branchShopId,
     loading,
     searchLoading,
     createLoading,
     deleteLoading,
+    optionsLoading,
+    shopOptions,
     showEmptyModal,
     closeEmptyModal: () => setShowEmptyModal(false),
     handleSearch,
+    handleShopFilter,
     handlePageChange,
     createDrink,
     deleteDrink,

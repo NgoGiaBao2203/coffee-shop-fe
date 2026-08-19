@@ -1,53 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
-import {
-  Pagination,
-  Empty,
-  Spin,
-  Button,
-  Typography,
-  Tag,
-  Drawer,
-  Radio,
-  Select,
-  Modal,
-} from 'antd';
+import { Pagination, Empty, Spin, Button, Typography, Select, Modal } from 'antd';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
 import { useDrinks } from './hooks/useDrinks';
+import { getDrinkDetailApi } from './api/drinksAPI';
 import type { DrinkItem } from './types';
 import { DrinkCardGrouped } from './components/DrinkCardGrouped';
 import { DrinkCreateModal } from './components/DrinkCreateModal';
+import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
 
 export function DrinksPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
 
-  // Check role permission (STAFF role cannot see create/delete buttons)
+  // Role authorization checks
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isStaff = roleName === ROLES.STAFF;
+  const isOwner = roleName === ROLES.OWNER;
 
-  // Fetch drinks data and handlers from custom hook
+  // Custom hook retrieving drink data, options, and actions
   const {
     items,
     totalElements,
     loading,
     searchLoading,
     createLoading,
-    currentPage,
-    currentPageSize,
     showEmptyModal,
     closeEmptyModal,
+    currentPage,
+    currentPageSize,
+    currentBranchShopId,
+    shopOptions,
+    optionsLoading,
     handleSearch,
+    handleShopFilter,
     handlePageChange,
     createDrink,
     deleteDrink,
   } = useDrinks(1, 10);
 
-  // Show error modal when user search returns no results
+  // Trigger error modal on empty search results
   useEffect(() => {
     if (showEmptyModal) {
       showError(t('drinks.emptySearch'), t('common.error'));
@@ -55,22 +51,33 @@ export function DrinksPage() {
     }
   }, [showEmptyModal]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Drawer and variant selection states
+  // Modal and drawer control states
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [selected, setSelected] = useState<DrinkItem | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
 
-  const fallbackImage = 'https://placehold.co/600x400?text=No+Image';
-
-  // Open detail drawer and select the first size variant by default
-  const onCardClick = (g: DrinkItem) => {
+  // Open detail drawer and fetch variants
+  const onCardClick = async (g: DrinkItem) => {
     setSelected(g);
     setSelectedVariantIndex(0);
     setDrawerOpen(true);
+    setDetailLoading(true);
+
+    try {
+      const res = await getDrinkDetailApi(g.drinkId);
+      if (res?.item) {
+        setSelected(res.item);
+      }
+    } catch (err) {
+      console.error('Failed to fetch drink detail:', err);
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
-  // Open central delete confirmation modal matching the staff page style
+  // Confirm soft deletion
   const handleDeleteDrink = (g: DrinkItem) => {
     const targetId = g.drinkId;
     if (!targetId) return;
@@ -89,27 +96,13 @@ export function DrinksPage() {
     });
   };
 
-  // Get price for the currently selected size variant
-  const priceForSelected = () => {
-    if (!selected || !selected.variants || selected.variants.length === 0) return 0;
-    const v = selected.variants[selectedVariantIndex];
-    return v?.price ?? 0;
-  };
-
-  // Helper format currency
-  const formatCurrency = (amount: number | string | undefined | null) => {
-    if (amount === undefined || amount === null || amount === '—') return '—';
-    const num = Number(String(amount).replace(/[^0-9.-]+/g, '')) || 0;
-    return `${num.toLocaleString('vi-VN')}đ`;
-  };
-
   return (
     <div className="flex flex-col gap-3 rounded-xl p-4 bg-white shadow-sm">
       <Typography.Title level={4} className="mb-0!">
         {t('drinks.title')}
       </Typography.Title>
 
-      {/* Search Input & Action Bar */}
+      {/* Action Bar: Search input, Branch filter for OWNER, and Create button */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex-1 min-w-48">
           <SearchInput
@@ -119,7 +112,20 @@ export function DrinksPage() {
           />
         </div>
 
-        {/* Create new button in the right corner; hidden for the STAFF role. */}
+        {/* Branch Shop Select Filter (OWNER role only) */}
+        {isOwner && (
+          <Select
+            allowClear
+            placeholder={t('staffs.filterShop')}
+            options={shopOptions}
+            loading={optionsLoading}
+            value={currentBranchShopId || undefined}
+            onChange={(val) => handleShopFilter(val ?? '')}
+            className="w-52"
+          />
+        )}
+
+        {/* Create Drink Button (hidden for STAFF) */}
         {!isStaff && (
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             {t('form.create')}
@@ -129,11 +135,7 @@ export function DrinksPage() {
 
       {/* Scrollable card container with fixed height to prevent layout shift during pagination */}
       <div className="w-full border border-gray-200 rounded-lg p-3 h-[calc(100vh-295px)] min-h-[460px] overflow-y-auto bg-gray-50/30">
-        <Spin
-          spinning={loading}
-          tip={t('common.loading')}
-          wrapperClassName="w-full h-full flex items-center justify-center"
-        >
+        <Spin spinning={loading} description={t('common.loading')}>
           {items.length === 0 && !loading ? (
             <div className="py-16 flex justify-center items-center">
               <Empty description={t('drinks.empty')} />
@@ -182,93 +184,17 @@ export function DrinksPage() {
         </div>
       </div>
 
-      {/* Drink Detail Drawer */}
-      <Drawer
+      {/* Drink Details Drawer */}
+      <DrinkDetailDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        width={520}
-        title={selected?.drinkName}
-        footer={
-          <div className="flex justify-end">
-            <Button onClick={() => setDrawerOpen(false)}>{t('form.close')}</Button>
-          </div>
-        }
-      >
-        {selected && (
-          <div className="flex flex-col gap-4">
-            {/* Drink Image */}
-            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center border border-gray-100">
-              <img
-                src={selected.imageUrl || fallbackImage}
-                alt="drink"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const el = e.currentTarget as HTMLImageElement;
-                  if (el.src !== fallbackImage) {
-                    el.src = fallbackImage;
-                  }
-                }}
-              />
-            </div>
+        selected={selected}
+        detailLoading={detailLoading}
+        selectedVariantIndex={selectedVariantIndex}
+        onSelectedVariantIndexChange={setSelectedVariantIndex}
+      />
 
-            {/* Drink Title & Size Badge */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Typography.Title level={4} className="mb-0!">
-                {selected.drinkName}
-              </Typography.Title>
-              {selected?.variants?.length && (
-                <Tag color="green">{selected.variants.length} size</Tag>
-              )}
-            </div>
-
-            {/* Variant Selector */}
-            <div>
-              <Typography.Text strong>{t('drinks.chooseSize')}</Typography.Text>
-              <div className="mt-2 w-full overflow-x-auto">
-                <Radio.Group
-                  value={selectedVariantIndex}
-                  onChange={(e) => setSelectedVariantIndex(Number(e.target.value))}
-                  buttonStyle="solid"
-                  className="flex flex-wrap gap-2"
-                >
-                  {selected.variants?.map((v, idx) => (
-                    <Radio.Button key={v.drinkId || idx} value={idx}>
-                      {v.size.trim()} - {formatCurrency(v.price)}
-                    </Radio.Button>
-                  ))}
-                </Radio.Group>
-              </div>
-            </div>
-
-            {/* Price and Status Row */}
-            <div className="flex items-center justify-between gap-4 pt-3 border-t border-gray-100">
-              <div>
-                <div className="text-sm text-gray-500">{t('drinks.price')}</div>
-
-                <div className="text-xl font-bold text-green-600">
-                  {formatCurrency(priceForSelected())}
-                </div>
-              </div>
-
-              <div className="text-right">
-                <div className="text-sm text-gray-500">{t('drinks.status')}</div>
-                <Tag
-                  color={
-                    selected?.status === 'Đang bán' || selected?.status === t('drinks.statusActive')
-                      ? 'green'
-                      : 'default'
-                  }
-                  className="mt-1 mr-0"
-                >
-                  {selected?.status ?? '—'}
-                </Tag>
-              </div>
-            </div>
-          </div>
-        )}
-      </Drawer>
-
-      {/* Create drink Modal */}
+      {/* Create Drink Modal */}
       <DrinkCreateModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
