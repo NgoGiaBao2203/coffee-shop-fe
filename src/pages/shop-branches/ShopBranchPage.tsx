@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Button } from 'antd';
+import { Typography, Button, notification } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
@@ -8,7 +8,10 @@ import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { AppFormDrawer, type FormFieldConfig } from '@/components/form/AppFormDrawer';
 import { useShopBranch } from './hooks/useShopBranch';
-import type { ShopBranchItem } from './types';
+import { createShopBranchApi, editShopBranchApi } from './api/shopBranchAPI';
+import { ShopBranchCreateModal } from './components/ShopBranchCreateModal';
+import { ShopBranchEditModal } from './components/ShopBranchEditModal';
+import type { ShopBranchItem, CreateShopBranchRequest, EditShopBranchRequest } from './types';
 
 // Format datetime values to Vietnamese locale string
 const formatDate = (value: unknown) =>
@@ -40,10 +43,17 @@ export function ShopBranchPage() {
     closeEmptyModal,
     handleSearch,
     handlePageChange,
+    refresh,
   } = useShopBranch(1, 10);
 
-  // Drawer and record state
+  // Drawer, modal, and record state
   const [detailOpen, setDetailOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+
   const [selectedRecord, setSelectedRecord] = useState<ShopBranchItem | null>(null);
 
   // Trigger error notification modal when search query yields no results
@@ -101,20 +111,50 @@ export function ShopBranchPage() {
     },
   ];
 
-  // Handle create button click
+  // Handle open create modal
   const handleCreateClick = () => {
-    // TODO: Open ShopBranchCreateModal once created
-    console.log('Open create modal');
+    setCreateModalOpen(true);
+  };
+
+  // Handle create branch API submission
+  const handleCreateSubmit = async (values: CreateShopBranchRequest) => {
+    setCreateLoading(true);
+    try {
+      await createShopBranchApi(values);
+      notification.success({
+        message: t('shopBranches.createSuccess'),
+        placement: 'topRight',
+        duration: 3,
+      });
+      refresh();
+      setCreateModalOpen(false);
+    } finally {
+      setCreateLoading(false);
+    }
   };
 
   // Handle edit action on table row
   const handleEditClick = (record: ShopBranchItem) => {
     setSelectedRecord(record);
-    // TODO: Open ShopBranchEditModal once created
-    console.log('Open edit modal for:', record.shopId);
+    setEditModalOpen(true);
   };
 
-  // Handle delete confirmation modal
+  const handleEditSubmit = async (values: EditShopBranchRequest) => {
+    setEditLoading(true);
+    try {
+      await editShopBranchApi(values);
+      notification.success({
+        message: t('shopBranches.editSuccess'),
+        placement: 'topRight',
+        duration: 3,
+      });
+      refresh();
+      setEditModalOpen(false);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const handleDeleteClick = (record: ShopBranchItem) => {
     confirmDelete({
       title: t('table.deleteConfirmTitle'),
@@ -175,6 +215,22 @@ export function ShopBranchPage() {
         onClose={() => setDetailOpen(false)}
         record={selectedRecord}
         fields={branchFields}
+      />
+
+      {/* Create Modal */}
+      <ShopBranchCreateModal
+        open={createModalOpen}
+        loading={createLoading}
+        onClose={() => setCreateModalOpen(false)}
+        onSubmit={handleCreateSubmit}
+      />
+
+      <ShopBranchEditModal
+        open={editModalOpen}
+        loading={editLoading}
+        record={selectedRecord}
+        onClose={() => setEditModalOpen(false)}
+        onSubmit={handleEditSubmit}
       />
     </div>
   );

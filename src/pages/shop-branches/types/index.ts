@@ -32,3 +32,17 @@ export interface ShopBranchesResponse {
   items: ShopBranchItem[];
   pagination: ShopBranchPagination;
 }
+
+export interface CreateShopBranchRequest {
+  shopName: string;
+  address: string;
+  phoneNumber: string;
+}
+
+export interface EditShopBranchRequest {
+  shopId: string;
+  shopName: string;
+  address: string;
+  phoneNumber: string;
+  isDeleted?: boolean;
+}

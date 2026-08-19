@@ -91,7 +91,22 @@
     "createdAt": "Ngày tạo",
     "updatedAt": "Ngày cập nhật",
     "searchPlaceholder": "Tìm kiếm chi nhánh theo tên, địa chỉ...",
-    "emptySearch": "Không tìm thấy chi nhánh nào phù hợp với từ khóa tìm kiếm."
+    "emptySearch": "Không tìm thấy chi nhánh nào phù hợp với từ khóa tìm kiếm.",
+    "createTitle": "Thêm chi nhánh",
+    "createSuccess": "Thêm chi nhánh thành công.",
+    "nameRequired": "Vui lòng nhập tên chi nhánh.",
+    "phoneRequired": "Vui lòng nhập số điện thoại.",
+    "addressRequired": "Vui lòng nhập địa chỉ.",
+    "nameConflict": "Tên chi nhánh đã tồn tại.",
+    "phoneConflict": "Số điện thoại đã tồn tại.",
+    "addressConflict": "Địa chỉ chi nhánh đã tồn tại.",
+    "shopNamePlaceholder": "Nhập tên chi nhánh...",
+    "phoneNumberPlaceholder": "Nhập số điện thoại...",
+    "addressPlaceholder": "Nhập địa chỉ...",
+    "phoneInvalid": "Số điện thoại chứa 10-11 chữ số.",
+    "phoneMax": "Số điện thoại tối đa 11 số.",
+    "editTitle": "Chỉnh sửa chi nhánh",
+    "editSuccess": "Cập nhật chi nhánh thành công."
   },
   "search": {
     "placeholder": "Tìm kiếm..."
@@ -181,6 +196,7 @@
     "ER010": "Tài khoản của bạn đã bị vô hiệu hóa.",
     "ER500": "Đã xảy ra lỗi máy chủ nội bộ. Vui lòng thử lại sau.",
     "EV001": "Trường này là bắt buộc.",
-    "EV002": "Mật khẩu không đúng độ dài yêu cầu."
+    "EV002": "Mật khẩu không đúng độ dài yêu cầu.",
+    "EV005": "Số điện thoại không được vượt quá 11 ký tự."
   }
 }
