@@ -83,6 +83,16 @@
     "selectYearPlaceholder": "-- Chọn năm --",
     "modalTitle": "Chi Tiết Hóa Đơn"
   },
+  "shopBranches": {
+    "title": "Chi Nhánh",
+    "shopName": "Tên chi nhánh",
+    "address": "Địa chỉ",
+    "phoneNumber": "Số điện thoại",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "searchPlaceholder": "Tìm kiếm chi nhánh theo tên, địa chỉ...",
+    "emptySearch": "Không tìm thấy chi nhánh nào phù hợp với từ khóa tìm kiếm."
+  },
   "search": {
     "placeholder": "Tìm kiếm..."
   },
