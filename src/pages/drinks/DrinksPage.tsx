@@ -133,30 +133,27 @@ export function DrinksPage() {
         )}
       </div>
 
-      {/* Grid container with drinks list */}
-      <div className="w-full border border-gray-200 rounded-lg p-3 h-[calc(100vh-295px)] min-h-[460px] overflow-y-auto bg-gray-50/30 relative">
-        {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
-            <Spin tip={t('common.loading')} />
-          </div>
-        )}
-        {items.length === 0 && !loading ? (
-          <div className="py-16 flex justify-center items-center w-full min-h-[400px]">
-            <Empty description={t('drinks.empty')} />
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 items-stretch justify-start pt-1 px-1 pb-3 w-full">
-            {items.map((g) => (
-              <DrinkCardGrouped
-                key={g.drinkId}
-                record={g}
-                onClick={() => onCardClick(g)}
-                onDelete={handleDeleteDrink}
-                isStaff={isStaff}
-              />
-            ))}
-          </div>
-        )}
+      {/* Scrollable card container with fixed height to prevent layout shift during pagination */}
+      <div className="w-full border border-gray-200 rounded-lg p-3 h-[calc(100vh-295px)] min-h-[460px] overflow-y-auto bg-gray-50/30">
+        <Spin spinning={loading} description={t('common.loading')}>
+          {items.length === 0 && !loading ? (
+            <div className="py-16 flex justify-center items-center">
+              <Empty description={t('drinks.empty')} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 items-start justify-start">
+              {items.map((g) => (
+                <DrinkCardGrouped
+                  key={g.drinkId}
+                  record={g}
+                  onClick={() => onCardClick(g)}
+                  onDelete={handleDeleteDrink}
+                  isStaff={isStaff}
+                />
+              ))}
+            </div>
+          )}
+        </Spin>
       </div>
 
       {/* Pagination Controls */}
