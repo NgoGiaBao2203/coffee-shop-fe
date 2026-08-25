@@ -8,7 +8,7 @@ import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { AppFormDrawer, type FormFieldConfig } from '@/components/form/AppFormDrawer';
 import { useShopBranch } from './hooks/useShopBranch';
-import { createShopBranchApi, editShopBranchApi } from './api/shopBranchAPI';
+import { createShopBranchApi, editShopBranchApi, deleteShopBranchApi } from './api/shopBranchAPI';
 import { ShopBranchCreateModal } from './components/ShopBranchCreateModal';
 import { ShopBranchEditModal } from './components/ShopBranchEditModal';
 import type { ShopBranchItem, CreateShopBranchRequest, EditShopBranchRequest } from './types';
@@ -139,6 +139,7 @@ export function ShopBranchPage() {
     setEditModalOpen(true);
   };
 
+  // Handle edit branch API submission
   const handleEditSubmit = async (values: EditShopBranchRequest) => {
     setEditLoading(true);
     try {
@@ -155,16 +156,26 @@ export function ShopBranchPage() {
     }
   };
 
+  // Handle delete confirmation modal
   const handleDeleteClick = (record: ShopBranchItem) => {
     confirmDelete({
-      title: t('table.deleteConfirmTitle'),
-      content: t('table.deleteConfirmDesc'),
+      title: t('shopBranches.deleteTitle'),
+      content: t('shopBranches.deleteConfirmDesc', { name: record.shopName }),
       okText: t('table.deleteOk'),
       cancelText: t('table.deleteCancel'),
       okDanger: true,
       onConfirm: async () => {
-        // TODO: Trigger delete API endpoint once available
-        console.log('Delete shop branch:', record.shopId);
+        try {
+          await deleteShopBranchApi({ shopId: record.shopId });
+          notification.success({
+            message: t('shopBranches.deleteSuccess'),
+            placement: 'topRight',
+            duration: 3,
+          });
+          refresh();
+        } catch (error) {
+          console.error('Failed to delete shop branch:', error);
+        }
       },
     });
   };
@@ -225,6 +236,7 @@ export function ShopBranchPage() {
         onSubmit={handleCreateSubmit}
       />
 
+      {/* Edit Modal */}
       <ShopBranchEditModal
         open={editModalOpen}
         loading={editLoading}

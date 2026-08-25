@@ -46,3 +46,7 @@ export interface EditShopBranchRequest {
   phoneNumber: string;
   isDeleted?: boolean;
 }
+
+export interface DeleteShopBranchRequest {
+  shopId: string;
+}

@@ -32,4 +32,5 @@ export const ENDPOINT = {
   GET_SHOP_BRANCHES: 'shop-branches',
   CREATE_SHOP_BRANCH: 'shop-branch/create',
   EDIT_SHOP_BRANCH: '/shop-branch/edit',
+  DELETE_SHOP_BRANCH: '/shop-branch/delete',
 } as const;

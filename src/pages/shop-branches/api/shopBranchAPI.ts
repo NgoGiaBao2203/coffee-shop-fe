@@ -6,6 +6,7 @@ import type {
   ShopBranchesResponse,
   CreateShopBranchRequest,
   EditShopBranchRequest,
+  DeleteShopBranchRequest,
 } from '../types';
 
 export async function getShopBranchesApi(
@@ -27,4 +28,8 @@ export async function editShopBranchApi(payload: EditShopBranchRequest): Promise
   await api.post(ENDPOINT.EDIT_SHOP_BRANCH, payload, {
     suppressCodes: [RESPONSE_CODE.CONFLICT, 'ER005'],
   });
+}
+
+export async function deleteShopBranchApi(payload: DeleteShopBranchRequest): Promise<void> {
+  await api.delete(ENDPOINT.DELETE_SHOP_BRANCH, { data: payload });
 }
