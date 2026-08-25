@@ -23,4 +23,14 @@ export const ENDPOINT = {
   GET_DRINK_DETAIL: '/drink/detail',
   CREATE_DRINK: '/drink/create',
   DELETE_DRINK: '/drink/delete',
+  UPDATE_DRINK: '/drink/edit',
+
+  // Revenue
+  GET_REVENUES: '/revenues',
+
+  // Shop branch
+  GET_SHOP_BRANCHES: 'shop-branches',
+  CREATE_SHOP_BRANCH: 'shop-branch/create',
+  EDIT_SHOP_BRANCH: '/shop-branch/edit',
+  DELETE_SHOP_BRANCH: '/shop-branch/delete',
 } as const;
