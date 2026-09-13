@@ -7,6 +7,7 @@ import { DrinksPage } from '@/pages/drinks/DrinksPage';
 import { StaffsPage } from '@/pages/staffs/StaffsPage';
 import { CategoriesPage } from '@/pages/categories/CategoriesPage';
 import { RevenuesPage } from '@/pages/revenue/RevenuesPage';
+import { InvoicesPage } from '@/pages/invoices/InvoicesPage';
 import { ShopBranchPage } from '@/pages/shop-branches/ShopBranchPage';
 
 export const router = createHashRouter([
@@ -43,6 +44,10 @@ export const router = createHashRouter([
           {
             path: '/revenue',
             element: <RevenuesPage />,
+          },
+          {
+            path: '/invoices',
+            element: <InvoicesPage />,
           },
           {
             path: '/shop-branches',

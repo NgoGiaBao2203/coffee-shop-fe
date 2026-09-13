@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Layout, Typography } from 'antd';
 import {
   CoffeeOutlined,
-  ShoppingCartOutlined,
+  FileTextOutlined,
   AppstoreOutlined,
   LineChartOutlined,
   TeamOutlined,
@@ -22,7 +22,7 @@ export function MainLayout() {
 
   const NAV_ITEMS = [
     { key: '/', label: t('sidebar.drinks'), icon: <CoffeeOutlined /> },
-    { key: '/orders', label: t('sidebar.orders'), icon: <ShoppingCartOutlined /> },
+    { key: '/invoices', label: t('sidebar.invoices'), icon: <FileTextOutlined /> },
     { key: '/categories', label: t('sidebar.categories'), icon: <AppstoreOutlined /> },
     { key: '/revenue', label: t('sidebar.revenues'), icon: <LineChartOutlined /> },
     { key: '/staff', label: t('sidebar.staffs'), icon: <TeamOutlined /> },

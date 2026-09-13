@@ -1,5 +1,6 @@
 import { Card, Typography, Button } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
+import { resolveImageUrl } from '@/utils/image';
 import type { DrinkItem } from '../types';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 
 export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }: Props) {
   const fallbackImage = 'https://placehold.co/400x300?text=No+Image';
+  const displayImage = resolveImageUrl(record.imageUrl) || fallbackImage;
 
   return (
     <Card
@@ -24,7 +26,7 @@ export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }:
         >
           <img
             alt={record.drinkName}
-            src={record.imageUrl || fallbackImage}
+            src={displayImage}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
             onError={(e) => {

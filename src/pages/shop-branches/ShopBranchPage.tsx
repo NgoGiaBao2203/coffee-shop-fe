@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Typography, Button, notification } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { SearchInput } from '@/components/search/SearchInput';
@@ -12,6 +13,9 @@ import { createShopBranchApi, editShopBranchApi, deleteShopBranchApi } from './a
 import { ShopBranchCreateModal } from './components/ShopBranchCreateModal';
 import { ShopBranchEditModal } from './components/ShopBranchEditModal';
 import type { ShopBranchItem, CreateShopBranchRequest, EditShopBranchRequest } from './types';
+
+const SEARCH_PATTERN = /^[\p{L}0-9\s.,/&'#-]*$/u;
+const SEARCH_MAX_LENGTH = 100;
 
 // Format datetime values to Vietnamese locale string
 const formatDate = (value: unknown) =>
@@ -41,7 +45,7 @@ export function ShopBranchPage() {
     searchKeyword,
     showEmptyModal,
     closeEmptyModal,
-    handleSearch,
+    handleSearch: triggerHookSearch,
     handlePageChange,
     refresh,
   } = useShopBranch(1, 10);
@@ -63,6 +67,23 @@ export function ShopBranchPage() {
       closeEmptyModal();
     }
   }, [showEmptyModal, closeEmptyModal, showError, t]);
+
+  // Handle search with frontend inputvalidation
+  const handleSearch = (keyword: string) => {
+    const trimmed = keyword.trim();
+
+    if (trimmed.length > SEARCH_MAX_LENGTH) {
+      showError(t('shopBranches.nameMaxLength'), t('common.error'));
+      return;
+    }
+
+    if (trimmed && !SEARCH_PATTERN.test(trimmed)) {
+      showError(t('shopBranches.specialCharacters'), t('common.error'));
+      return;
+    }
+
+    triggerHookSearch(keyword);
+  };
 
   // Form field configuration for the details drawer
   const branchFields: FormFieldConfig[] = [
@@ -174,7 +195,14 @@ export function ShopBranchPage() {
           });
           refresh();
         } catch (error) {
-          console.error('Failed to delete shop branch:', error);
+          const errMsg = axios.isAxiosError<{ message?: string }>(error)
+            ? error.response?.data?.message || ''
+            : '';
+          if (errMsg.includes('pending invoices')) {
+            showError(t('shopBranches.deletePendingInvoices'), t('common.error'));
+          } else {
+            showError(t('responses.ER001'), t('common.error'));
+          }
         }
       },
     });

@@ -20,6 +20,10 @@ export const RESPONSE_CODE = {
   // Validation errors
   FIELD_REQUIRED: 'EV001',
   PASSWORD_LENGTH_INCORRECT: 'EV002',
+  SIZE_MAX: 'EV005',
+  SPECIAL_CHARACTERS: 'EV007',
+  PHONE_NUMBER_INVALID: 'EV008',
+  PHONE_INVALID_LENGTH: 'EV009',
 } as const;
 
 export type ResponseCode = (typeof RESPONSE_CODE)[keyof typeof RESPONSE_CODE];
