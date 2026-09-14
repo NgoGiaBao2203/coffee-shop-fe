@@ -91,16 +91,22 @@
   "categories": {
     "title": "Danh Mục",
     "name": "Tên danh mục",
+    "shopName": "Chi nhánh",
+    "filterShop": "Lọc chi nhánh",
     "searchPlaceholder": "Tìm kiếm danh mục...",
+    "searchMaxLength": "Từ khóa tìm kiếm không được vượt quá 100 ký tự.",
+    "searchInvalid": "Từ khóa tìm kiếm chứa ký tự không hợp lệ.",
     "emptySearch": "Không tìm thấy danh mục nào phù hợp với từ khóa tìm kiếm.",
     "createTitle": "Thêm danh mục",
     "editTitle": "Chỉnh sửa danh mục",
     "createSuccess": "Thêm danh mục thành công.",
     "editSuccess": "Chỉnh sửa danh mục thành công.",
     "deleteSuccess": "Xoá danh mục thành công.",
+    "deleteConfirmDesc": "Xóa danh mục \"{{name}}\" sẽ xóa toàn bộ đồ uống và chi tiết đồ uống (size, giá) thuộc danh mục. Bạn có chắc chắn muốn tiếp tục không?",
     "nameRequired": "Vui lòng nhập tên danh mục.",
+    "nameMaxLength": "Tên danh mục không được vượt quá 100 ký tự.",
     "shopRequired": "Vui lòng chọn chi nhánh.",
-    "nameConflict": "Tên danh mục đã tồn tại."
+    "nameConflict": "Tên danh mục đã tồn tại trong chi nhánh."
   },
   "revenues": {
     "title": "Báo Cáo Doanh Thu",
@@ -253,6 +259,7 @@
     "ER008": "Dữ liệu yêu cầu không hợp lệ.",
     "ER009": "Tên đăng nhập hoặc mật khẩu không đúng.",
     "ER010": "Tài khoản của bạn đã bị vô hiệu hóa.",
+    "ER011": "Tên danh mục đã tồn tại trong chi nhánh.",
     "ER500": "Đã xảy ra lỗi máy chủ nội bộ. Vui lòng thử lại sau.",
     "EV001": "Trường này là bắt buộc.",
     "EV002": "Mật khẩu không đúng độ dài yêu cầu.",

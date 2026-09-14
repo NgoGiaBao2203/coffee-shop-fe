@@ -10,6 +10,7 @@ import type {
   EditCategoryResponse,
   DeleteCategoryRequest,
   DeleteCategoryResponse,
+  ShopNameListResponse,
 } from '../types';
 
 export async function getCategoriesApi(params: CategoryListParams): Promise<CategoryListResponse> {
@@ -17,18 +18,23 @@ export async function getCategoriesApi(params: CategoryListParams): Promise<Cate
   return response.data;
 }
 
+export async function getShopNamesApi(): Promise<ShopNameListResponse> {
+  const response = await api.get<ShopNameListResponse>(ENDPOINT.GET_SHOP_NAMES);
+  return response.data;
+}
+
 export async function createCategoryApi(
   params: CreateCategoryRequest,
 ): Promise<CreateCategoryResponse> {
   const response = await api.post<CreateCategoryResponse>(ENDPOINT.CREATE_CATEGORY, params, {
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST],
+    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST, RESPONSE_CODE.CONFLICT],
   });
   return response.data;
 }
 
 export async function editCategoryApi(params: EditCategoryRequest): Promise<EditCategoryResponse> {
   const response = await api.put<EditCategoryResponse>(ENDPOINT.EDIT_CATEGORY, params, {
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST],
+    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST, RESPONSE_CODE.CONFLICT],
   });
   return response.data;
 }

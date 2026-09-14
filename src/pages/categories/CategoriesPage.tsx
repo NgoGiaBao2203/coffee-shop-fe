@@ -50,6 +50,19 @@ export function CategoriesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<CategoryItem | null>(null);
 
+  const handleCategorySearch = (value: string) => {
+    const trimmedValue = value.trim();
+    if (trimmedValue.length > 100) {
+      showError(t('responses.EV005'), t('common.error'));
+      return;
+    }
+    if (trimmedValue && !/^[\p{L}\p{N}\s\-']+$/u.test(trimmedValue)) {
+      showError(t('responses.EV007'), t('common.error'));
+      return;
+    }
+    handleSearch(value);
+  };
+
   useEffect(() => {
     if (showEmptyModal) {
       showError(t('categories.emptySearch'), t('common.error'));
@@ -65,10 +78,10 @@ export function CategoriesPage() {
       width: 260,
     },
     {
-      key: 'shopId',
-      dataIndex: 'shopId',
-      title: t('staffs.shopName'),
-      render: (shopId: string) => shopOptions.find((s) => s.value === shopId)?.label ?? shopId,
+      key: 'shopName',
+      dataIndex: 'shopName',
+      title: t('categories.shopName'),
+      //render: (_shopId: string, record) => record.shopName,
     },
   ];
 
@@ -81,7 +94,7 @@ export function CategoriesPage() {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex-1 min-w-48">
           <SearchInput
-            onSearch={handleSearch}
+            onSearch={handleCategorySearch}
             loading={searchLoading}
             placeholder={t('categories.searchPlaceholder')}
           />
@@ -89,7 +102,7 @@ export function CategoriesPage() {
         {isOwner && (
           <Select
             allowClear
-            placeholder={t('staffs.filterShop')}
+            placeholder={t('categories.filterShop')}
             options={shopOptions}
             loading={optionsLoading}
             value={currentBranchShopId || undefined}
@@ -122,7 +135,7 @@ export function CategoriesPage() {
           onDeleteClick: (record) => {
             confirmDelete({
               title: t('table.deleteConfirmTitle'),
-              content: t('table.deleteConfirmDesc'),
+              content: t('categories.deleteConfirmDesc', { name: record.categoryName }),
               okText: t('table.deleteOk'),
               cancelText: t('table.deleteCancel'),
               okDanger: true,
@@ -137,6 +150,8 @@ export function CategoriesPage() {
         onClose={() => setEditOpen(false)}
         record={selectedRecord}
         onSubmit={(values) => editCategory(selectedRecord!.categoryId, values)}
+        shopOptions={shopOptions}
+        optionsLoading={optionsLoading}
         loading={editLoading}
       />
 

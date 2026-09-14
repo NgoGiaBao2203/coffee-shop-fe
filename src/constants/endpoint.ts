@@ -11,6 +11,7 @@ export const ENDPOINT = {
   // Dropdowns
   GET_ROLES: '/dropdown/role',
   GET_SHOP_NAMES: '/dropdown/shop-name',
+  GET_DROPDOWN_CATEGORIES: '/dropdown/category',
 
   // Categories
   GET_CATEGORIES: '/categories',

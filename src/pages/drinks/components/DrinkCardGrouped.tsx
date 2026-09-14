@@ -1,5 +1,5 @@
 import { Card, Typography, Button } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { resolveImageUrl } from '@/utils/image';
 import type { DrinkItem } from '../types';
 
@@ -7,10 +7,11 @@ interface Props {
   record: DrinkItem;
   onClick?: (record: DrinkItem) => void;
   onDelete?: (record: DrinkItem) => void;
+  onEdit?: (record: DrinkItem) => void;
   isStaff?: boolean;
 }
 
-export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }: Props) {
+export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = false }: Props) {
   const fallbackImage = 'https://placehold.co/400x300?text=No+Image';
   const displayImage = resolveImageUrl(record.imageUrl) || fallbackImage;
 
@@ -65,20 +66,36 @@ export function DrinkCardGrouped({ record, onClick, onDelete, isStaff = false }:
           {record.drinkName}
         </Typography.Paragraph>
 
-        {!isStaff && onDelete && (
-          <div className="flex items-center justify-end">
-            <Button
-              danger
-              type="text"
-              shape="circle"
-              size="small"
-              className="flex items-center justify-center opacity-70 group-hover:opacity-100 hover:bg-red-50"
-              icon={<DeleteOutlined style={{ fontSize: 14 }} />}
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(record);
-              }}
-            />
+        {!isStaff && (onEdit || onDelete) && (
+          <div className="flex items-center justify-end gap-1">
+            {onEdit && (
+              <Button
+                type="text"
+                shape="circle"
+                size="small"
+                className="flex items-center justify-center opacity-70 group-hover:opacity-100 hover:bg-blue-50 text-blue-600"
+                icon={<EditOutlined style={{ fontSize: 14 }} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(record);
+                }}
+              />
+            )}
+
+            {onDelete && (
+              <Button
+                danger
+                type="text"
+                shape="circle"
+                size="small"
+                className="flex items-center justify-center opacity-70 group-hover:opacity-100 hover:bg-red-50"
+                icon={<DeleteOutlined style={{ fontSize: 14 }} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(record);
+                }}
+              />
+            )}
           </div>
         )}
       </div>

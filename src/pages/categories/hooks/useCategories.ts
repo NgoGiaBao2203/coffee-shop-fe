@@ -1,18 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '@/store/hooks';
+import { ROLES } from '@/permission/roles';
 import {
   getCategoriesApi,
+  getShopNamesApi,
   createCategoryApi,
   editCategoryApi,
   deleteCategoryApi,
 } from '../api/categoriesApi';
-import { getShopNamesApi } from '@/pages/staffs/api/staffsApi';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { getResponseMessage } from '@/utils/getResponseMessage';
 import { useToast } from '@/components/toast/useToast';
-import type { CategoryItem, CategoryListParams, PaginationInfo } from '../types';
-import type { ShopNameItem } from '@/pages/staffs/types';
+import type { CategoryItem, CategoryListParams, PaginationInfo, ShopNameItem } from '../types';
 import type { CategoryCreateValues } from '../components/CategoryCreateModal';
 import type { CategoryEditValues } from '../components/CategoryEditModal';
 
@@ -28,6 +29,7 @@ const DEFAULT_PARAMS: CategoryListParams = {
 export function useCategories() {
   const toast = useToast();
   const { t } = useTranslation();
+  const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const [params, setParams] = useState<CategoryListParams>(DEFAULT_PARAMS);
   const [items, setItems] = useState<CategoryItem[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -61,6 +63,8 @@ export function useCategories() {
 
   useEffect(() => {
     async function fetchOptions() {
+      if (roleName !== ROLES.OWNER && roleName !== ROLES.MANAGER) return;
+
       setOptionsLoading(true);
       try {
         const shopNamesRes = await getShopNamesApi();
@@ -70,7 +74,7 @@ export function useCategories() {
       }
     }
     fetchOptions();
-  }, []);
+  }, [roleName]);
 
   const [isSearch, setIsSearch] = useState(false);
 
@@ -102,15 +106,27 @@ export function useCategories() {
         toast.success(t('categories.createSuccess'));
         await fetchCategories(params);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
-          toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+        if (axios.isAxiosError(error) && error.response?.data) {
+          const resData = error.response.data;
+
+          if (resData.code === RESPONSE_CODE.NOT_FOUND || resData.code === 'ER004') {
+            toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+          } else if (
+            resData.code === RESPONSE_CODE.CONFLICT ||
+            resData.code === 'ER005' ||
+            resData.code === 'ER011'
+          ) {
+            toast.error(t('categories.nameConflict'));
+          } else if (resData.code) {
+            toast.error(getResponseMessage(resData.code));
+          }
         }
         throw error;
       } finally {
         setCreateLoading(false);
       }
     },
-    [params, fetchCategories], // eslint-disable-line react-hooks/exhaustive-deps
+    [params, fetchCategories, t, toast],
   );
 
   const editCategory = useCallback(
@@ -121,15 +137,42 @@ export function useCategories() {
         toast.success(t('categories.editSuccess'));
         await fetchCategories(params);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
-          toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+        if (axios.isAxiosError(error) && error.response?.data) {
+          const resData = error.response.data;
+
+          if (resData.code === RESPONSE_CODE.NOT_FOUND || resData.code === 'ER004') {
+            toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+          } else if (resData.code === RESPONSE_CODE.INVALID_REQUEST || resData.code === 'ER008') {
+            const duplicateError = resData.errorDetails?.find(
+              (err: { errorCode: string }) =>
+                err.errorCode === RESPONSE_CODE.CONFLICT ||
+                err.errorCode === 'ER005' ||
+                err.errorCode === 'ER011',
+            );
+
+            if (duplicateError) {
+              toast.error(t('categories.nameConflict'));
+            } else if (resData.errorDetails?.[0]?.errorCode) {
+              toast.error(getResponseMessage(resData.errorDetails[0].errorCode));
+            } else {
+              toast.error(getResponseMessage(RESPONSE_CODE.INVALID_REQUEST));
+            }
+          } else if (
+            resData.code === RESPONSE_CODE.CONFLICT ||
+            resData.code === 'ER005' ||
+            resData.code === 'ER011'
+          ) {
+            toast.error(t('categories.nameConflict'));
+          } else if (resData.code) {
+            toast.error(getResponseMessage(resData.code));
+          }
         }
         throw error;
       } finally {
         setEditLoading(false);
       }
     },
-    [params, fetchCategories], // eslint-disable-line react-hooks/exhaustive-deps
+    [params, fetchCategories, t, toast],
   );
 
   const deleteCategory = useCallback(
@@ -145,14 +188,20 @@ export function useCategories() {
           await fetchCategories(params);
         }
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
+        if (
+          axios.isAxiosError(error) &&
+          (error.response?.data?.code === RESPONSE_CODE.NOT_FOUND ||
+            error.response?.data?.code === 'ER004')
+        ) {
           toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+        } else if (axios.isAxiosError(error) && error.response?.data?.code) {
+          toast.error(getResponseMessage(error.response.data.code));
         }
       } finally {
         setDeleteLoading(false);
       }
     },
-    [params, fetchCategories, items.length], // eslint-disable-line react-hooks/exhaustive-deps
+    [params, fetchCategories, items.length, t, toast],
   );
 
   const shopOptions = shopNames.map((s) => ({ value: s.shopId, label: s.shopName }));
