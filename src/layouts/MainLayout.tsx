@@ -26,7 +26,7 @@ export function MainLayout() {
     { key: '/categories', label: t('sidebar.categories'), icon: <AppstoreOutlined /> },
     { key: '/revenue', label: t('sidebar.revenues'), icon: <LineChartOutlined /> },
     { key: '/staff', label: t('sidebar.staffs'), icon: <TeamOutlined /> },
-    { key: '/shop-branches', label: t('sidebar.branchShops'), icon: <ShopOutlined /> },
+    { key: '/shop', label: t('sidebar.shops'), icon: <ShopOutlined /> },
   ];
 
   const navItems = useNavItems(NAV_ITEMS);

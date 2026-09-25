@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import {
@@ -29,7 +30,12 @@ const DEFAULT_PARAMS: StaffListParams = {
 export function useStaffs() {
   const toast = useToast();
   const { t } = useTranslation();
-  const [params, setParams] = useState<StaffListParams>(DEFAULT_PARAMS);
+  const [searchParams] = useSearchParams();
+  const initialShopId = searchParams.get('shopId') ?? '';
+  const [params, setParams] = useState<StaffListParams>({
+    ...DEFAULT_PARAMS,
+    branchShopId: initialShopId,
+  });
   const [items, setItems] = useState<StaffItem[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(false);

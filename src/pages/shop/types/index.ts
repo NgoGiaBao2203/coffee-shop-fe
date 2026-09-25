@@ -1,4 +1,4 @@
-export interface ShopBranchItem {
+export interface ShopItem {
   shopId: string;
   shopName: string;
   address: string;
@@ -9,14 +9,14 @@ export interface ShopBranchItem {
   isDeleted: boolean;
 }
 
-export interface ShopBranchPagination {
+export interface ShopPagination {
   page: number;
   size: number;
   totalElements: number;
   totalPages: number;
 }
 
-export interface SearchShopBranchRequest {
+export interface SearchShopRequest {
   shopId?: string;
   page: number;
   size: number;
@@ -26,26 +26,26 @@ export interface SearchShopBranchRequest {
   sortDirection?: 'ASC' | 'DESC';
 }
 
-export interface ShopBranchesResponse {
+export interface ShopsResponse {
   code: string;
   message: string;
   traceId: string;
-  items: ShopBranchItem[];
-  pagination: ShopBranchPagination;
+  items: ShopItem[];
+  pagination: ShopPagination;
 }
 
-export interface CreateShopBranchRequest {
+export interface CreateShopRequest {
   shopName: string;
   address: string;
   phoneNumber: string;
 }
 
-export interface EditShopBranchRequest {
+export interface EditShopRequest {
   shopName: string;
   address: string;
   phoneNumber: string;
 }
 
-export interface DeleteShopBranchRequest {
+export interface DeleteShopRequest {
   shopId: string;
 }

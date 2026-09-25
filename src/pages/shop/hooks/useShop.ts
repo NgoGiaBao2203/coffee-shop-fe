@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getShopBranchesApi } from '../api/shopBranchAPI';
-import type { ShopBranchItem, SearchShopBranchRequest, ShopBranchPagination } from '../types';
+import { getShopsApi } from '../api/shopAPI';
+import type { ShopItem, SearchShopRequest, ShopPagination } from '../types';
 
-const DEFAULT_PARAMS: SearchShopBranchRequest = {
+const DEFAULT_PARAMS: SearchShopRequest = {
   page: 1,
   size: 10,
   search: '',
@@ -10,27 +10,27 @@ const DEFAULT_PARAMS: SearchShopBranchRequest = {
   sortDirection: 'ASC',
 };
 
-export function useShopBranch(initialPage = 1, initialSize = 10) {
-  const [params, setParams] = useState<SearchShopBranchRequest>({
+export function useShop(initialPage = 1, initialSize = 10) {
+  const [params, setParams] = useState<SearchShopRequest>({
     ...DEFAULT_PARAMS,
     page: initialPage,
     size: initialSize,
   });
 
-  const [items, setItems] = useState<ShopBranchItem[]>([]);
-  const [pagination, setPagination] = useState<ShopBranchPagination | null>(null);
+  const [items, setItems] = useState<ShopItem[]>([]);
+  const [pagination, setPagination] = useState<ShopPagination | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
   const [isSearch, setIsSearch] = useState(false);
 
-  const fetchShopBranches = useCallback(
-    async (currentParams: SearchShopBranchRequest, isSearchAction = false) => {
+  const fetchShops = useCallback(
+    async (currentParams: SearchShopRequest, isSearchAction = false) => {
       setLoading(true);
       if (isSearchAction) setSearchLoading(true);
 
       try {
-        const payload: SearchShopBranchRequest = {
+        const payload: SearchShopRequest = {
           page: currentParams.page,
           size: currentParams.size,
           search: currentParams.search?.trim() || undefined,
@@ -39,7 +39,7 @@ export function useShopBranch(initialPage = 1, initialSize = 10) {
           shopId: currentParams.shopId || undefined,
         };
 
-        const response = await getShopBranchesApi(payload);
+        const response = await getShopsApi(payload);
         const resItems = response.items ?? [];
 
         setItems(resItems);
@@ -68,7 +68,7 @@ export function useShopBranch(initialPage = 1, initialSize = 10) {
 
     const loadData = async () => {
       if (isMounted) {
-        await fetchShopBranches(params, isSearch);
+        await fetchShops(params, isSearch);
       }
     };
 
@@ -77,7 +77,7 @@ export function useShopBranch(initialPage = 1, initialSize = 10) {
     return () => {
       isMounted = false;
     };
-  }, [params, fetchShopBranches, isSearch]);
+  }, [params, fetchShops, isSearch]);
 
   const handleSearch = (keyword: string) => {
     setIsSearch(true);
@@ -110,6 +110,6 @@ export function useShopBranch(initialPage = 1, initialSize = 10) {
     closeEmptyModal: () => setShowEmptyModal(false),
     handleSearch,
     handlePageChange,
-    refresh: () => fetchShopBranches(params, false),
+    refresh: () => fetchShops(params, false),
   };
 }

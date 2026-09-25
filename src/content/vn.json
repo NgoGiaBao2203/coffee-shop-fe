@@ -139,11 +139,12 @@
     "selectYearPlaceholder": "-- Chọn năm --",
     "modalTitle": "Chi Tiết Hóa Đơn"
   },
-  "shopBranches": {
+  "shops": {
     "title": "Chi Nhánh",
     "shopName": "Tên chi nhánh",
     "address": "Địa chỉ",
     "phoneNumber": "Số điện thoại",
+    "activeStaffCount": "Số lượng nhân viên",
     "createdAt": "Ngày tạo",
     "updatedAt": "Ngày cập nhật",
     "searchPlaceholder": "Tìm kiếm chi nhánh theo tên, địa chỉ...",
@@ -168,7 +169,10 @@
     "deleteTitle": "Xác nhận xóa chi nhánh",
     "deleteConfirmDesc": "Hành động này sẽ xóa chi nhánh \"{{name}}\" cùng toàn bộ danh mục và đồ uống trực thuộc chi nhánh này. Bạn có chắc chắn muốn tiếp tục không?",
     "deleteSuccess": "Xóa chi nhánh thành công.",
-    "deletePendingInvoices": "Không thể xóa chi nhánh còn hóa đơn chưa hoàn tất thanh toán."
+    "deleteActiveStaff": "Vui lòng di chuyển hoặc xóa nhân viên trước khi xóa chi nhánh.",
+    "deletePendingInvoices": "Vui lòng thanh toán các hóa đơn chưa hoàn tất trước khi xóa chi nhánh.",
+    "deleteActiveStaffAndPendingInvoices": "Vui lòng di chuyển hoặc xóa nhân viên và thanh toán các hóa đơn chưa hoàn tất trước khi xóa chi nhánh.",
+    "viewStaff": "Xem nhân viên"
   },
   "search": {
     "placeholder": "Tìm kiếm..."
@@ -235,7 +239,7 @@
     "categories": "Danh Mục",
     "revenues": "Doanh Thu",
     "staffs": "Nhân Viên",
-    "branchShops": "Chi Nhánh"
+    "shops": "Chi Nhánh"
   },
   "login": {
     "title": "Chào Mừng Trở Lại",

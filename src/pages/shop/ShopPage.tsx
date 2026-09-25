@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Typography, Button, notification } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, TeamOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { AppFormDrawer, type FormFieldConfig } from '@/components/form/AppFormDrawer';
-import { useShopBranch } from './hooks/useShopBranch';
-import { createShopBranchApi, editShopBranchApi, deleteShopBranchApi } from './api/shopBranchAPI';
-import { ShopBranchCreateModal } from './components/ShopBranchCreateModal';
-import { ShopBranchEditModal } from './components/ShopBranchEditModal';
-import type { ShopBranchItem, CreateShopBranchRequest, EditShopBranchRequest } from './types';
+import { useShop } from './hooks/useShop';
+import { createShopApi, editShopApi, deleteShopApi } from './api/shopAPI';
+import { ShopCreateModal } from './components/ShopCreateModal';
+import { ShopEditModal } from './components/ShopEditModal';
+import type { ShopItem, CreateShopRequest, EditShopRequest } from './types';
 
 const SEARCH_PATTERN = /^[\p{L}0-9\s.,/&'#-]*$/u;
 const SEARCH_MAX_LENGTH = 100;
 
-// Format datetime values to Vietnamese locale string
 const formatDate = (value: unknown) =>
   value
     ? new Date(value as string).toLocaleString('vi-VN', {
@@ -29,12 +29,11 @@ const formatDate = (value: unknown) =>
       })
     : '—';
 
-export function ShopBranchPage() {
+export function ShopPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { showError } = useNotifyModal();
   const { confirm: confirmDelete } = useConfirmModal();
-
-  // Custom hook managing shop branch data, pagination, and search queries
   const {
     items,
     pagination,
@@ -48,19 +47,15 @@ export function ShopBranchPage() {
     handleSearch: triggerHookSearch,
     handlePageChange,
     refresh,
-  } = useShopBranch(1, 10);
+  } = useShop(1, 10);
 
-  // Drawer, modal, and record state
   const [detailOpen, setDetailOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
-
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<ShopItem | null>(null);
 
-  const [selectedRecord, setSelectedRecord] = useState<ShopBranchItem | null>(null);
-
-  // Trigger error notification modal when search query yields no results
   useEffect(() => {
     if (showEmptyModal) {
       showError(t('table.emptySearch'), t('common.error'));
@@ -68,82 +63,69 @@ export function ShopBranchPage() {
     }
   }, [showEmptyModal, closeEmptyModal, showError, t]);
 
-  // Handle search with frontend inputvalidation
   const handleSearch = (keyword: string) => {
     const trimmed = keyword.trim();
-
     if (trimmed.length > SEARCH_MAX_LENGTH) {
-      showError(t('shopBranches.nameMaxLength'), t('common.error'));
+      showError(t('shops.nameMaxLength'), t('common.error'));
       return;
     }
-
     if (trimmed && !SEARCH_PATTERN.test(trimmed)) {
-      showError(t('shopBranches.specialCharacters'), t('common.error'));
+      showError(t('shops.specialCharacters'), t('common.error'));
       return;
     }
-
     triggerHookSearch(keyword);
   };
 
-  // Form field configuration for the details drawer
-  const branchFields: FormFieldConfig[] = [
-    { name: 'shopName', label: t('shopBranches.shopName'), type: 'text', readOnly: true },
-    { name: 'phoneNumber', label: t('shopBranches.phoneNumber'), type: 'text', readOnly: true },
-    { name: 'address', label: t('shopBranches.address'), type: 'text', readOnly: true },
-    { name: 'createdAt', label: t('shopBranches.createdAt'), readOnly: true, render: formatDate },
-    { name: 'updatedAt', label: t('shopBranches.updatedAt'), readOnly: true, render: formatDate },
+  const shopFields: FormFieldConfig[] = [
+    { name: 'shopName', label: t('shops.shopName'), type: 'text', readOnly: true },
+    { name: 'address', label: t('shops.address'), type: 'text', readOnly: true },
+    { name: 'phoneNumber', label: t('shops.phoneNumber'), type: 'text', readOnly: true },
+    {
+      name: 'activeStaffCount',
+      label: t('shops.activeStaffCount'),
+      type: 'number',
+      readOnly: true,
+    },
+    { name: 'createdAt', label: t('shops.createdAt'), readOnly: true, render: formatDate },
+    { name: 'updatedAt', label: t('shops.updatedAt'), readOnly: true, render: formatDate },
   ];
 
-  // Table column definitions
-  const columns: AppColumnType<ShopBranchItem>[] = [
+  const columns: AppColumnType<ShopItem>[] = [
     {
       key: 'shopName',
       dataIndex: 'shopName',
-      title: t('shopBranches.shopName'),
-      width: 220,
-    },
-    {
-      key: 'phoneNumber',
-      dataIndex: 'phoneNumber',
-      title: t('shopBranches.phoneNumber'),
-      width: 160,
-      render: (val: string) => val || '—',
+      title: t('shops.shopName'),
+      width: 260,
     },
     {
       key: 'address',
       dataIndex: 'address',
-      title: t('shopBranches.address'),
-      width: 300,
-      render: (val: string) => val || '—',
+      title: t('shops.address'),
+      width: 400,
+      render: (value: string) => value || '—',
     },
     {
-      key: 'createdAt',
-      dataIndex: 'createdAt',
-      title: t('shopBranches.createdAt'),
-      width: 180,
-      render: formatDate,
+      key: 'phoneNumber',
+      dataIndex: 'phoneNumber',
+      title: t('shops.phoneNumber'),
+      width: 160,
+      render: (value: string | null) => value || '—',
     },
     {
-      key: 'updatedAt',
-      dataIndex: 'updatedAt',
-      title: t('shopBranches.updatedAt'),
-      width: 180,
-      render: formatDate,
+      key: 'activeStaffCount',
+      dataIndex: 'activeStaffCount',
+      title: t('shops.activeStaffCount'),
+      width: 160,
+      render: (value: number) => value ?? 0,
     },
   ];
 
-  // Handle open create modal
-  const handleCreateClick = () => {
-    setCreateModalOpen(true);
-  };
-
-  // Handle create branch API submission
-  const handleCreateSubmit = async (values: CreateShopBranchRequest) => {
+  const handleCreateSubmit = async (values: CreateShopRequest) => {
     setCreateLoading(true);
     try {
-      await createShopBranchApi(values);
+      await createShopApi(values);
       notification.success({
-        message: t('shopBranches.createSuccess'),
+        message: t('shops.createSuccess'),
         placement: 'topRight',
         duration: 3,
       });
@@ -154,19 +136,13 @@ export function ShopBranchPage() {
     }
   };
 
-  // Handle edit action on table row
-  const handleEditClick = (record: ShopBranchItem) => {
-    setSelectedRecord(record);
-    setEditModalOpen(true);
-  };
-
-  // Handle edit branch API submission
-  const handleEditSubmit = async (values: EditShopBranchRequest) => {
+  const handleEditSubmit = async (values: EditShopRequest) => {
+    if (!selectedRecord) return;
     setEditLoading(true);
     try {
-      await editShopBranchApi(values);
+      await editShopApi(selectedRecord.shopId, values);
       notification.success({
-        message: t('shopBranches.editSuccess'),
+        message: t('shops.editSuccess'),
         placement: 'topRight',
         duration: 3,
       });
@@ -177,19 +153,18 @@ export function ShopBranchPage() {
     }
   };
 
-  // Handle delete confirmation modal
-  const handleDeleteClick = (record: ShopBranchItem) => {
+  const handleDeleteClick = (record: ShopItem) => {
     confirmDelete({
-      title: t('shopBranches.deleteTitle'),
-      content: t('shopBranches.deleteConfirmDesc', { name: record.shopName }),
+      title: t('shops.deleteTitle'),
+      content: t('shops.deleteConfirmDesc', { name: record.shopName }),
       okText: t('table.deleteOk'),
       cancelText: t('table.deleteCancel'),
       okDanger: true,
       onConfirm: async () => {
         try {
-          await deleteShopBranchApi({ shopId: record.shopId });
+          await deleteShopApi({ shopId: record.shopId });
           notification.success({
-            message: t('shopBranches.deleteSuccess'),
+            message: t('shops.deleteSuccess'),
             placement: 'topRight',
             duration: 3,
           });
@@ -198,8 +173,16 @@ export function ShopBranchPage() {
           const errMsg = axios.isAxiosError<{ message?: string }>(error)
             ? error.response?.data?.message || ''
             : '';
-          if (errMsg.includes('pending invoices')) {
-            showError(t('shopBranches.deletePendingInvoices'), t('common.error'));
+          const normalizedMessage = errMsg.toLowerCase();
+          const hasActiveStaff = normalizedMessage.includes('active staff');
+          const hasPendingInvoices = normalizedMessage.includes('pending invoices');
+
+          if (hasActiveStaff && hasPendingInvoices) {
+            showError(t('shops.deleteActiveStaffAndPendingInvoices'), t('common.error'));
+          } else if (hasActiveStaff) {
+            showError(t('shops.deleteActiveStaff'), t('common.error'));
+          } else if (hasPendingInvoices) {
+            showError(t('shops.deletePendingInvoices'), t('common.error'));
           } else {
             showError(t('responses.ER001'), t('common.error'));
           }
@@ -211,26 +194,23 @@ export function ShopBranchPage() {
   return (
     <div className="flex flex-col gap-3 rounded-xl p-4 bg-white shadow-sm">
       <Typography.Title level={4} className="mb-0!">
-        {t('sidebar.branchShops')}
+        {t('shops.title')}
       </Typography.Title>
 
-      {/* Action Bar: Search input and Create button */}
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex-1 min-w-48">
           <SearchInput
             onSearch={handleSearch}
             loading={searchLoading}
-            placeholder={t('shopBranches.searchPlaceholder')}
+            placeholder={t('shops.searchPlaceholder')}
           />
         </div>
-
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateClick}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
           {t('form.create')}
         </Button>
       </div>
 
-      {/* Table grid with built-in actions column (Edit & Delete) */}
-      <TableGrid<ShopBranchItem>
+      <TableGrid<ShopItem>
         rowKey="shopId"
         columns={columns}
         dataSource={items}
@@ -244,28 +224,44 @@ export function ShopBranchPage() {
           setSelectedRecord(record);
           setDetailOpen(true);
         }}
-        onEdit={handleEditClick}
+        onEdit={(record) => {
+          setSelectedRecord(record);
+          setEditModalOpen(true);
+        }}
         onDeleteClick={handleDeleteClick}
       />
 
-      {/* Read-only details drawer */}
-      <AppFormDrawer<ShopBranchItem>
+      <AppFormDrawer<ShopItem>
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         record={selectedRecord}
-        fields={branchFields}
+        fields={shopFields}
+        contentActions={
+          <div className="mt-4 flex justify-end">
+            <Button
+              type="primary"
+              icon={<TeamOutlined />}
+              disabled={!selectedRecord}
+              onClick={() => {
+                if (!selectedRecord) return;
+                navigate(`/staff?shopId=${encodeURIComponent(selectedRecord.shopId)}`);
+                setDetailOpen(false);
+              }}
+            >
+              {t('shops.viewStaff')}
+            </Button>
+          </div>
+        }
       />
 
-      {/* Create Modal */}
-      <ShopBranchCreateModal
+      <ShopCreateModal
         open={createModalOpen}
         loading={createLoading}
         onClose={() => setCreateModalOpen(false)}
         onSubmit={handleCreateSubmit}
       />
 
-      {/* Edit Modal */}
-      <ShopBranchEditModal
+      <ShopEditModal
         open={editModalOpen}
         loading={editLoading}
         record={selectedRecord}
