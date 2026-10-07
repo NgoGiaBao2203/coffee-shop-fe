@@ -44,7 +44,7 @@ export async function deleteCategoryApi(
 ): Promise<DeleteCategoryResponse> {
   const response = await api.delete<DeleteCategoryResponse>(ENDPOINT.DELETE_CATEGORY, {
     data: params,
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND],
+    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST],
   });
   return response.data;
 }

@@ -125,7 +125,7 @@ export function ShopPage() {
     try {
       await createShopApi(values);
       notification.success({
-        message: t('shops.createSuccess'),
+        title: t('shops.createSuccess'),
         placement: 'topRight',
         duration: 3,
       });
@@ -142,7 +142,7 @@ export function ShopPage() {
     try {
       await editShopApi(selectedRecord.shopId, values);
       notification.success({
-        message: t('shops.editSuccess'),
+        title: t('shops.editSuccess'),
         placement: 'topRight',
         duration: 3,
       });
@@ -164,7 +164,7 @@ export function ShopPage() {
         try {
           await deleteShopApi({ shopId: record.shopId });
           notification.success({
-            message: t('shops.deleteSuccess'),
+            title: t('shops.deleteSuccess'),
             placement: 'topRight',
             duration: 3,
           });

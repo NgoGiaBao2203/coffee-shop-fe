@@ -113,7 +113,8 @@ export function CategoryCreateModal({
             { required: true, whitespace: true, message: t('categories.nameRequired') },
             { max: 100, message: t('categories.nameMaxLength') },
             {
-              pattern: /^[\p{L}\p{N}\s\-']+$/u,
+              // Allows: Unicode letters, numbers, spaces, and punctuation: - & / ( ) , . '
+              pattern: /^[\p{L}\p{N}\s\-&/(),.']+$/u,
               message: t('responses.EV007'),
             },
           ]}

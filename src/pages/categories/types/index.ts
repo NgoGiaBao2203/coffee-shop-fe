@@ -8,7 +8,7 @@ export interface CategoryItem {
 export interface CategoryListParams {
   page: number;
   size: number;
-  branchShopId: string;
+  shopId: string;
   search: string;
   sortBy: string;
   sortDirection: 'ASC' | 'DESC';

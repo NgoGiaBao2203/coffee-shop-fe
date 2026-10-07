@@ -20,9 +20,10 @@ import type { CategoryEditValues } from '../components/CategoryEditModal';
 const DEFAULT_PARAMS: CategoryListParams = {
   page: 1,
   size: 10,
-  branchShopId: '',
+  shopId: '',
   search: '',
-  sortBy: 'categoryId',
+  // Default sortBy
+  sortBy: 'drinkCategoryId',
   sortDirection: 'ASC',
 };
 
@@ -88,9 +89,9 @@ export function useCategories() {
     setParams((prev) => ({ ...prev, search, page: 1 }));
   };
 
-  const handleShopFilter = (branchShopId: string) => {
+  const handleShopFilter = (shopId: string) => {
     setIsSearch(false);
-    setParams((prev) => ({ ...prev, branchShopId, page: 1 }));
+    setParams((prev) => ({ ...prev, shopId, page: 1 }));
   };
 
   const handlePageChange = (page: number, size: number) => {
@@ -188,14 +189,18 @@ export function useCategories() {
           await fetchCategories(params);
         }
       } catch (error) {
-        if (
-          axios.isAxiosError(error) &&
-          (error.response?.data?.code === RESPONSE_CODE.NOT_FOUND ||
-            error.response?.data?.code === 'ER004')
-        ) {
-          toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
-        } else if (axios.isAxiosError(error) && error.response?.data?.code) {
-          toast.error(getResponseMessage(error.response.data.code));
+        if (axios.isAxiosError(error) && error.response?.data) {
+          const resData = error.response.data;
+          const message = typeof resData.message === 'string' ? resData.message.toLowerCase() : '';
+
+          if (resData.code === RESPONSE_CODE.NOT_FOUND || resData.code === 'ER004') {
+            toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+            // Handle pending invoices check from backend
+          } else if (message.includes('pending invoices')) {
+            toast.error(t('categories.deletePendingInvoices'));
+          } else if (resData.code) {
+            toast.error(getResponseMessage(resData.code));
+          }
         }
       } finally {
         setDeleteLoading(false);
@@ -212,7 +217,7 @@ export function useCategories() {
     currentPage: params.page,
     currentPageSize: params.size,
     searchKeyword: params.search,
-    currentBranchShopId: params.branchShopId,
+    currentShopId: params.shopId,
     loading,
     searchLoading,
     showEmptyModal,

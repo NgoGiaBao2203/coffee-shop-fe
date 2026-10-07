@@ -24,7 +24,7 @@ export function useLogin(form: FormInstance<LoginRequest>) {
       const profileResponse = await getProfileApi(values);
       dispatch(setProfile(profileResponse.userProfile));
       toast.success(t('login.toastSuccess'));
-      navigate('/', { replace: true });
+      navigate('/shop', { replace: true });
     } catch (err) {
       const error = err as AxiosError<ErrorResponse>;
       const data = error.response?.data;

@@ -106,7 +106,8 @@
     "nameRequired": "Vui lòng nhập tên danh mục.",
     "nameMaxLength": "Tên danh mục không được vượt quá 100 ký tự.",
     "shopRequired": "Vui lòng chọn chi nhánh.",
-    "nameConflict": "Tên danh mục đã tồn tại trong chi nhánh."
+    "nameConflict": "Tên danh mục đã tồn tại trong chi nhánh.",
+    "deletePendingInvoices": "Không thể xóa danh mục đang có hóa đơn chưa hoàn tất thanh toán."
   },
   "revenues": {
     "title": "Báo Cáo Doanh Thu",

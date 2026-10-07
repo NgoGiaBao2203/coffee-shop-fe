@@ -50,7 +50,10 @@ export function CategoryEditModal({
     if (!isOpenedRef.current && record) {
       isOpenedRef.current = true;
       form.resetFields();
-      form.setFieldsValue({ categoryName: record.categoryName, shopId: record.shopId });
+      form.setFieldsValue({
+        categoryName: record.categoryName,
+        shopId: record.shopId,
+      });
     }
   }, [open, record, form]);
 
@@ -62,7 +65,10 @@ export function CategoryEditModal({
 
   const handleSubmit = async (values: CategoryEditValues) => {
     try {
-      await onSubmit({ ...values, categoryName: values.categoryName.trim() });
+      await onSubmit({
+        ...values,
+        categoryName: values.categoryName.trim(),
+      });
       handleClose();
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -130,10 +136,18 @@ export function CategoryEditModal({
           name="categoryName"
           label={t('categories.name')}
           rules={[
-            { required: true, whitespace: true, message: t('categories.nameRequired') },
-            { max: 100, message: t('categories.nameMaxLength') },
             {
-              pattern: /^[\p{L}\p{N}\s\-']+$/u,
+              required: true,
+              whitespace: true,
+              message: t('categories.nameRequired'),
+            },
+            {
+              max: 100,
+              message: t('categories.nameMaxLength'),
+            },
+            {
+              // Allows: Unicode letters, numbers, spaces, and punctuation: - & / ( ) , . '
+              pattern: /^[\p{L}\p{N}\s\-&/(),.']+$/u,
               message: t('responses.EV007'),
             },
           ]}
@@ -150,7 +164,11 @@ export function CategoryEditModal({
             <Select options={shopOptions} loading={optionsLoading} />
           </Form.Item>
         ) : (
-          <Form.Item name="shopId" hidden>
+          <Form.Item
+            name="shopId"
+            hidden
+            rules={[{ required: true, message: t('categories.shopRequired') }]}
+          >
             <Input />
           </Form.Item>
         )}
