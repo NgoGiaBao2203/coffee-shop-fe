@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Layout, Typography } from 'antd';
 import {
-  // CoffeeOutlined,
+  CoffeeOutlined,
   // FileTextOutlined,
   AppstoreOutlined,
   // LineChartOutlined,
@@ -22,7 +22,7 @@ export function MainLayout() {
 
   // TODO: Temporarily hidden for this release. These routes will be re-enabled in the future.
   const NAV_ITEMS = [
-    // { key: '/', label: t('sidebar.drinks'), icon: <CoffeeOutlined /> },
+    { key: '/drinks', label: t('sidebar.drinks'), icon: <CoffeeOutlined /> },
     // { key: '/invoices', label: t('sidebar.invoices'), icon: <FileTextOutlined /> },
     { key: '/categories', label: t('sidebar.categories'), icon: <AppstoreOutlined /> },
     // { key: '/revenue', label: t('sidebar.revenues'), icon: <LineChartOutlined /> },

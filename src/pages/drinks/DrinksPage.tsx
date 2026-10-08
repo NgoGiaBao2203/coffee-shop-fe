@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
-import { Pagination, Empty, Spin, Button, Typography, Select, Modal } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Pagination, Empty, Spin, Button, Typography, Select } from 'antd';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
+import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
 import { useDrinks } from './hooks/useDrinks';
@@ -14,9 +15,12 @@ import { DrinkCreateModal } from './components/DrinkCreateModal';
 import { DrinkEditModal } from './components/DrinkEditModal';
 import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
 
+const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
+
 export function DrinksPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
+  const { confirm: confirmDelete } = useConfirmModal();
 
   // Role authorization checks
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
@@ -31,11 +35,12 @@ export function DrinksPage() {
     searchLoading,
     createLoading,
     editLoading,
+    deleteLoading,
     showEmptyModal,
     closeEmptyModal,
     currentPage,
     currentPageSize,
-    currentBranchShopId,
+    currentShopId,
     shopOptions,
     categoryOptions,
     optionsLoading,
@@ -63,6 +68,19 @@ export function DrinksPage() {
   const [selected, setSelected] = useState<DrinkItem | null>(null);
   const [selectedEditRecord, setSelectedEditRecord] = useState<DrinkItem | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
+
+  const handleDrinkSearch = (value: string) => {
+    const trimmedValue = value.trim();
+    if (trimmedValue.length > 100) {
+      showError(t('responses.EV005'), t('common.error'));
+      return;
+    }
+    if (trimmedValue && !SEARCH_REGEX.test(trimmedValue)) {
+      showError(t('responses.EV007'), t('common.error'));
+      return;
+    }
+    handleSearch(value);
+  };
 
   // Open detail drawer and fetch variants
   const onCardClick = async (g: DrinkItem) => {
@@ -94,62 +112,63 @@ export function DrinksPage() {
     const targetId = g.drinkId;
     if (!targetId) return;
 
-    Modal.confirm({
+    confirmDelete({
       title: t('table.deleteConfirmTitle'),
-      icon: <ExclamationCircleFilled style={{ color: '#faad14' }} />,
       content: t('table.deleteConfirmDesc'),
       okText: t('table.deleteOk'),
-      okType: 'danger',
       cancelText: t('table.deleteCancel'),
-      centered: true,
-      async onOk() {
-        await deleteDrink(targetId);
-      },
+      okDanger: true,
+      onConfirm: () => deleteDrink(targetId),
     });
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl p-4 bg-white shadow-sm">
+    <div className="flex flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:p-4">
       <Typography.Title level={4} className="mb-0!">
         {t('drinks.title')}
       </Typography.Title>
 
-      {/* Action Bar: Search input, Branch filter for OWNER, and Create button */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex-1 min-w-48">
+      {/* Action Bar: Search input, shop filter for OWNER, and create button */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="w-full min-w-0 sm:flex-1">
           <SearchInput
-            onSearch={(val) => handleSearch(val)}
+            onSearch={handleDrinkSearch}
             loading={searchLoading}
             placeholder={t('drinks.searchPlaceholder')}
           />
         </div>
 
-        {/* Branch Shop Select Filter (OWNER role only) */}
+        {/* Shop Select Filter (OWNER role only) */}
         {isOwner && (
           <Select
             allowClear
             placeholder={t('staffs.filterShop')}
             options={shopOptions}
             loading={optionsLoading}
-            value={currentBranchShopId || undefined}
+            value={currentShopId || undefined}
             onChange={(val) => handleShopFilter(val ?? '')}
-            className="w-52"
+            className="w-full sm:w-52"
           />
         )}
 
         {/* Create Drink Button (hidden for STAFF) */}
         {!isStaff && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateOpen(true)}
+            className="w-full sm:w-auto"
+          >
             {t('form.create')}
           </Button>
         )}
       </div>
 
       {/* Grid container with drinks list */}
-      <div className="w-full border border-gray-200 rounded-lg p-3 h-[calc(100vh-295px)] min-h-[460px] overflow-y-auto bg-gray-50/30 relative">
-        {loading && (
+      <div className="relative h-[calc(100dvh-360px)] min-h-[320px] w-full overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/30 p-2 sm:h-[calc(100vh-295px)] sm:min-h-[460px] sm:p-3">
+        {(loading || deleteLoading) && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
-            <Spin tip={t('common.loading')} />
+            <Spin description={t('common.loading')} />
           </div>
         )}
         {items.length === 0 && !loading ? (
@@ -157,7 +176,7 @@ export function DrinksPage() {
             <Empty description={t('drinks.empty')} />
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 items-stretch justify-start pt-1 px-1 pb-3 w-full">
+          <div className="grid w-full grid-cols-1 items-stretch justify-start gap-3 px-1 pt-1 pb-3 min-[380px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {items.map((g) => (
               <DrinkCardGrouped
                 key={g.drinkId}
@@ -173,20 +192,19 @@ export function DrinksPage() {
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-between mt-1 w-full">
-        <div className="flex-1" />
-
-        <div className="flex-1 flex justify-center">
+      <div className="mt-1 flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 max-w-full overflow-x-auto sm:flex-1">
           <Pagination
             current={currentPage}
             pageSize={currentPageSize}
             total={totalElements}
             onChange={(p, ps) => handlePageChange(p, ps)}
             showSizeChanger={false}
+            className="flex justify-center"
           />
         </div>
 
-        <div className="flex-1 flex justify-end">
+        <div className="flex justify-end sm:flex-1">
           <Select
             value={currentPageSize}
             onChange={(val) => handlePageChange(1, Number(val))}
@@ -195,7 +213,7 @@ export function DrinksPage() {
               { value: 15, label: `15 / ${t('table.perPage')}` },
               { value: 20, label: `20 / ${t('table.perPage')}` },
             ]}
-            style={{ width: 120 }}
+            className="w-full sm:w-[120px]"
           />
         </div>
       </div>
