@@ -1,5 +1,6 @@
 import { api } from '@/api/api';
 import { ENDPOINT } from '@/constants/endpoint';
+import { RESPONSE_CODE } from '@/constants/messages';
 import type {
   DrinksResponse,
   GetDrinkDetailResponse,
@@ -38,12 +39,16 @@ export async function createDrinkApi(
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST, RESPONSE_CODE.CONFLICT],
   });
   return response.data;
 }
 
 export async function deleteDrinkApi(payload: DeleteDrinkRequest): Promise<DeleteDrinkResponse> {
-  const response = await api.delete<DeleteDrinkResponse>(ENDPOINT.DELETE_DRINK, { data: payload });
+  const response = await api.delete<DeleteDrinkResponse>(ENDPOINT.DELETE_DRINK, {
+    data: payload,
+    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST],
+  });
   return response.data;
 }
 
@@ -66,6 +71,7 @@ export async function editDrinkApi(
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST, RESPONSE_CODE.CONFLICT],
   });
   return response.data;
 }

@@ -60,10 +60,12 @@
     "title": "Đồ Uống",
     "name": "Tên",
     "price": "Giá",
+    "startingPrice": "Từ",
     "size": "Kích cỡ",
     "status": "Trạng thái",
     "image": "Hình ảnh",
     "empty": "Không có dữ liệu đồ uống",
+    "category": "Danh mục",
     "chooseSize": "Chọn kích cỡ",
     "searchPlaceholder": "Tìm kiếm đồ uống...",
     "emptySearch": "Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm.",
@@ -76,6 +78,7 @@
     "editError": "Chỉnh sửa đồ uống thất bại!",
     "deleteSuccess": "Xoá đồ uống thành công!",
     "deleteError": "Xoá đồ uống thất bại!",
+    "nameConflict": "Tên đồ uống đã tồn tại trong cửa hàng.",
     "sizeOptions": {
       "S": "Kích cỡ S",
       "M": "Kích cỡ M",
@@ -83,9 +86,14 @@
     },
     "validation": {
       "nameRequired": "Vui lòng nhập tên đồ uống!",
+      "nameMaxLength": "Tên đồ uống không được vượt quá 100 ký tự.",
+      "nameInvalid": "Tên đồ uống chứa ký tự không hợp lệ.",
       "categoryRequired": "Vui lòng chọn danh mục!",
       "priceRequired": "Vui lòng nhập giá!",
-      "sizeRequired": "Vui lòng chọn kích cỡ!"
+      "priceInvalid": "Giá phải là số lớn hơn 1.",
+      "sizeRequired": "Vui lòng chọn kích cỡ!",
+      "searchMaxLength": "Từ khóa tìm kiếm không được vượt quá 100 ký tự.",
+      "searchInvalid": "Từ khóa tìm kiếm chứa ký tự không hợp lệ."
     }
   },
   "categories": {
@@ -271,6 +279,7 @@
     "EV005": "Độ dài dữ liệu vượt quá giới hạn cho phép.",
     "EV007": "Dữ liệu chứa ký tự không hợp lệ.",
     "EV008": "Số điện thoại không hợp lệ (phải bắt đầu bằng số 0).",
-    "EV009": "Số điện thoại phải có độ dài từ 10 đến 11 chữ số."
+    "EV009": "Số điện thoại phải có độ dài từ 10 đến 11 chữ số.",
+    "EV010": "Giá phải là số lớn hơn 1."
   }
 }

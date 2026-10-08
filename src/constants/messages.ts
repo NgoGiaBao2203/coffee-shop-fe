@@ -24,6 +24,7 @@ export const RESPONSE_CODE = {
   SPECIAL_CHARACTERS: 'EV007',
   PHONE_NUMBER_INVALID: 'EV008',
   PHONE_INVALID_LENGTH: 'EV009',
+  PRICE_MIN: 'EV010',
 } as const;
 
 export type ResponseCode = (typeof RESPONSE_CODE)[keyof typeof RESPONSE_CODE];

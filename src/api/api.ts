@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { notification } from 'antd';
+import i18n from 'i18next';
 import { ENV } from '@/constants/evn';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { store } from '@/store/store';
@@ -44,21 +45,26 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
-// Response interceptor — map backend response code to translated message
+// Response interceptor — map backend response code to localized message
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiResponseBody>) => {
+    // Fall back to INTERNAL_SERVER_ERROR if response is undefined (e.g. backend offline or network down)
     const code = error.response?.data?.code ?? RESPONSE_CODE.INTERNAL_SERVER_ERROR;
 
     if (error.response?.status === 401) {
       store.dispatch(clearProfile());
     }
 
+    // Retrieve localized error title from i18n translation resources
+    const errorTitle = i18n.t('common.error');
+
     // Validation errors (ER008) are handled at the call site with field-level messages
     const suppressCodes = error.config?.suppressCodes ?? [];
     if (code !== RESPONSE_CODE.INVALID_REQUEST && !suppressCodes.includes(code)) {
       notification.error({
-        message: 'Lỗi',
+        key: `api_error_${code}`,
+        title: errorTitle,
         description: getResponseMessage(code),
         placement: 'topRight',
         duration: 3,
