@@ -1,5 +1,6 @@
 import { Button, Drawer, Radio, Spin, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { resolveImageUrl } from '@/utils/image';
 import type { DrinkItem } from '../types';
 
 interface DrinkDetailDrawerProps {
@@ -51,7 +52,7 @@ export function DrinkDetailDrawer({
           <div className="flex flex-col gap-4">
             <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center border border-gray-100">
               <img
-                src={selected.imageUrl || fallbackImage}
+                src={resolveImageUrl(selected?.imageUrl) || fallbackImage}
                 alt="drink"
                 className="w-full h-full object-cover"
                 onError={(e) => {

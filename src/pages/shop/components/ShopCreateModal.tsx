@@ -1,61 +1,37 @@
-import { useEffect, useRef } from 'react';
 import { Modal, Form, Input, Button, Divider, notification } from 'antd';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { RESPONSE_CODE } from '@/constants/messages';
-import type { ShopBranchItem, EditShopBranchRequest } from '../types';
+import type { CreateShopRequest } from '../types';
 
-export type ShopBranchEditValues = EditShopBranchRequest;
+export type ShopCreateValues = CreateShopRequest;
 
-interface ShopBranchEditModalProps {
+interface ShopCreateModalProps {
   open: boolean;
   onClose: () => void;
-  record: ShopBranchItem | null;
-  onSubmit: (values: EditShopBranchRequest) => Promise<void> | void;
+  onSubmit: (values: ShopCreateValues) => Promise<void> | void;
   loading?: boolean;
 }
 
-export function ShopBranchEditModal({
+export function ShopCreateModal({
   open,
   onClose,
-  record,
   onSubmit,
   loading = false,
-}: ShopBranchEditModalProps) {
+}: ShopCreateModalProps) {
   const { t } = useTranslation();
-  const [form] = Form.useForm<ShopBranchEditValues>();
+  const [form] = Form.useForm<ShopCreateValues>();
 
-  const isOpenedRef = useRef(false);
-
-  useEffect(() => {
-    if (!open) {
-      isOpenedRef.current = false;
-      return;
-    }
-
-    if (!isOpenedRef.current && record) {
-      isOpenedRef.current = true;
-      form.resetFields();
-
-      form.setFieldsValue({
-        shopName: record.shopName,
-        phoneNumber: record.phoneNumber || '',
-        address: record.address,
-      });
-    }
-  }, [open, record, form]);
-
+  // Reset form inputs and close modal
   const handleClose = () => {
-    isOpenedRef.current = false;
     form.resetFields();
     onClose();
   };
 
-  const handleSubmit = async (values: ShopBranchEditValues) => {
-    if (!record) return;
-
+  // Handle form submission and conflict error handling
+  const handleSubmit = async (values: ShopCreateValues) => {
     try {
-      const payload: EditShopBranchRequest = {
+      const payload: ShopCreateValues = {
         ...values,
         shopName: values.shopName?.trim(),
         address: values.address?.trim(),
@@ -72,17 +48,18 @@ export function ShopBranchEditModal({
 
         // Handle conflict error (ER005 / 409)
         if (code === RESPONSE_CODE.CONFLICT || code === 'ER005' || error.response.status === 409) {
-          let fieldName: keyof ShopBranchEditValues;
+          let fieldName: keyof ShopCreateValues;
           let localizedError: string;
 
           if (serverMessage.includes('address')) {
             fieldName = 'address';
-            localizedError = t('shopBranches.addressConflict');
+            localizedError = t('shops.addressConflict');
           } else {
             fieldName = 'shopName';
-            localizedError = t('shopBranches.nameConflict');
+            localizedError = t('shops.nameConflict');
           }
 
+          // Show specific localized toast notification
           notification.error({
             message: t('common.error'),
             description: localizedError,
@@ -90,6 +67,7 @@ export function ShopBranchEditModal({
             duration: 3,
           });
 
+          // Set inline red validation error under the input field
           form.setFields([{ name: fieldName, errors: [localizedError] }]);
           return;
         }
@@ -103,6 +81,23 @@ export function ShopBranchEditModal({
             }),
           );
           form.setFields(fieldErrors);
+          return;
+        }
+
+        if (code === RESPONSE_CODE.INVALID_REQUEST) {
+          const isAddressError = serverMessage.includes('address');
+          const fieldName: keyof ShopCreateValues = isAddressError ? 'address' : 'shopName';
+          const localizedError = isAddressError
+            ? t('shops.addressConflict')
+            : t('shops.nameConflict');
+
+          notification.error({
+            message: t('common.error'),
+            description: localizedError,
+            placement: 'topRight',
+            duration: 3,
+          });
+          form.setFields([{ name: fieldName, errors: [localizedError] }]);
         }
       }
     }
@@ -113,34 +108,24 @@ export function ShopBranchEditModal({
       open={open}
       onCancel={handleClose}
       centered
-      title={t('shopBranches.editTitle')}
+      title={t('shops.createTitle')}
       width={560}
       footer={
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>{t('form.cancel')}</Button>
           <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.save')}
+            {t('form.create')}
           </Button>
         </div>
       }
     >
       <Divider className="my-3!" />
 
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        onValuesChange={(changedValues) => {
-          const changedField = Object.keys(changedValues)[0] as keyof ShopBranchEditValues;
-          if (changedField) {
-            form.setFields([{ name: changedField, errors: [] }]);
-          }
-        }}
-      >
+      <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <div className="grid grid-cols-2 gap-x-4">
           <Form.Item
             name="shopName"
-            label={t('shopBranches.shopName')}
+            label={t('shops.shopName')}
             rules={[
               { required: true, whitespace: true, message: t('responses.EV001') },
               { max: 100, message: t('responses.EV005') },
@@ -150,12 +135,12 @@ export function ShopBranchEditModal({
               },
             ]}
           >
-            <Input placeholder={t('shopBranches.shopNamePlaceholder')} />
+            <Input placeholder={t('shops.shopNamePlaceholder')} />
           </Form.Item>
 
           <Form.Item
             name="phoneNumber"
-            label={t('shopBranches.phoneNumber')}
+            label={t('shops.phoneNumber')}
             normalize={(value: string) => (value ? value.replace(/\D/g, '').slice(0, 11) : '')}
             rules={[
               { required: true, whitespace: true, message: t('responses.EV001') },
@@ -176,13 +161,13 @@ export function ShopBranchEditModal({
               },
             ]}
           >
-            <Input placeholder={t('shopBranches.phoneNumberPlaceholder')} maxLength={11} />
+            <Input placeholder={t('shops.phoneNumberPlaceholder')} maxLength={11} />
           </Form.Item>
 
           <div className="col-span-2">
             <Form.Item
               name="address"
-              label={t('shopBranches.address')}
+              label={t('shops.address')}
               rules={[
                 { required: true, whitespace: true, message: t('responses.EV001') },
                 { max: 255, message: t('responses.EV005') },
@@ -192,7 +177,7 @@ export function ShopBranchEditModal({
                 },
               ]}
             >
-              <Input.TextArea rows={3} placeholder={t('shopBranches.addressPlaceholder')} />
+              <Input.TextArea rows={3} placeholder={t('shops.addressPlaceholder')} />
             </Form.Item>
           </div>
         </div>

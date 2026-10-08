@@ -5,7 +5,56 @@
     "loading": "Đang tải...",
     "ok": "OK",
     "error": "Lỗi",
-    "from": "Từ"
+    "from": "Từ",
+    "actions": "Thao tác"
+  },
+  "invoices": {
+    "title": "Quản Lý Hóa Đơn",
+    "detailTitle": "Chi Tiết Hóa Đơn",
+    "itemsList": "Danh sách món",
+    "subTotal": "Thành tiền",
+    "searchPlaceholder": "Tìm kiếm hóa đơn theo bàn, nhân viên...",
+    "emptySearch": "Không tìm thấy hóa đơn nào phù hợp với từ khóa tìm kiếm.",
+    "createTitle": "Tạo Hóa Đơn Mới",
+    "editTitle": "Chỉnh Sửa Hóa Đơn",
+    "createBtn": "Tạo hóa đơn",
+    "createSuccess": "Tạo hóa đơn thành công!",
+    "editSuccess": "Cập nhật hóa đơn thành công!",
+    "paySuccess": "Thanh toán hóa đơn thành công!",
+    "cancelSuccess": "Hủy hóa đơn thành công!",
+    "invoiceId": "Mã hóa đơn",
+    "shopName": "Chi nhánh",
+    "staffName": "Nhân viên tạo",
+    "tableNumber": "Số bàn",
+    "totalAmount": "Tổng tiền",
+    "status": "Trạng thái",
+    "createdAt": "Thời gian tạo",
+    "updatedAt": "Cập nhật lần cuối",
+    "filterStatus": "Lọc trạng thái",
+    "filterShop": "Lọc chi nhánh",
+    "itemList": "Danh sách món",
+    "addItem": "Thêm món",
+    "drinkId": "Mã món (ID)",
+    "drinkName": "Tên món",
+    "size": "Kích cỡ",
+    "quantity": "Số lượng",
+    "unitPrice": "Đơn giá",
+    "note": "Ghi chú",
+    "pay": "Thanh toán",
+    "cancel": "Hủy đơn",
+    "payConfirmTitle": "Xác nhận thanh toán",
+    "payConfirmDesc": "Bạn có chắc chắn muốn hoàn tất thanh toán hóa đơn này không?",
+    "payOk": "Thanh toán",
+    "cancelConfirmTitle": "Xác nhận hủy hóa đơn",
+    "cancelConfirmDesc": "Bạn có chắc chắn muốn hủy hóa đơn này không? Thao tác này không thể hoàn tác.",
+    "cancelOk": "Hủy đơn",
+    "tableNumberRequired": "Vui lòng nhập số bàn.",
+    "shopRequired": "Vui lòng chọn chi nhánh.",
+    "statusOptions": {
+      "serving": "Đang phục vụ",
+      "paid": "Đã thanh toán",
+      "cancelled": "Đã hủy"
+    }
   },
   "drinks": {
     "title": "Đồ Uống",
@@ -20,10 +69,11 @@
     "emptySearch": "Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm.",
     "uploadImage": "Tải ảnh lên",
     "noCategory": "Chưa có dữ liệu danh mục",
-    "imageTooLong": "Đường dẫn hình ảnh quá dài (tối đa 500 ký tự). Vui lòng chọn ảnh có dung lượng nhỏ hơn hoặc sử dụng đường dẫn ngắn hơn!",
     "statusActive": "Đang bán",
     "statusInactive": "Ngừng bán",
     "createSuccess": "Thêm đồ uống thành công!",
+    "editSuccess": "Chỉnh sửa đồ uống thành công!",
+    "editError": "Chỉnh sửa đồ uống thất bại!",
     "deleteSuccess": "Xoá đồ uống thành công!",
     "deleteError": "Xoá đồ uống thất bại!",
     "sizeOptions": {
@@ -41,16 +91,23 @@
   "categories": {
     "title": "Danh Mục",
     "name": "Tên danh mục",
+    "shopName": "Chi nhánh",
+    "filterShop": "Lọc chi nhánh",
     "searchPlaceholder": "Tìm kiếm danh mục...",
+    "searchMaxLength": "Từ khóa tìm kiếm không được vượt quá 100 ký tự.",
+    "searchInvalid": "Từ khóa tìm kiếm chứa ký tự không hợp lệ.",
     "emptySearch": "Không tìm thấy danh mục nào phù hợp với từ khóa tìm kiếm.",
     "createTitle": "Thêm danh mục",
     "editTitle": "Chỉnh sửa danh mục",
     "createSuccess": "Thêm danh mục thành công.",
     "editSuccess": "Chỉnh sửa danh mục thành công.",
     "deleteSuccess": "Xoá danh mục thành công.",
+    "deleteConfirmDesc": "Xóa danh mục \"{{name}}\" sẽ xóa toàn bộ đồ uống và chi tiết đồ uống (size, giá) thuộc danh mục. Bạn có chắc chắn muốn tiếp tục không?",
     "nameRequired": "Vui lòng nhập tên danh mục.",
+    "nameMaxLength": "Tên danh mục không được vượt quá 100 ký tự.",
     "shopRequired": "Vui lòng chọn chi nhánh.",
-    "nameConflict": "Tên danh mục đã tồn tại."
+    "nameConflict": "Tên danh mục đã tồn tại trong chi nhánh.",
+    "deletePendingInvoices": "Không thể xóa danh mục đang có hóa đơn chưa hoàn tất thanh toán."
   },
   "revenues": {
     "title": "Báo Cáo Doanh Thu",
@@ -83,11 +140,12 @@
     "selectYearPlaceholder": "-- Chọn năm --",
     "modalTitle": "Chi Tiết Hóa Đơn"
   },
-  "shopBranches": {
+  "shops": {
     "title": "Chi Nhánh",
     "shopName": "Tên chi nhánh",
     "address": "Địa chỉ",
     "phoneNumber": "Số điện thoại",
+    "activeStaffCount": "Số lượng nhân viên",
     "createdAt": "Ngày tạo",
     "updatedAt": "Ngày cập nhật",
     "searchPlaceholder": "Tìm kiếm chi nhánh theo tên, địa chỉ...",
@@ -98,18 +156,24 @@
     "phoneRequired": "Vui lòng nhập số điện thoại.",
     "addressRequired": "Vui lòng nhập địa chỉ.",
     "nameConflict": "Tên chi nhánh đã tồn tại.",
-    "phoneConflict": "Số điện thoại đã tồn tại.",
     "addressConflict": "Địa chỉ chi nhánh đã tồn tại.",
     "shopNamePlaceholder": "Nhập tên chi nhánh...",
     "phoneNumberPlaceholder": "Nhập số điện thoại...",
     "addressPlaceholder": "Nhập địa chỉ...",
-    "phoneInvalid": "Số điện thoại chứa 10-11 chữ số.",
+    "phoneInvalid": "Số điện thoại phải bắt đầu bằng số 0 và gồm 10-11 chữ số.",
     "phoneMax": "Số điện thoại tối đa 11 số.",
+    "specialCharacters": "Dữ liệu chứa ký tự không hợp lệ.",
+    "nameMaxLength": "Tên chi nhánh không được vượt quá 100 ký tự.",
+    "addressMaxLength": "Địa chỉ không được vượt quá 255 ký tự.",
     "editTitle": "Chỉnh sửa chi nhánh",
     "editSuccess": "Cập nhật chi nhánh thành công.",
     "deleteTitle": "Xác nhận xóa chi nhánh",
-    "deleteConfirmDesc": "Hành động này sẽ xóa chi nhánh \"{{name}}\" cùng toàn bộ danh mục và đồ uống trực thuộc chi nhánh này. Bạn có chắc chắn muốn tiếp tục?",
-    "deleteSuccess": "Xóa chi nhánh thành công."
+    "deleteConfirmDesc": "Hành động này sẽ xóa chi nhánh \"{{name}}\" cùng toàn bộ danh mục và đồ uống trực thuộc chi nhánh này. Bạn có chắc chắn muốn tiếp tục không?",
+    "deleteSuccess": "Xóa chi nhánh thành công.",
+    "deleteActiveStaff": "Vui lòng di chuyển hoặc xóa nhân viên trước khi xóa chi nhánh.",
+    "deletePendingInvoices": "Vui lòng thanh toán các hóa đơn chưa hoàn tất trước khi xóa chi nhánh.",
+    "deleteActiveStaffAndPendingInvoices": "Vui lòng di chuyển hoặc xóa nhân viên và thanh toán các hóa đơn chưa hoàn tất trước khi xóa chi nhánh.",
+    "viewStaff": "Xem nhân viên"
   },
   "search": {
     "placeholder": "Tìm kiếm..."
@@ -156,6 +220,8 @@
     "titleView": "Chi tiết",
     "titleEdit": "Chỉnh sửa",
     "titleCreate": "Tạo mới",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
     "save": "Lưu",
     "create": "Tạo mới",
     "cancel": "Huỷ",
@@ -170,10 +236,11 @@
   "sidebar": {
     "drinks": "Đồ Uống",
     "orders": "Đơn Hàng",
+    "invoices": "Hóa Đơn",
     "categories": "Danh Mục",
     "revenues": "Doanh Thu",
     "staffs": "Nhân Viên",
-    "branchShops": "Chi Nhánh"
+    "shops": "Chi Nhánh"
   },
   "login": {
     "title": "Chào Mừng Trở Lại",
@@ -197,9 +264,13 @@
     "ER008": "Dữ liệu yêu cầu không hợp lệ.",
     "ER009": "Tên đăng nhập hoặc mật khẩu không đúng.",
     "ER010": "Tài khoản của bạn đã bị vô hiệu hóa.",
+    "ER011": "Tên danh mục đã tồn tại trong chi nhánh.",
     "ER500": "Đã xảy ra lỗi máy chủ nội bộ. Vui lòng thử lại sau.",
     "EV001": "Trường này là bắt buộc.",
     "EV002": "Mật khẩu không đúng độ dài yêu cầu.",
-    "EV005": "Số điện thoại không được vượt quá 11 ký tự."
+    "EV005": "Độ dài dữ liệu vượt quá giới hạn cho phép.",
+    "EV007": "Dữ liệu chứa ký tự không hợp lệ.",
+    "EV008": "Số điện thoại không hợp lệ (phải bắt đầu bằng số 0).",
+    "EV009": "Số điện thoại phải có độ dài từ 10 đến 11 chữ số."
   }
 }

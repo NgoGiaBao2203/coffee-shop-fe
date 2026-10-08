@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Upload, message } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Upload } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { UploadFile, UploadProps } from 'antd';
-import type { CreateDrinkRequest } from '../types';
+import type { CreateDrinkRequest, CategorySelectOption } from '../types';
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: CreateDrinkRequest) => Promise<void>;
+  onSubmit: (values: CreateDrinkRequest, imageFile?: File) => Promise<void>;
   loading: boolean;
-  categoryOptions?: { value: string; label: string }[];
+  categoryOptions?: CategorySelectOption[];
   shopId?: string;
 }
-
-// Maximum length limit for image URLs/Base64 strings
-const MAX_IMAGE_URL_LENGTH = 500;
 
 export function DrinkCreateModal({
   open,
@@ -32,11 +29,12 @@ export function DrinkCreateModal({
   // Update initial form values whenever the modal opens or shopId/categories load
   useEffect(() => {
     if (open) {
+      const defaultCategory = categoryOptions[0];
       form.setFieldsValue({
         status: 1,
         size: 'M',
-        shopId: shopId,
-        drinkCategoryId: categoryOptions[0]?.value,
+        shopId: shopId || defaultCategory?.shopId,
+        drinkCategoryId: defaultCategory?.value,
       });
     }
   }, [open, shopId, categoryOptions, form]);
@@ -50,31 +48,41 @@ export function DrinkCreateModal({
       const values = await form.validateFields();
 
       let imageUrl = 'https://placehold.co/400x300?text=Drink';
-      if (fileList.length > 0) {
-        const file = fileList[0];
+      const file = fileList[0];
+      const imageFile = file?.originFileObj as File | undefined;
+
+      if (fileList.length > 0 && file) {
         // Prioritize `url`; if unavailable, use `thumbUrl` (Base64)
         imageUrl = file.url || file.thumbUrl || imageUrl;
       }
 
-      // Check if the image path exceeds the database string length limit
-      if (imageUrl.length > MAX_IMAGE_URL_LENGTH) {
-        message.error(t('drinks.imageTooLong'));
-        return;
-      }
-
-      await onSubmit({
-        ...values,
-        imageUrl,
-        status: Number(values.status ?? 1),
-        isDeleted: false,
-        drinkDetailId: crypto.randomUUID(),
-      });
+      await onSubmit(
+        {
+          ...values,
+          imageUrl,
+          status: Number(values.status ?? 1),
+          isDeleted: false,
+          drinkDetailId: crypto.randomUUID(),
+        },
+        imageFile,
+      );
 
       form.resetFields();
       setFileList([]);
       onClose();
     } catch (error) {
       console.error('Validation failed:', error);
+    }
+  };
+
+  // Handle category selection to assign both drinkCategoryId and shopId
+  const handleCategoryChange = (
+    _value: string,
+    option?: CategorySelectOption | CategorySelectOption[],
+  ) => {
+    const selectedOpt = Array.isArray(option) ? option[0] : option;
+    if (selectedOpt?.shopId) {
+      form.setFieldValue('shopId', selectedOpt.shopId);
     }
   };
 
@@ -91,7 +99,6 @@ export function DrinkCreateModal({
         setFileList([]);
         onClose();
       }}
-      destroyOnClose
     >
       <Form form={form} layout="vertical">
         {/* Drink Name Field */}
@@ -112,6 +119,7 @@ export function DrinkCreateModal({
           <Select
             placeholder={t('form.selectCategoryPlaceholder')}
             options={categoryOptions}
+            onChange={handleCategoryChange}
             notFoundContent={categoryOptions.length === 0 ? t('drinks.noCategory') : undefined}
           />
         </Form.Item>
@@ -176,7 +184,7 @@ export function DrinkCreateModal({
           />
         </Form.Item>
 
-        {/* Hidden Shop ID - Populated dynamically from props */}
+        {/* Hidden Shop ID - Populated dynamically from props or category selection */}
         <Form.Item name="shopId" hidden>
           <Input />
         </Form.Item>

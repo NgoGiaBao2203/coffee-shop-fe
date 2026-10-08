@@ -11,6 +11,7 @@ export const ENDPOINT = {
   // Dropdowns
   GET_ROLES: '/dropdown/role',
   GET_SHOP_NAMES: '/dropdown/shop-name',
+  GET_DROPDOWN_CATEGORIES: '/dropdown/category',
 
   // Categories
   GET_CATEGORIES: '/categories',
@@ -28,9 +29,16 @@ export const ENDPOINT = {
   // Revenue
   GET_REVENUES: '/revenues',
 
-  // Shop branch
-  GET_SHOP_BRANCHES: 'shop-branches',
-  CREATE_SHOP_BRANCH: 'shop-branch/create',
-  EDIT_SHOP_BRANCH: '/shop-branch/edit',
-  DELETE_SHOP_BRANCH: '/shop-branch/delete',
+  // Invoices
+  GET_INVOICES: '/invoices',
+  CREATE_INVOICE: '/invoice/create',
+  EDIT_INVOICE: '/invoice/edit',
+  PAY_INVOICE: '/invoice/pay',
+  CANCEL_INVOICE: '/invoice/cancel',
+
+  // Shop
+  GET_SHOPES: '/shops',
+  CREATE_SHOP: 'shop/create',
+  EDIT_SHOP: '/shop',
+  DELETE_SHOP: '/shop/delete',
 } as const;

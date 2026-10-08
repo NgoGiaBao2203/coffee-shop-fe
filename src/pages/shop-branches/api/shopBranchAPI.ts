@@ -12,24 +12,27 @@ import type {
 export async function getShopBranchesApi(
   payload: SearchShopBranchRequest,
 ): Promise<ShopBranchesResponse> {
-  const response = await api.post<ShopBranchesResponse>(ENDPOINT.GET_SHOP_BRANCHES, payload);
+  const response = await api.get<ShopBranchesResponse>(ENDPOINT.GET_SHOPES, {
+    params: payload,
+  });
   return response.data;
 }
 
-// Suppress global ER005 toast so modal can show exact conflict message
 export async function createShopBranchApi(payload: CreateShopBranchRequest): Promise<void> {
-  await api.post(ENDPOINT.CREATE_SHOP_BRANCH, payload, {
-    suppressCodes: [RESPONSE_CODE.CONFLICT, 'ER005'],
+  await api.post(ENDPOINT.CREATE_SHOP, payload, {
+    suppressCodes: [RESPONSE_CODE.CONFLICT, RESPONSE_CODE.INVALID_REQUEST],
   });
 }
 
-// Suppress global ER005 toast so edit modal can show exact conflict message
-export async function editShopBranchApi(payload: EditShopBranchRequest): Promise<void> {
-  await api.post(ENDPOINT.EDIT_SHOP_BRANCH, payload, {
-    suppressCodes: [RESPONSE_CODE.CONFLICT, 'ER005'],
+export async function editShopBranchApi(
+  shopId: string,
+  payload: EditShopBranchRequest,
+): Promise<void> {
+  await api.put(`${ENDPOINT.EDIT_SHOP}/${shopId}`, payload, {
+    suppressCodes: [RESPONSE_CODE.CONFLICT, RESPONSE_CODE.INVALID_REQUEST],
   });
 }
 
 export async function deleteShopBranchApi(payload: DeleteShopBranchRequest): Promise<void> {
-  await api.delete(ENDPOINT.DELETE_SHOP_BRANCH, { data: payload });
+  await api.delete(ENDPOINT.DELETE_SHOP, { data: payload });
 }

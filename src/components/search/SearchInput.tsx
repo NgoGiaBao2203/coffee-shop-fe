@@ -13,7 +13,11 @@ export function SearchInput({ onSearch, loading = false, placeholder }: SearchIn
   return (
     <Input.Search
       placeholder={placeholder ?? t('search.placeholder')}
-      onSearch={onSearch}
+      onSearch={(value, event) => {
+        // Prevent default submit behavior on Enter
+        event?.preventDefault();
+        onSearch(value);
+      }}
       loading={loading}
       allowClear
       size="large"

@@ -28,6 +28,7 @@ export interface AppFormDrawerProps<T extends object> {
   onClose: () => void;
   record?: Partial<T> | null;
   fields: FormFieldConfig[];
+  contentActions?: ReactNode;
   width?: number;
 }
 
@@ -36,6 +37,7 @@ export function AppFormDrawer<T extends object>({
   onClose,
   record,
   fields,
+  contentActions,
   width = 480,
 }: AppFormDrawerProps<T>) {
   const { t } = useTranslation();
@@ -62,6 +64,7 @@ export function AppFormDrawer<T extends object>({
           </Descriptions.Item>
         ))}
       </Descriptions>
+      {contentActions}
     </Drawer>
   );
 }

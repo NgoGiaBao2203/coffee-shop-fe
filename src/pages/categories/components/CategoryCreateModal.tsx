@@ -35,21 +35,29 @@ export function CategoryCreateModal({
 }: CategoryCreateModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<CategoryCreateValues>();
+  const profileShopId = useAppSelector(
+    (state) => (state.auth.profile as { shopId?: string } | null)?.shopId,
+  );
   const profileShopName = useAppSelector((state) => state.auth.profile?.shopName);
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isManager = roleName === ROLES.MANAGER;
 
   useEffect(() => {
-    if (!open || shopOptions.length === 0) return;
-    if (isManager && profileShopName) {
-      const matchedShop = shopOptions.find(
-        (s) => s.label.trim().toLowerCase() === profileShopName.trim().toLowerCase(),
-      );
-      form.setFieldValue('shopId', matchedShop?.value ?? shopOptions[0].value);
-    } else {
+    if (!open) return;
+
+    if (isManager) {
+      if (profileShopId) {
+        form.setFieldValue('shopId', profileShopId);
+      } else if (shopOptions.length > 0 && profileShopName) {
+        const matchedShop = shopOptions.find(
+          (s) => s.label.trim().toLowerCase() === profileShopName.trim().toLowerCase(),
+        );
+        form.setFieldValue('shopId', matchedShop?.value ?? shopOptions[0].value);
+      }
+    } else if (shopOptions.length > 0) {
       form.setFieldValue('shopId', shopOptions[0].value);
     }
-  }, [open, shopOptions, isManager, profileShopName]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, shopOptions, isManager, profileShopId, profileShopName, form]);
 
   const handleClose = () => {
     form.resetFields();
@@ -58,19 +66,23 @@ export function CategoryCreateModal({
 
   const handleSubmit = async (values: CategoryCreateValues) => {
     try {
-      await onSubmit(values);
+      await onSubmit({ ...values, categoryName: values.categoryName.trim() });
       handleClose();
-    } catch (error) {
-      if (
-        axios.isAxiosError(error) &&
-        error.response?.data?.code === RESPONSE_CODE.INVALID_REQUEST
-      ) {
-        form.setFields([
-          {
-            name: 'categoryName',
-            errors: [t('categories.nameConflict')],
-          },
-        ]);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resCode = error.response?.data?.code;
+        if (
+          resCode === RESPONSE_CODE.CONFLICT ||
+          resCode === 'ER005' ||
+          resCode === RESPONSE_CODE.INVALID_REQUEST
+        ) {
+          form.setFields([
+            {
+              name: 'categoryName',
+              errors: [t('categories.nameConflict')],
+            },
+          ]);
+        }
       }
     }
   };
@@ -97,18 +109,32 @@ export function CategoryCreateModal({
         <Form.Item
           name="categoryName"
           label={t('categories.name')}
-          rules={[{ required: true, message: t('categories.nameRequired') }]}
+          rules={[
+            { required: true, whitespace: true, message: t('categories.nameRequired') },
+            { max: 100, message: t('categories.nameMaxLength') },
+            {
+              // Allows: Unicode letters, numbers, spaces, and punctuation: - & / ( ) , . '
+              pattern: /^[\p{L}\p{N}\s\-&/(),.']+$/u,
+              message: t('responses.EV007'),
+            },
+          ]}
         >
           <Input onChange={() => form.setFields([{ name: 'categoryName', errors: [] }])} />
         </Form.Item>
 
-        <Form.Item
-          name="shopId"
-          label={t('staffs.shopName')}
-          rules={[{ required: true, message: t('categories.shopRequired') }]}
-        >
-          <Select options={shopOptions} loading={optionsLoading} disabled={isManager} />
-        </Form.Item>
+        {isManager ? (
+          <Form.Item name="shopId" hidden>
+            <Input />
+          </Form.Item>
+        ) : (
+          <Form.Item
+            name="shopId"
+            label={t('staffs.shopName')}
+            rules={[{ required: true, message: t('categories.shopRequired') }]}
+          >
+            <Select options={shopOptions} loading={optionsLoading} />
+          </Form.Item>
+        )}
       </Form>
     </Modal>
   );
