@@ -18,6 +18,46 @@ import type {
 } from '../types';
 import type { ShopNameItem } from '@/pages/staffs/types';
 
+function showDrinkApiError(
+  error: unknown,
+  showError: (message: string) => void,
+  t: (key: string) => string,
+) {
+  if (!axios.isAxiosError(error) || !error.response?.data) return;
+
+  const response = error.response.data;
+  const errorCode = response.code as string | undefined;
+
+  const errorDetails: { errorCode?: string }[] = Array.isArray(response?.errorDetails)
+    ? response.errorDetails
+    : [];
+
+  const isNameConflict =
+    [RESPONSE_CODE.CONFLICT, 'ER011'].includes(errorCode ?? '') ||
+    errorDetails.some(
+      ({ errorCode: detailCode }) =>
+        detailCode === RESPONSE_CODE.CONFLICT || detailCode === 'ER011',
+    );
+
+  if (isNameConflict) {
+    showError(t('drinks.nameConflict'));
+    return;
+  }
+
+  if (errorCode === RESPONSE_CODE.NOT_FOUND || errorCode === 'ER004') {
+    showError(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+  } else if (errorCode === RESPONSE_CODE.INVALID_REQUEST || errorCode === 'ER008') {
+    const firstDetailCode = errorDetails[0]?.errorCode;
+    if (firstDetailCode === RESPONSE_CODE.PRICE_MIN) {
+      showError(getResponseMessage(RESPONSE_CODE.PRICE_MIN));
+    } else {
+      showError(getResponseMessage(firstDetailCode || RESPONSE_CODE.INVALID_REQUEST));
+    }
+  } else if (errorCode) {
+    showError(getResponseMessage(errorCode));
+  }
+}
+
 // Default pagination, search, and shop filter parameters
 const DEFAULT_PARAMS: GetDrinksRequest = {
   page: 1,
