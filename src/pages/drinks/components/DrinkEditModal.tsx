@@ -14,11 +14,7 @@ import {
 } from './DrinkFormFields';
 import { setDrinkNameConflictError } from '../utils/utils';
 
-interface DrinkEditFormValues {
-  drinkId: string;
-  drinkName: string;
-  drinkCategoryId: string;
-  status: number;
+interface DrinkEditFormValues extends Omit<EditDrinkRequest, 'imageUrl'> {
   fileList?: UploadFile[];
 }
 
@@ -98,16 +94,23 @@ export function DrinkEditModal({
     onClose();
   };
 
-  const handleSubmit = async (values: DrinkEditFormValues) => {
+  const handleOk = async () => {
     try {
+      const values = await form.validateFields();
+
+      let imageUrl = record?.imageUrl || 'https://placehold.co/400x300?text=Drink';
       const file = values.fileList?.[0];
       await onSubmit(
         {
           drinkId: record?.drinkId || values.drinkId || '',
           drinkName: values.drinkName,
           drinkCategoryId: values.drinkCategoryId,
-          imageUrl: record?.imageUrl ?? undefined,
+          shopId: values.shopId,
+          price: values.price,
+          size: values.size,
+          imageUrl,
           status: Number(values.status ?? 1),
+          isDeleted: false,
         },
         file?.originFileObj as File | undefined,
       );

@@ -40,7 +40,7 @@ export function DrinkCreateModal({
   shopId,
 }: Props) {
   const { t } = useTranslation();
-  const [form] = Form.useForm<DrinkCreateFormValues>();
+  const [form] = Form.useForm<CreateDrinkRequest>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   useEffect(() => {
@@ -57,14 +57,11 @@ export function DrinkCreateModal({
     setFileList(newFileList);
   };
 
-  const handleClose = () => {
-    form.resetFields();
-    setFileList([]);
-    onClose();
-  };
-
-  const handleSubmit = async (values: DrinkCreateFormValues) => {
+  const handleOk = async () => {
     try {
+      const values = await form.validateFields();
+
+      let imageUrl = 'https://placehold.co/400x300?text=Drink';
       const file = fileList[0];
       const payload: CreateDrinkRequest = {
         shopId: values.shopId,

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusOutlined } from '@ant-design/icons';
-import { Pagination, Empty, Spin, Button, Typography, Select } from 'antd';
+import { PlusOutlined, ExclamationCircleFilled } from '@ant-design/icons';
+import { Pagination, Empty, Spin, Button, Typography, Select, Modal } from 'antd';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
-import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
 import { useDrinks } from './hooks/useDrinks';
@@ -15,12 +14,9 @@ import { DrinkCreateModal } from './components/DrinkCreateModal';
 import { DrinkEditModal } from './components/DrinkEditModal';
 import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
 
-const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
-
 export function DrinksPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
-  const { confirm: confirmDelete } = useConfirmModal();
 
   // Role authorization checks
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
@@ -35,12 +31,11 @@ export function DrinksPage() {
     searchLoading,
     createLoading,
     editLoading,
-    deleteLoading,
     showEmptyModal,
     closeEmptyModal,
     currentPage,
     currentPageSize,
-    currentShopId,
+    currentBranchShopId,
     shopOptions,
     categoryOptions,
     optionsLoading,
@@ -68,19 +63,6 @@ export function DrinksPage() {
   const [selected, setSelected] = useState<DrinkItem | null>(null);
   const [selectedEditRecord, setSelectedEditRecord] = useState<DrinkItem | null>(null);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
-
-  const handleDrinkSearch = (value: string) => {
-    const trimmedValue = value.trim();
-    if (trimmedValue.length > 100) {
-      showError(t('responses.EV005'), t('common.error'));
-      return;
-    }
-    if (trimmedValue && !SEARCH_REGEX.test(trimmedValue)) {
-      showError(t('responses.EV007'), t('common.error'));
-      return;
-    }
-    handleSearch(value);
-  };
 
   // Open detail drawer and fetch variants
   const onCardClick = async (g: DrinkItem) => {
@@ -112,13 +94,17 @@ export function DrinksPage() {
     const targetId = g.drinkId;
     if (!targetId) return;
 
-    confirmDelete({
+    Modal.confirm({
       title: t('table.deleteConfirmTitle'),
+      icon: <ExclamationCircleFilled style={{ color: '#faad14' }} />,
       content: t('table.deleteConfirmDesc'),
       okText: t('table.deleteOk'),
+      okType: 'danger',
       cancelText: t('table.deleteCancel'),
-      okDanger: true,
-      onConfirm: () => deleteDrink(targetId),
+      centered: true,
+      async onOk() {
+        await deleteDrink(targetId);
+      },
     });
   };
 
@@ -128,37 +114,32 @@ export function DrinksPage() {
         {t('drinks.title')}
       </Typography.Title>
 
-      {/* Action Bar: Search input, shop filter for OWNER, and create button */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="w-full min-w-0 sm:flex-1">
+      {/* Action Bar: Search input, Branch filter for OWNER, and Create button */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex-1 min-w-48">
           <SearchInput
-            onSearch={handleDrinkSearch}
+            onSearch={(val) => handleSearch(val)}
             loading={searchLoading}
             placeholder={t('drinks.searchPlaceholder')}
           />
         </div>
 
-        {/* Shop Select Filter (OWNER role only) */}
+        {/* Branch Shop Select Filter (OWNER role only) */}
         {isOwner && (
           <Select
             allowClear
             placeholder={t('staffs.filterShop')}
             options={shopOptions}
             loading={optionsLoading}
-            value={currentShopId || undefined}
+            value={currentBranchShopId || undefined}
             onChange={(val) => handleShopFilter(val ?? '')}
-            className="w-full sm:w-52"
+            className="w-52"
           />
         )}
 
         {/* Create Drink Button (hidden for STAFF) */}
         {!isStaff && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateOpen(true)}
-            className="w-full sm:w-auto"
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             {t('form.create')}
           </Button>
         )}
@@ -168,7 +149,7 @@ export function DrinksPage() {
       <div className="relative min-h-0 w-full flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/30 p-2 sm:p-3">
         {(loading || deleteLoading) && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
-            <Spin description={t('common.loading')} />
+            <Spin tip={t('common.loading')} />
           </div>
         )}
         {items.length === 0 && !loading ? (
@@ -214,7 +195,7 @@ export function DrinksPage() {
               { value: 15, label: `15 / ${t('table.perPage')}` },
               { value: 20, label: `20 / ${t('table.perPage')}` },
             ]}
-            className="w-full sm:w-[120px]"
+            style={{ width: 120 }}
           />
         </div>
       </div>

@@ -1,9 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast/useToast';
-import { RESPONSE_CODE } from '@/constants/messages';
-import { getResponseMessage } from '@/utils/getResponseMessage';
 import {
   getDrinksApi,
   createDrinkApi,
@@ -65,7 +62,7 @@ function showDrinkApiError(
 const DEFAULT_PARAMS: GetDrinksRequest = {
   page: 1,
   size: 10,
-  shopId: '',
+  branchShopId: '',
   search: '',
   sortBy: 'drinkName',
   sortDirection: 'ASC',
@@ -109,7 +106,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         const payload: GetDrinksRequest = {
           page: currentParams.page,
           size: currentParams.size,
-          shopId: currentParams.shopId || '',
+          branchShopId: currentParams.branchShopId || '',
           search: currentParams.search?.trim() || '',
           sortBy: currentParams.sortBy || 'drinkName',
           sortDirection: currentParams.sortDirection || 'ASC',
@@ -193,7 +190,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         toast.success(t('drinks.createSuccess'));
         await fetchDrinks(params);
       } catch (error) {
-        showDrinkApiError(error, toast.error, t);
+        console.error('Failed to create drink:', error);
         throw error;
       } finally {
         setCreateLoading(false);
@@ -211,7 +208,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         toast.success(t('drinks.editSuccess'));
         await fetchDrinks(params);
       } catch (error) {
-        showDrinkApiError(error, toast.error, t);
+        console.error('Failed to edit drink:', error);
         throw error;
       } finally {
         setEditLoading(false);
@@ -229,7 +226,8 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         toast.success(t('drinks.deleteSuccess'));
         await fetchDrinks(params);
       } catch (error) {
-        showDrinkApiError(error, toast.error, t);
+        console.error('Failed to delete drink:', error);
+        toast.error(t('drinks.deleteError'));
       } finally {
         setDeleteLoading(false);
       }
@@ -248,11 +246,11 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
   };
 
   // Handler for shop filter changes
-  const handleShopFilter = (shopId: string) => {
+  const handleShopFilter = (branchShopId: string) => {
     setIsSearch(false);
     setParams((prev) => ({
       ...prev,
-      shopId,
+      branchShopId,
       page: 1,
     }));
   };
@@ -279,7 +277,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     currentPage: params.page,
     currentPageSize: params.size,
     searchKeyword: params.search ?? '',
-    currentShopId: params.shopId,
+    currentBranchShopId: params.branchShopId,
     loading,
     searchLoading,
     createLoading,

@@ -14,6 +14,7 @@ export const NAV_PERMISSIONS: Record<string, Role[]> = {
   '/': [ROLES.OWNER, ROLES.MANAGER, ROLES.STAFF],
   '/orders': [ROLES.OWNER, ROLES.MANAGER, ROLES.STAFF],
   '/categories': [ROLES.OWNER, ROLES.MANAGER, ROLES.STAFF],
+  '/tables': [ROLES.OWNER, ROLES.MANAGER, ROLES.STAFF],
   '/revenue': [ROLES.OWNER, ROLES.MANAGER],
   '/staff': [ROLES.OWNER, ROLES.MANAGER],
   '/shop': [ROLES.OWNER],
