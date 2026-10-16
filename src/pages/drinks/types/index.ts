@@ -1,12 +1,11 @@
 export interface DrinkVariantItem {
-  drinkDetailId: string;
+  drinkId?: string;
   size: string;
   price: number | string;
 }
 
 export interface DrinkItem {
   drinkCategoryId: string;
-  categoryName?: string;
   drinkId: string;
   shopId: string;
   drinkName: string;
@@ -41,7 +40,7 @@ export interface GetDrinkDetailResponse {
 export interface GetDrinksRequest {
   page: number;
   size: number;
-  shopId: string;
+  branchShopId: string;
   search?: string;
   sortBy?: string;
   sortDirection?: 'ASC' | 'DESC';
@@ -49,12 +48,14 @@ export interface GetDrinksRequest {
 
 export interface CreateDrinkRequest {
   drinkName: string;
-  imageUrl: string;
+  imageUrl?: string;
   status: number;
+  isDeleted: boolean;
   price: number;
   size: string;
   shopId: string;
   drinkCategoryId: string;
+  drinkDetailId?: string;
 }
 
 export interface CreateDrinkResponse {
@@ -98,6 +99,10 @@ export interface EditDrinkRequest {
   drinkName: string;
   imageUrl?: string;
   status: number;
+  isDeleted: boolean;
+  price: number;
+  size: string;
+  shopId: string;
   drinkCategoryId: string;
 }
 

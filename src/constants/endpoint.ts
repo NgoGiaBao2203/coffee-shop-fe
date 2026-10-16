@@ -36,6 +36,12 @@ export const ENDPOINT = {
   PAY_INVOICE: '/invoice/pay',
   CANCEL_INVOICE: '/invoice/cancel',
 
+  // Tables
+  GET_TABLES: '/tables',
+  CREATE_TABLE: '/tables/create',
+  EDIT_TABLE: 'table/edit',
+  DELETE_TABLE: '/table/delete',
+
   // Shop
   GET_SHOPES: '/shops',
   CREATE_SHOP: 'shop/create',
