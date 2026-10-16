@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, Upload, Button, Divider } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { useEffect, useState } from 'react';
+import { Form, Input, Upload, type UploadFile, type UploadProps } from 'antd';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import type { UploadFile, UploadProps } from 'antd';
-import { RESPONSE_CODE } from '@/constants/messages';
 import type { CreateDrinkRequest, CategorySelectOption } from '../types';
-import { DrinkPriceInput } from './DrinkPriceInput';
+import { DrinkFormModal } from './DrinkFormModal';
+import {
+  DrinkCategoryField,
+  DrinkNameField,
+  DrinkPriceInput,
+  DrinkStatusField,
+  DrinkUploadAction,
+} from './DrinkFormFields';
+import { setDrinkNameConflictError } from '../utils/utils';
 
-const DRINK_NAME_PATTERN = /^[\p{L}\p{N}\s&/(),.'-]+$/u;
 const FALLBACK_DRINK_IMAGE = 'https://placehold.co/400x300?text=Drink';
 
 interface DrinkCreateFormValues {
@@ -40,16 +43,14 @@ export function DrinkCreateModal({
   const [form] = Form.useForm<DrinkCreateFormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  // Update initial form values whenever the modal opens or shopId/categories load
   useEffect(() => {
-    if (open) {
-      const defaultCategory = categoryOptions[0];
-      form.setFieldsValue({
-        status: 1,
-        shopId: shopId || defaultCategory?.shopId,
-        drinkCategoryId: defaultCategory?.value,
-      });
-    }
+    if (!open) return;
+    const defaultCategory = categoryOptions[0];
+    form.setFieldsValue({
+      status: 1,
+      shopId: shopId || defaultCategory?.shopId,
+      drinkCategoryId: defaultCategory?.value,
+    });
   }, [open, shopId, categoryOptions, form]);
 
   const handleUploadChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
@@ -65,8 +66,6 @@ export function DrinkCreateModal({
   const handleSubmit = async (values: DrinkCreateFormValues) => {
     try {
       const file = fileList[0];
-      const imageFile = file?.originFileObj as File | undefined;
-
       const payload: CreateDrinkRequest = {
         shopId: values.shopId,
         drinkCategoryId: values.drinkCategoryId,
@@ -77,160 +76,74 @@ export function DrinkCreateModal({
         price: Number(values.price),
       };
 
-      await onSubmit(payload, imageFile);
-
+      await onSubmit(payload, file?.originFileObj as File | undefined);
       handleClose();
     } catch (error: unknown) {
-      if (!axios.isAxiosError(error)) return;
-
-      const response = error.response?.data;
-      const errorDetails: { errorCode?: string }[] = Array.isArray(response?.errorDetails)
-        ? response.errorDetails
-        : [];
-      const isNameConflict =
-        response?.code === RESPONSE_CODE.CONFLICT ||
-        response?.code === 'ER011' ||
-        errorDetails.some(
-          ({ errorCode }) => errorCode === RESPONSE_CODE.CONFLICT || errorCode === 'ER011',
-        );
-
-      if (isNameConflict) {
-        form.setFields([{ name: 'drinkName', errors: [t('drinks.nameConflict')] }]);
-      }
+      setDrinkNameConflictError(error, form, t('drinks.nameConflict'));
     }
   };
 
-  // Handle category selection to assign both drinkCategoryId and shopId
   const handleCategoryChange = (
     _value: string,
     option?: CategorySelectOption | CategorySelectOption[],
   ) => {
-    const selectedOpt = Array.isArray(option) ? option[0] : option;
-    if (selectedOpt?.shopId) {
-      form.setFieldValue('shopId', selectedOpt.shopId);
-    }
+    const selectedOption = Array.isArray(option) ? option[0] : option;
+    if (selectedOption?.shopId) form.setFieldValue('shopId', selectedOption.shopId);
   };
 
   return (
-    <Modal
+    <DrinkFormModal<DrinkCreateFormValues>
       open={open}
-      onCancel={handleClose}
-      centered
+      onClose={handleClose}
+      form={form}
+      onFinish={handleSubmit}
+      loading={loading}
       title={t('form.titleCreate')}
-      width="min(520px, calc(100vw - 24px))"
-      footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.create')}
-          </Button>
-        </div>
-      }
+      submitLabel={t('form.create')}
     >
-      <Divider className="my-3!" />
+      <DrinkNameField />
+      <DrinkCategoryField options={categoryOptions} onChange={handleCategoryChange} />
 
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        onValuesChange={(changedValues) => {
-          if ('drinkName' in changedValues) {
-            form.setFields([{ name: 'drinkName', errors: [] }]);
-          }
-        }}
-      >
-        {/* Drink Name Field */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Form.Item
-          name="drinkName"
-          label={t('drinks.name')}
+          name="price"
+          label={t('drinks.price')}
           rules={[
-            { required: true, whitespace: true, message: t('drinks.validation.nameRequired') },
-            { max: 100, message: t('drinks.validation.nameMaxLength') },
+            { required: true, message: t('drinks.validation.priceRequired') },
             {
-              pattern: DRINK_NAME_PATTERN,
-              message: t('drinks.validation.nameInvalid'),
+              validator: (_, value: string | null) => {
+                if (value == null || value.trim() === '') return Promise.resolve();
+                if (Number.isFinite(Number(value)) && Number(value) > 1) return Promise.resolve();
+                return Promise.reject(new Error(t('drinks.validation.priceInvalid')));
+              },
             },
           ]}
         >
-          <Input placeholder={t('form.inputNamePlaceholder')} maxLength={100} />
+          <DrinkPriceInput />
         </Form.Item>
 
-        {/* Category Selection - Fetched dynamically from DB */}
-        <Form.Item
-          name="drinkCategoryId"
-          label={t('sidebar.categories')}
-          rules={[{ required: true, message: t('drinks.validation.categoryRequired') }]}
+        <Form.Item label={t('drinks.size')}>
+          <Input value={t('drinks.sizeOptions.M')} disabled />
+        </Form.Item>
+      </div>
+
+      <Form.Item label={t('drinks.image')}>
+        <Upload
+          listType="picture-card"
+          fileList={fileList}
+          beforeUpload={() => false}
+          onChange={handleUploadChange}
+          maxCount={1}
+          accept="image/*"
         >
-          <Select
-            placeholder={t('form.selectCategoryPlaceholder')}
-            options={categoryOptions}
-            onChange={handleCategoryChange}
-            notFoundContent={categoryOptions.length === 0 ? t('drinks.noCategory') : undefined}
-          />
-        </Form.Item>
+          {fileList.length < 1 && <DrinkUploadAction />}
+        </Upload>
+      </Form.Item>
 
-        {/* A drink currently has one fixed-size variant. */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Form.Item
-            name="price"
-            label={t('drinks.price')}
-            rules={[
-              { required: true, message: t('drinks.validation.priceRequired') },
-              {
-                validator: (_, value: string | null) => {
-                  if (value == null || value.trim() === '') {
-                    return Promise.resolve();
-                  }
-                  if (Number.isFinite(Number(value)) && Number(value) > 1) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error(t('drinks.validation.priceInvalid')));
-                },
-              },
-            ]}
-          >
-            <DrinkPriceInput />
-          </Form.Item>
-
-          <Form.Item label={t('drinks.size')}>
-            <Input value={t('drinks.sizeOptions.M')} disabled />
-          </Form.Item>
-        </div>
-
-        {/* Image Upload Component */}
-        <Form.Item label={t('drinks.image')}>
-          <Upload
-            listType="picture-card"
-            fileList={fileList}
-            beforeUpload={() => false}
-            onChange={handleUploadChange}
-            maxCount={1}
-            accept="image/*"
-          >
-            {fileList.length < 1 && (
-              <div className="flex flex-col items-center justify-center">
-                <PlusOutlined />
-                <div style={{ marginTop: 8 }}>{t('drinks.uploadImage')}</div>
-              </div>
-            )}
-          </Upload>
-        </Form.Item>
-
-        {/* Status Selection */}
-        <Form.Item name="status" label={t('drinks.status')} rules={[{ required: true }]}>
-          <Select
-            options={[
-              { value: 1, label: t('drinks.statusActive') },
-              { value: 0, label: t('drinks.statusInactive') },
-            ]}
-          />
-        </Form.Item>
-
-        {/* Hidden Shop ID - Populated dynamically from props or category selection */}
-        <Form.Item name="shopId" hidden>
-          <Input />
-        </Form.Item>
-      </Form>
-    </Modal>
+      <DrinkStatusField />
+      <Form.Item name="shopId" hidden>
+        <Input />
+      </Form.Item>
+    </DrinkFormModal>
   );
 }

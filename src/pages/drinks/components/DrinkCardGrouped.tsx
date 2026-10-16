@@ -34,7 +34,7 @@ export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = 
       className="drink-card group transition-all duration-200 hover:shadow-md"
       cover={
         <div
-          className="w-full aspect-[4/3] overflow-hidden bg-gray-50 relative"
+          className="mx-auto w-4/5 aspect-square overflow-hidden bg-gray-50 relative"
           style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
         >
           <img

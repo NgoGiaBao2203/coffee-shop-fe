@@ -45,19 +45,17 @@ export function DrinkDetailDrawer({
       <Spin spinning={detailLoading}>
         {selected && (
           <div className="flex flex-col gap-4">
-            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center border border-gray-100">
-              <img
-                src={resolveImageUrl(selected?.imageUrl) || fallbackImage}
-                alt="drink"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const el = e.currentTarget as HTMLImageElement;
-                  if (el.src !== fallbackImage) {
-                    el.src = fallbackImage;
-                  }
-                }}
-              />
-            </div>
+            <img
+              src={resolveImageUrl(selected?.imageUrl) || fallbackImage}
+              alt="drink"
+              className="block h-auto w-full rounded-lg object-contain"
+              onError={(e) => {
+                const el = e.currentTarget as HTMLImageElement;
+                if (el.src !== fallbackImage) {
+                  el.src = fallbackImage;
+                }
+              }}
+            />
 
             <div className="flex items-center gap-2 flex-wrap">
               <Typography.Title level={4} className="mb-0!">

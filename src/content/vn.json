@@ -70,7 +70,7 @@
     "searchPlaceholder": "Tìm kiếm đồ uống...",
     "emptySearch": "Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm.",
     "uploadImage": "Tải ảnh lên",
-    "noCategory": "Chưa có dữ liệu danh mục",
+    "noCategory": "Chưa có dữ liệu danh mục cho chi nhánh này",
     "statusActive": "Đang bán",
     "statusInactive": "Ngừng bán",
     "createSuccess": "Thêm đồ uống thành công!",
@@ -79,6 +79,8 @@
     "deleteSuccess": "Xoá đồ uống thành công!",
     "deleteError": "Xoá đồ uống thất bại!",
     "nameConflict": "Tên đồ uống đã tồn tại trong cửa hàng.",
+    "categoryInvalidShop": "Danh mục đã chọn không thuộc chi nhánh của đồ uống này.",
+    "permissionDeniedEditShop": "Bạn không có quyền chỉnh sửa đồ uống của chi nhánh khác.",
     "sizeOptions": {
       "S": "Kích cỡ S",
       "M": "Kích cỡ M",

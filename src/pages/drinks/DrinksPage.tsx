@@ -27,7 +27,7 @@ export function DrinksPage() {
   const isStaff = roleName === ROLES.STAFF;
   const isOwner = roleName === ROLES.OWNER;
 
-  // Custom hook retrieving drink data, options, and actions
+  // Custom hook retrieving drink data, options and actions
   const {
     items,
     totalElements,
@@ -123,7 +123,7 @@ export function DrinksPage() {
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:p-4">
+    <div className="flex h-full min-h-0 flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:p-4">
       <Typography.Title level={4} className="mb-0!">
         {t('drinks.title')}
       </Typography.Title>
@@ -165,7 +165,7 @@ export function DrinksPage() {
       </div>
 
       {/* Grid container with drinks list */}
-      <div className="relative h-[calc(100dvh-360px)] min-h-[320px] w-full overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/30 p-2 sm:h-[calc(100vh-295px)] sm:min-h-[460px] sm:p-3">
+      <div className="relative min-h-0 w-full flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/30 p-2 sm:p-3">
         {(loading || deleteLoading) && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
             <Spin description={t('common.loading')} />
@@ -176,7 +176,7 @@ export function DrinksPage() {
             <Empty description={t('drinks.empty')} />
           </div>
         ) : (
-          <div className="grid w-full grid-cols-1 items-stretch justify-start gap-3 px-1 pt-1 pb-3 min-[380px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="grid w-full grid-cols-1 items-stretch justify-start gap-3 px-1 pt-1 pb-3 min-[380px]:grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
             {items.map((g) => (
               <DrinkCardGrouped
                 key={g.drinkId}
@@ -192,19 +192,20 @@ export function DrinksPage() {
       </div>
 
       {/* Pagination Controls */}
-      <div className="mt-1 flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 max-w-full overflow-x-auto sm:flex-1">
+      <div className="mt-2 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-between">
+        <div className="hidden sm:block sm:w-[120px]" />
+
+        <div className="flex justify-center">
           <Pagination
             current={currentPage}
             pageSize={currentPageSize}
             total={totalElements}
             onChange={(p, ps) => handlePageChange(p, ps)}
             showSizeChanger={false}
-            className="flex justify-center"
           />
         </div>
 
-        <div className="flex justify-end sm:flex-1">
+        <div className="flex justify-end w-full sm:w-[120px]">
           <Select
             value={currentPageSize}
             onChange={(val) => handlePageChange(1, Number(val))}

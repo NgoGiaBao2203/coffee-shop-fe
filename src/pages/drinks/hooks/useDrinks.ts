@@ -31,19 +31,31 @@ function showDrinkApiError(
   const response = error.response.data;
   const errorCode = response.code as string | undefined;
 
+  const errorDetails: { errorCode?: string }[] = Array.isArray(response?.errorDetails)
+    ? response.errorDetails
+    : [];
+
+  const isNameConflict =
+    [RESPONSE_CODE.CONFLICT, 'ER011'].includes(errorCode ?? '') ||
+    errorDetails.some(
+      ({ errorCode: detailCode }) =>
+        detailCode === RESPONSE_CODE.CONFLICT || detailCode === 'ER011',
+    );
+
+  if (isNameConflict) {
+    showError(t('drinks.nameConflict'));
+    return;
+  }
+
   if (errorCode === RESPONSE_CODE.NOT_FOUND || errorCode === 'ER004') {
     showError(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
   } else if (errorCode === RESPONSE_CODE.INVALID_REQUEST || errorCode === 'ER008') {
-    const detailCode = response.errorDetails?.[0]?.errorCode as string | undefined;
-    if ([RESPONSE_CODE.CONFLICT, 'ER011'].includes(detailCode ?? '')) {
-      showError(t('drinks.nameConflict'));
-    } else if (detailCode === RESPONSE_CODE.PRICE_MIN) {
+    const firstDetailCode = errorDetails[0]?.errorCode;
+    if (firstDetailCode === RESPONSE_CODE.PRICE_MIN) {
       showError(getResponseMessage(RESPONSE_CODE.PRICE_MIN));
     } else {
-      showError(getResponseMessage(detailCode || RESPONSE_CODE.INVALID_REQUEST));
+      showError(getResponseMessage(firstDetailCode || RESPONSE_CODE.INVALID_REQUEST));
     }
-  } else if ([RESPONSE_CODE.CONFLICT, 'ER011'].includes(errorCode ?? '')) {
-    showError(t('drinks.nameConflict'));
   } else if (errorCode) {
     showError(getResponseMessage(errorCode));
   }
