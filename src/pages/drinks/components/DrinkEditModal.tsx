@@ -1,21 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { Modal, Form, Input, Select, Upload, Button, Divider } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Upload } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import type { UploadChangeParam, UploadFile } from 'antd/es/upload';
-import { RESPONSE_CODE } from '@/constants/messages';
 import type { DrinkItem, EditDrinkRequest, CategorySelectOption } from '../types';
-import { resolveImageUrl } from '@/utils/image';
-import { formatPrice } from '@/utils/formatPrice';
 
-const DRINK_NAME_PATTERN = /^[\p{L}\p{N}\s&/(),.'-]+$/u;
-
-interface DrinkEditFormValues {
-  drinkId: string;
-  drinkName: string;
-  drinkCategoryId: string;
-  status: number;
+interface DrinkEditFormValues extends Omit<EditDrinkRequest, 'imageUrl'> {
   fileList?: UploadFile[];
 }
 
@@ -74,13 +64,17 @@ export function DrinkEditModal({
       isOpenedRef.current = true;
       form.resetFields();
 
+      // Get first variant details if available
+      const defaultVariant =
+        record.variants && record.variants.length > 0 ? record.variants[0] : null;
+
       const initialFiles: UploadFile[] = record.imageUrl
         ? [
             {
               uid: '-1',
               name: 'current_image.png',
               status: 'done',
-              url: resolveImageUrl(record.imageUrl),
+              url: record.imageUrl,
             },
           ]
         : [];
@@ -89,7 +83,10 @@ export function DrinkEditModal({
         drinkId: record.drinkId,
         drinkName: record.drinkName,
         drinkCategoryId: record.drinkCategoryId,
+        shopId: record.shopId,
         status: parseStatus(record.status),
+        price: defaultVariant ? Number(defaultVariant.price) : 0,
+        size: defaultVariant?.size || 'M',
         fileList: initialFiles,
       });
     }
@@ -101,40 +98,47 @@ export function DrinkEditModal({
     onClose();
   };
 
-  const handleSubmit = async (values: DrinkEditFormValues) => {
+  const handleOk = async () => {
     try {
+      const values = await form.validateFields();
+
+      let imageUrl = record?.imageUrl || 'https://placehold.co/400x300?text=Drink';
       const file = values.fileList?.[0];
       const imageFile = file?.originFileObj as File | undefined;
+
+      if (file) {
+        imageUrl = file.url || file.thumbUrl || imageUrl;
+      }
 
       await onSubmit(
         {
           drinkId: record?.drinkId || values.drinkId || '',
           drinkName: values.drinkName,
           drinkCategoryId: values.drinkCategoryId,
-          imageUrl: record?.imageUrl ?? undefined,
+          shopId: values.shopId,
+          price: values.price,
+          size: values.size,
+          imageUrl,
           status: Number(values.status ?? 1),
+          isDeleted: false,
         },
         imageFile,
       );
 
       handleClose();
-    } catch (error: unknown) {
-      if (!axios.isAxiosError(error)) return;
+    } catch (error) {
+      console.error('Validation failed:', error);
+    }
+  };
 
-      const response = error.response?.data;
-      const errorDetails: { errorCode?: string }[] = Array.isArray(response?.errorDetails)
-        ? response.errorDetails
-        : [];
-      const isNameConflict =
-        response?.code === RESPONSE_CODE.CONFLICT ||
-        response?.code === 'ER011' ||
-        errorDetails.some(
-          ({ errorCode }) => errorCode === RESPONSE_CODE.CONFLICT || errorCode === 'ER011',
-        );
-
-      if (isNameConflict) {
-        form.setFields([{ name: 'drinkName', errors: [t('drinks.nameConflict')] }]);
-      }
+  // Handle category selection to assign both drinkCategoryId and shopId
+  const handleCategoryChange = (
+    _value: string,
+    option?: CategorySelectOption | CategorySelectOption[],
+  ) => {
+    const selectedOpt = Array.isArray(option) ? option[0] : option;
+    if (selectedOpt?.shopId) {
+      form.setFieldValue('shopId', selectedOpt.shopId);
     }
   };
 
@@ -149,46 +153,22 @@ export function DrinkEditModal({
   return (
     <Modal
       open={open}
-      onCancel={handleClose}
-      centered
       title={t('form.titleEdit')}
-      width="min(520px, calc(100vw - 24px))"
-      footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.save')}
-          </Button>
-        </div>
-      }
-      destroyOnHidden
+      okText={t('form.save')}
+      cancelText={t('form.cancel')}
+      confirmLoading={loading}
+      onOk={handleOk}
+      onCancel={handleClose}
+      destroyOnClose
     >
-      <Divider className="my-3!" />
-
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        onValuesChange={(changedValues) => {
-          if ('drinkName' in changedValues) {
-            form.setFields([{ name: 'drinkName', errors: [] }]);
-          }
-        }}
-      >
+      <Form form={form} layout="vertical">
         {/* Drink Name Field */}
         <Form.Item
           name="drinkName"
           label={t('drinks.name')}
-          rules={[
-            { required: true, whitespace: true, message: t('drinks.validation.nameRequired') },
-            { max: 100, message: t('drinks.validation.nameMaxLength') },
-            {
-              pattern: DRINK_NAME_PATTERN,
-              message: t('drinks.validation.nameInvalid'),
-            },
-          ]}
+          rules={[{ required: true, message: t('drinks.validation.nameRequired') }]}
         >
-          <Input placeholder={t('form.inputNamePlaceholder')} maxLength={100} />
+          <Input placeholder={t('form.inputNamePlaceholder')} />
         </Form.Item>
 
         {/* Category Selection */}
@@ -200,18 +180,39 @@ export function DrinkEditModal({
           <Select
             placeholder={t('form.selectCategoryPlaceholder')}
             options={categoryOptions}
+            onChange={handleCategoryChange}
             notFoundContent={categoryOptions.length === 0 ? t('drinks.noCategory') : undefined}
           />
         </Form.Item>
 
-        {/* Variant editing is not supported by the backend yet. */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Form.Item label={t('drinks.price')}>
-            <Input value={formatPrice(record?.variants?.[0]?.price)} readOnly />
+        {/* Price & Size Fields */}
+        <div className="grid grid-cols-2 gap-3">
+          <Form.Item
+            name="price"
+            label={t('drinks.price')}
+            rules={[{ required: true, message: t('drinks.validation.priceRequired') }]}
+          >
+            <InputNumber
+              className="w-full"
+              min={0}
+              step={1000}
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              placeholder="35,000"
+            />
           </Form.Item>
 
-          <Form.Item label={t('drinks.size')}>
-            <Input value={record?.variants?.[0]?.size ?? '—'} disabled />
+          <Form.Item
+            name="size"
+            label={t('drinks.size')}
+            rules={[{ required: true, message: t('drinks.validation.sizeRequired') }]}
+          >
+            <Select
+              options={[
+                { value: 'S', label: t('drinks.sizeOptions.S') },
+                { value: 'M', label: t('drinks.sizeOptions.M') },
+                { value: 'L', label: t('drinks.sizeOptions.L') },
+              ]}
+            />
           </Form.Item>
         </div>
 
@@ -260,6 +261,9 @@ export function DrinkEditModal({
         </Form.Item>
 
         {/* Hidden Fields */}
+        <Form.Item name="shopId" hidden>
+          <Input />
+        </Form.Item>
         <Form.Item name="drinkId" hidden>
           <Input />
         </Form.Item>
