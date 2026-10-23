@@ -16,13 +16,13 @@ import { useTableFormError } from '../hooks/useTableFormError';
 export type TableEditValues = TableFormValues;
 
 interface TableEditModalProps {
-  open: boolean;
-  onClose: () => void;
-  record: TableItem | null;
-  onSubmit: (values: TableEditValues) => Promise<void> | void;
-  loading?: boolean;
-  shopOptions?: TableShopOption[];
-  optionsLoading?: boolean;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly record: TableItem | null;
+  readonly onSubmit: (values: TableEditValues) => Promise<void> | void;
+  readonly loading?: boolean;
+  readonly shopOptions?: TableShopOption[];
+  readonly optionsLoading?: boolean;
 }
 
 export function TableEditModal({

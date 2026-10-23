@@ -6,7 +6,7 @@ import { DrinkFormModal } from './DrinkFormModal';
 import {
   DrinkCategoryField,
   DrinkNameField,
-  DrinkPriceInput,
+  DrinkPriceField,
   DrinkStatusField,
   DrinkUploadAction,
 } from './DrinkFormFields';
@@ -40,7 +40,7 @@ export function DrinkCreateModal({
   shopId,
 }: Props) {
   const { t } = useTranslation();
-  const [form] = Form.useForm<CreateDrinkRequest>();
+  const [form] = Form.useForm<DrinkCreateFormValues>();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   useEffect(() => {
@@ -57,11 +57,14 @@ export function DrinkCreateModal({
     setFileList(newFileList);
   };
 
-  const handleOk = async () => {
-    try {
-      const values = await form.validateFields();
+  const handleClose = () => {
+    form.resetFields();
+    setFileList([]);
+    onClose();
+  };
 
-      let imageUrl = 'https://placehold.co/400x300?text=Drink';
+  const handleSubmit = async (values: DrinkCreateFormValues) => {
+    try {
       const file = fileList[0];
       const payload: CreateDrinkRequest = {
         shopId: values.shopId,
@@ -102,22 +105,7 @@ export function DrinkCreateModal({
       <DrinkCategoryField options={categoryOptions} onChange={handleCategoryChange} />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Form.Item
-          name="price"
-          label={t('drinks.price')}
-          rules={[
-            { required: true, message: t('drinks.validation.priceRequired') },
-            {
-              validator: (_, value: string | null) => {
-                if (value == null || value.trim() === '') return Promise.resolve();
-                if (Number.isFinite(Number(value)) && Number(value) > 1) return Promise.resolve();
-                return Promise.reject(new Error(t('drinks.validation.priceInvalid')));
-              },
-            },
-          ]}
-        >
-          <DrinkPriceInput />
-        </Form.Item>
+        <DrinkPriceField />
 
         <Form.Item label={t('drinks.size')}>
           <Input value={t('drinks.sizeOptions.M')} disabled />

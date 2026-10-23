@@ -14,7 +14,11 @@ import {
 } from './DrinkFormFields';
 import { setDrinkNameConflictError } from '../utils/utils';
 
-interface DrinkEditFormValues extends Omit<EditDrinkRequest, 'imageUrl'> {
+interface DrinkEditFormValues {
+  drinkId: string;
+  drinkName: string;
+  drinkCategoryId: string;
+  status: number;
   fileList?: UploadFile[];
 }
 
@@ -27,12 +31,12 @@ interface Props {
   categoryOptions?: CategorySelectOption[];
 }
 
-const ACTIVE_STATUSES: unknown[] = [1, '1', 'ACTIVE', 'Active', 'Đang bán'];
-const INACTIVE_STATUSES: unknown[] = [0, '0', 'INACTIVE', 'Inactive', 'Ngừng bán'];
+const ACTIVE_STATUSES = new Set<unknown>([1, '1', 'ACTIVE', 'Active', 'Đang bán']);
+const INACTIVE_STATUSES = new Set<unknown>([0, '0', 'INACTIVE', 'Inactive', 'Ngừng bán']);
 
 const parseStatus = (status: unknown): number => {
-  if (ACTIVE_STATUSES.includes(status)) return 1;
-  if (INACTIVE_STATUSES.includes(status)) return 0;
+  if (ACTIVE_STATUSES.has(status)) return 1;
+  if (INACTIVE_STATUSES.has(status)) return 0;
   return 1;
 };
 
@@ -94,23 +98,16 @@ export function DrinkEditModal({
     onClose();
   };
 
-  const handleOk = async () => {
+  const handleSubmit = async (values: DrinkEditFormValues) => {
     try {
-      const values = await form.validateFields();
-
-      let imageUrl = record?.imageUrl || 'https://placehold.co/400x300?text=Drink';
       const file = values.fileList?.[0];
       await onSubmit(
         {
           drinkId: record?.drinkId || values.drinkId || '',
           drinkName: values.drinkName,
           drinkCategoryId: values.drinkCategoryId,
-          shopId: values.shopId,
-          price: values.price,
-          size: values.size,
-          imageUrl,
+          imageUrl: record?.imageUrl ?? undefined,
           status: Number(values.status ?? 1),
-          isDeleted: false,
         },
         file?.originFileObj as File | undefined,
       );

@@ -5,10 +5,10 @@ import type { TableItem } from '../types';
 import { getTableCardStyle, tableStatusKey } from '../utils/utils';
 
 interface TableCardProps {
-  record: TableItem;
-  onClick?: (record: TableItem) => void;
-  onEdit?: (record: TableItem) => void;
-  onDelete?: (record: TableItem) => void;
+  readonly record: TableItem;
+  readonly onClick?: (record: TableItem) => void;
+  readonly onEdit?: (record: TableItem) => void;
+  readonly onDelete?: (record: TableItem) => void;
 }
 
 export function TableCard({ record, onClick, onEdit, onDelete }: TableCardProps) {

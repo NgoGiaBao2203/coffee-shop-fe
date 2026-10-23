@@ -3,21 +3,38 @@ import type { KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TableShopOption } from '../types';
 
-const TABLE_DESCRIPTION_PATTERN = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
+const isAllowedTableDescriptionCharacter = (character: string) =>
+  /[\p{L}\p{N}\s\-&/(),.']/u.test(character);
 
 interface TableShopFieldProps {
-  isOwner: boolean;
-  options: TableShopOption[];
-  optionsLoading: boolean;
-  disabled?: boolean;
+  readonly isOwner: boolean;
+  readonly options: TableShopOption[];
+  readonly optionsLoading: boolean;
+  readonly disabled?: boolean;
 }
 
 function cleanTableNumber(value: string): string {
-  return value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  let digits = '';
+  for (const character of value) {
+    if (character >= '0' && character <= '9') digits += character;
+  }
+
+  let firstNonZeroIndex = 0;
+  while (firstNonZeroIndex < digits.length - 1 && digits[firstNonZeroIndex] === '0') {
+    firstNonZeroIndex += 1;
+  }
+
+  return digits.slice(firstNonZeroIndex);
 }
 
 function handleTableNumberKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-  if (event.nativeEvent.isComposing || event.key === 'Process' || event.keyCode === 229) return;
+  if (
+    event.nativeEvent.isComposing ||
+    event.nativeEvent.key === 'Process' ||
+    event.nativeEvent.key === 'Unidentified'
+  ) {
+    return;
+  }
 
   const allowedKeys = [
     'Backspace',
@@ -32,7 +49,7 @@ function handleTableNumberKeyDown(event: KeyboardEvent<HTMLInputElement>) {
   ];
   const hasShortcut =
     (event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x', 'z'].includes(event.key.toLowerCase());
-  if (allowedKeys.includes(event.key) || hasShortcut || /^[0-9]$/.test(event.key)) return;
+  if (allowedKeys.includes(event.key) || hasShortcut || /^\d$/.test(event.key)) return;
   event.preventDefault();
 }
 
@@ -81,7 +98,14 @@ export function TableDescriptionField() {
       label={t('tables.description')}
       rules={[
         { max: 255, message: t('responses.EV005') },
-        { pattern: TABLE_DESCRIPTION_PATTERN, message: t('responses.EV007') },
+        {
+          validator: (_, value: string | undefined) => {
+            if (!value || Array.from(value).every(isAllowedTableDescriptionCharacter)) {
+              return Promise.resolve();
+            }
+            return Promise.reject(new Error(t('responses.EV007')));
+          },
+        },
       ]}
     >
       <Input.TextArea

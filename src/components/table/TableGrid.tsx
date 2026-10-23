@@ -20,31 +20,31 @@ export interface AppColumnType<T> extends TableColumnType<T> {
 
 export interface TableGridProps<T extends object> {
   /** Dynamic column definitions — use AppColumnType<T> to set color and width per column */
-  columns: AppColumnType<T>[];
-  dataSource: T[];
-  loading?: boolean;
-  rowKey: string | ((record: T) => string);
+  readonly columns: AppColumnType<T>[];
+  readonly dataSource: T[];
+  readonly loading?: boolean;
+  readonly rowKey: string | ((record: T) => string);
   /** Custom empty-state text */
-  emptyText?: ReactNode;
+  readonly emptyText?: ReactNode;
   /** Called with the row record when the edit button is clicked */
-  onEdit?: (record: T) => void;
+  readonly onEdit?: (record: T) => void;
   /** Called with the row record after the delete popconfirm is confirmed */
-  onDelete?: (record: T) => void;
+  readonly onDelete?: (record: T) => void;
   /** Called with the row record when the delete button is clicked — no built-in confirmation; the caller is responsible for showing a confirmation UI */
-  onDeleteClick?: (record: T) => void;
+  readonly onDeleteClick?: (record: T) => void;
   /** Total records count for server-side pagination */
-  total?: number;
+  readonly total?: number;
   /** Current page number (controlled) */
-  currentPage?: number;
+  readonly currentPage?: number;
   /** Current page size (controlled) */
-  currentPageSize?: number;
+  readonly currentPageSize?: number;
   /** Called when page or page size changes (enables server-side pagination) */
-  onPageChange?: (page: number, pageSize: number) => void;
+  readonly onPageChange?: (page: number, pageSize: number) => void;
   /** Override auto-computed horizontal scroll width (px). Auto-computed from column widths by default. */
-  scrollX?: number | string;
+  readonly scrollX?: number | string;
   /** Called when a data row is clicked */
-  onRowClick?: (record: T) => void;
-  pagination?: TablePaginationConfig | false;
+  readonly onRowClick?: (record: T) => void;
+  readonly pagination?: TablePaginationConfig | false;
 }
 
 export function TableGrid<T extends object>({

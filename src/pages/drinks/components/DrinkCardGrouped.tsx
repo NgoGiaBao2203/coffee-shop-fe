@@ -1,7 +1,9 @@
-import { Card, Typography, Button } from 'antd';
+import { Card, Typography, Button, Tag } from 'antd';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/utils/image';
 import type { DrinkItem } from '../types';
+import { formatPrice } from '@/utils/formatPrice';
 
 interface Props {
   record: DrinkItem;
@@ -12,8 +14,18 @@ interface Props {
 }
 
 export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = false }: Props) {
+  const { t } = useTranslation();
   const fallbackImage = 'https://placehold.co/400x300?text=No+Image';
   const displayImage = resolveImageUrl(record.imageUrl) || fallbackImage;
+  const startingPrice = record.variants?.reduce<number | undefined>((lowest, variant) => {
+    const price = Number(String(variant.price).replaceAll(',', ''));
+    if (!Number.isFinite(price)) return lowest;
+    return lowest === undefined ? price : Math.min(lowest, price);
+  }, undefined);
+  const isActive =
+    record.status === t('drinks.statusActive') ||
+    record.status === 'ACTIVE' ||
+    record.status === '1';
 
   return (
     <Card
@@ -45,7 +57,7 @@ export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = 
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: '76px',
+          minHeight: '104px',
         },
       }}
       style={{
@@ -65,6 +77,17 @@ export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = 
         >
           {record.drinkName}
         </Typography.Paragraph>
+
+        <div className="flex flex-wrap items-center justify-between gap-1">
+          <Typography.Text strong className="text-sm text-green-700">
+            {startingPrice === undefined
+              ? '—'
+              : `${t('drinks.startingPrice')} ${formatPrice(startingPrice)}`}
+          </Typography.Text>
+          <Tag color={isActive ? 'green' : 'default'} className="m-0!">
+            {record.status || '—'}
+          </Tag>
+        </div>
 
         {!isStaff && (onEdit || onDelete) && (
           <div className="flex items-center justify-end gap-1">

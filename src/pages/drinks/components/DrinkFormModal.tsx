@@ -3,15 +3,15 @@ import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 
 interface DrinkFormModalProps<T extends object> {
-  open: boolean;
-  onClose: () => void;
-  form: FormInstance<T>;
-  onFinish: FormProps<T>['onFinish'];
-  loading: boolean;
-  title: string;
-  submitLabel: string;
-  children: ReactNode;
-  destroyOnHidden?: boolean;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly form: FormInstance<T>;
+  readonly onFinish: FormProps<T>['onFinish'];
+  readonly loading: boolean;
+  readonly title: string;
+  readonly submitLabel: string;
+  readonly children: ReactNode;
+  readonly destroyOnHidden?: boolean;
 }
 
 export function DrinkFormModal<T extends object>({
