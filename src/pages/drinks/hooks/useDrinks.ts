@@ -21,6 +21,7 @@ import type {
 } from '../types';
 import type { ShopNameItem } from '@/pages/staffs/types';
 
+// Handle API errors for drink CRUD actions
 function showDrinkApiError(
   error: unknown,
   showError: (message: string) => void,
@@ -35,6 +36,7 @@ function showDrinkApiError(
     ? response.errorDetails
     : [];
 
+  // Check drink name conflict response
   const isNameConflict =
     [RESPONSE_CODE.CONFLICT, 'ER011'].includes(errorCode ?? '') ||
     errorDetails.some(
@@ -47,10 +49,12 @@ function showDrinkApiError(
     return;
   }
 
+  // Map known API response codes to user messages
   if (errorCode === RESPONSE_CODE.NOT_FOUND || errorCode === 'ER004') {
     showError(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
   } else if (errorCode === RESPONSE_CODE.INVALID_REQUEST || errorCode === 'ER008') {
     const firstDetailCode = errorDetails[0]?.errorCode;
+
     if (firstDetailCode === RESPONSE_CODE.PRICE_MIN) {
       showError(getResponseMessage(RESPONSE_CODE.PRICE_MIN));
     } else {
@@ -83,7 +87,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     size: initialSize,
   });
 
-  // Data states
+  // Drink and dropdown data states
   const [items, setItems] = useState<DrinkItem[]>([]);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [shopNames, setShopNames] = useState<ShopNameItem[]>([]);
@@ -99,13 +103,17 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
   const [showEmptyModal, setShowEmptyModal] = useState(false);
   const [isSearch, setIsSearch] = useState(false);
 
-  // Core API request function
+  // Fetch drinks using current pagination, search, and filter parameters
   const fetchDrinks = useCallback(
     async (currentParams: GetDrinksRequest, isSearchAction = false) => {
       setLoading(true);
-      if (isSearchAction) setSearchLoading(true);
+
+      if (isSearchAction) {
+        setSearchLoading(true);
+      }
 
       try {
+        // Normalize request payload before calling API
         const payload: GetDrinksRequest = {
           page: currentParams.page,
           size: currentParams.size,
@@ -118,17 +126,21 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         const response = await getDrinksApi(payload);
         const resItems = response.items ?? [];
 
+        // Update drink list and pagination total
         setItems(resItems);
         setTotalElements(response.pagination?.totalElements ?? resItems.length ?? 0);
 
+        // Show empty result modal only for search actions
         if (isSearchAction && currentParams.search?.trim() && resItems.length === 0) {
           setShowEmptyModal(true);
         }
       } catch (err) {
         console.error('Failed to fetch drinks:', err);
+
         if (isSearchAction && currentParams.search?.trim()) {
           setShowEmptyModal(true);
         }
+
         setItems([]);
         setTotalElements(0);
       } finally {
@@ -143,13 +155,16 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
   useEffect(() => {
     async function fetchOptions() {
       setOptionsLoading(true);
+
       try {
         const [shopNamesRes, categoriesRes] = await Promise.all([
           getShopNamesApi(),
           getDropdownCategoriesApi(),
         ]);
+
         setShopNames(shopNamesRes.shopNameResults || []);
 
+        // Map category response to Ant Design Select options
         const mappedCategories: CategorySelectOption[] = (categoriesRes.categoryResult || []).map(
           (cat) => ({
             value: cat.categoryId,
@@ -157,6 +172,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
             shopId: cat.shopId,
           }),
         );
+
         setCategoryOptions(mappedCategories);
       } catch (err) {
         console.error('Failed to fetch dropdown options:', err);
@@ -164,10 +180,11 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         setOptionsLoading(false);
       }
     }
+
     void fetchOptions();
   }, []);
 
-  // Synchronize data fetching on parameter changes
+  // Reload drink list when query parameters change
   useEffect(() => {
     let isMounted = true;
 
@@ -184,13 +201,16 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     };
   }, [params, fetchDrinks, isSearch]);
 
-  // Handler for creating a new drink
+  // Create a new drink
   const createDrink = useCallback(
     async (values: CreateDrinkRequest, imageFile?: File) => {
       setCreateLoading(true);
+
       try {
         await createDrinkApi(values, imageFile);
         toast.success(t('drinks.createSuccess'));
+
+        // Refresh drink list after successful creation
         await fetchDrinks(params);
       } catch (error) {
         showDrinkApiError(error, toast.error, t);
@@ -202,13 +222,16 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     [params, fetchDrinks, toast, t],
   );
 
-  // Handler for editing an existing drink
+  // Update an existing drink
   const editDrink = useCallback(
     async (values: EditDrinkRequest, imageFile?: File) => {
       setEditLoading(true);
+
       try {
         await editDrinkApi(values, imageFile);
         toast.success(t('drinks.editSuccess'));
+
+        // Refresh drink list after successful update
         await fetchDrinks(params);
       } catch (error) {
         showDrinkApiError(error, toast.error, t);
@@ -220,13 +243,16 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     [params, fetchDrinks, toast, t],
   );
 
-  // Handler for deleting a drink
+  // Delete an existing drink
   const deleteDrink = useCallback(
     async (drinkId: string) => {
       setDeleteLoading(true);
+
       try {
         await deleteDrinkApi({ drinkId });
         toast.success(t('drinks.deleteSuccess'));
+
+        // Refresh drink list after successful deletion
         await fetchDrinks(params);
       } catch (error) {
         showDrinkApiError(error, toast.error, t);
@@ -237,9 +263,10 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     [params, fetchDrinks, toast, t],
   );
 
-  // Handler for search keyword changes
+  // Update search keyword and reset to first page
   const handleSearch = (searchKeyword: string) => {
     setIsSearch(true);
+
     setParams((prev) => ({
       ...prev,
       search: searchKeyword.trim(),
@@ -247,9 +274,10 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     }));
   };
 
-  // Handler for shop filter changes
+  // Update shop filter and reset to first page
   const handleShopFilter = (shopId: string) => {
     setIsSearch(false);
+
     setParams((prev) => ({
       ...prev,
       shopId,
@@ -257,9 +285,10 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     }));
   };
 
-  // Handler for pagination changes
+  // Update pagination parameters
   const handlePageChange = (page: number, size?: number) => {
     setIsSearch(false);
+
     setParams((prev) => ({
       ...prev,
       page,
@@ -273,6 +302,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     label: s.shopName,
   }));
 
+  // Expose drink data, actions, filters, and loading states
   return {
     items,
     totalElements,

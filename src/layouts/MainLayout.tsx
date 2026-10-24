@@ -7,7 +7,6 @@ import {
   // LineChartOutlined,
   TeamOutlined,
   ShopOutlined,
-  TableOutlined,
 } from '@ant-design/icons';
 import { Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +25,6 @@ export function MainLayout() {
     { key: '/drinks', label: t('sidebar.drinks'), icon: <CoffeeOutlined /> },
     // { key: '/invoices', label: t('sidebar.invoices'), icon: <FileTextOutlined /> },
     { key: '/categories', label: t('sidebar.categories'), icon: <AppstoreOutlined /> },
-    { key: '/tables', label: t('sidebar.tables'), icon: <TableOutlined /> },
     // { key: '/revenue', label: t('sidebar.revenues'), icon: <LineChartOutlined /> },
     { key: '/staff', label: t('sidebar.staffs'), icon: <TeamOutlined /> },
     { key: '/shop', label: t('sidebar.shops'), icon: <ShopOutlined /> },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlusOutlined } from '@ant-design/icons';
 import { Pagination, Empty, Spin, Button, Typography, Select } from 'antd';
@@ -8,26 +8,36 @@ import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
 import { useDrinks } from './hooks/useDrinks';
+import { useDrinkDetails } from './hooks/useDrinkDetails';
 import { getDrinkDetailApi } from './api/drinksAPI';
-import type { DrinkItem } from './types';
+import { DRINK_SIZES, type DrinkSize } from './constants';
+import type { DrinkItem, DrinkVariantItem } from './types';
 import { DrinkCardGrouped } from './components/DrinkCardGrouped';
 import { DrinkCreateModal } from './components/DrinkCreateModal';
 import { DrinkEditModal } from './components/DrinkEditModal';
 import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
+import { DrinkDetailFormModal } from './components/DrinkDetailFormModal';
 
 const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
 
+interface DrinkDetailFormSubmitValues {
+  size: DrinkSize;
+  price: number;
+}
+
 export function DrinksPage() {
   const { t } = useTranslation();
+
   const { showError } = useNotifyModal();
   const { confirm: confirmDelete } = useConfirmModal();
 
   // Role authorization checks
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
+
   const isStaff = roleName === ROLES.STAFF;
   const isOwner = roleName === ROLES.OWNER;
 
-  // Custom hook retrieving drink data, options and actions
+  // Custom hook retrieving drink data, options, and CRUD actions
   const {
     items,
     totalElements,
@@ -50,12 +60,24 @@ export function DrinksPage() {
     createDrink,
     editDrink,
     deleteDrink,
+    refresh,
   } = useDrinks(1, 10);
 
-  // Trigger error modal on empty search results
+  // Custom hook managing drink detail CRUD actions
+  const {
+    createDetailLoading,
+    editDetailLoading,
+    deleteDetailLoading,
+    createDrinkDetail,
+    editDrinkDetail,
+    deleteDrinkDetail,
+  } = useDrinkDetails();
+
+  // Show error modal when search returns no result
   useEffect(() => {
     if (showEmptyModal) {
       showError(t('drinks.emptySearch'), t('common.error'));
+
       closeEmptyModal();
     }
   }, [showEmptyModal]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -65,51 +87,88 @@ export function DrinksPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [createDetailOpen, setCreateDetailOpen] = useState(false);
+  const [editDetailOpen, setEditDetailOpen] = useState(false);
+
+  // Selected drink and drink detail states
   const [selected, setSelected] = useState<DrinkItem | null>(null);
   const [selectedEditRecord, setSelectedEditRecord] = useState<DrinkItem | null>(null);
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
+  const [selectedDetail, setSelectedDetail] = useState<DrinkVariantItem | null>(null);
 
+  // Get sizes that are not currently used by the selected drink
+  const availableDetailSizes = useMemo(() => {
+    const existingSizes = new Set(
+      (selected?.variants ?? []).map((variant) => variant.size.trim().toUpperCase()),
+    );
+
+    return DRINK_SIZES.filter((size) => !existingSizes.has(size));
+  }, [selected?.variants]);
+
+  // Validate search keyword before sending request
   const handleDrinkSearch = (value: string) => {
     const trimmedValue = value.trim();
+
     if (trimmedValue.length > 100) {
       showError(t('responses.EV005'), t('common.error'));
+
       return;
     }
+
     if (trimmedValue && !SEARCH_REGEX.test(trimmedValue)) {
       showError(t('responses.EV007'), t('common.error'));
+
       return;
     }
+
     handleSearch(value);
   };
 
-  // Open detail drawer and fetch variants
-  const onCardClick = async (g: DrinkItem) => {
-    setSelected(g);
-    setSelectedVariantIndex(0);
+  // Open drink detail drawer and fetch latest drink data
+  const onCardClick = async (drink: DrinkItem) => {
+    setSelected(drink);
     setDrawerOpen(true);
     setDetailLoading(true);
 
     try {
-      const res = await getDrinkDetailApi(g.drinkId);
-      if (res?.item) {
-        setSelected(res.item);
+      const response = await getDrinkDetailApi(drink.drinkId);
+
+      if (response?.item) {
+        setSelected(response.item);
       }
-    } catch (err) {
-      console.error('Failed to fetch drink detail:', err);
+    } catch (error) {
+      console.error('Failed to fetch drink detail:', error);
     } finally {
       setDetailLoading(false);
     }
   };
 
-  // Trigger edit modal opening
+  // Refresh selected drink detail and drink list after detail CRUD
+  const refreshSelectedDrink = async (drinkId: string) => {
+    setDetailLoading(true);
+
+    try {
+      const [detailResponse] = await Promise.all([getDrinkDetailApi(drinkId), refresh()]);
+
+      if (detailResponse.item) {
+        setSelected(detailResponse.item);
+      }
+    } catch (error) {
+      console.error('Failed to refresh drink detail:', error);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  // Open drink edit modal
   const handleOpenEdit = (record: DrinkItem) => {
     setSelectedEditRecord(record);
     setEditOpen(true);
   };
 
-  // Confirm soft deletion
-  const handleDeleteDrink = (g: DrinkItem) => {
-    const targetId = g.drinkId;
+  // Confirm drink soft deletion
+  const handleDeleteDrink = (drink: DrinkItem) => {
+    const targetId = drink.drinkId;
+
     if (!targetId) return;
 
     confirmDelete({
@@ -122,8 +181,80 @@ export function DrinksPage() {
     });
   };
 
+  // Open create detail modal when another size is available
+  const handleOpenCreateDetail = () => {
+    if (availableDetailSizes.length === 0) {
+      return;
+    }
+
+    setCreateDetailOpen(true);
+  };
+
+  // Open edit modal for selected drink detail
+  const handleOpenEditDetail = (record: DrinkVariantItem) => {
+    setSelectedDetail(record);
+    setEditDetailOpen(true);
+  };
+
+  // Create a new size and price variant for selected drink
+  const handleCreateDetail = async (values: DrinkDetailFormSubmitValues) => {
+    if (!selected?.drinkId) {
+      return;
+    }
+
+    await createDrinkDetail({
+      drinkId: selected.drinkId,
+      size: values.size,
+      price: values.price,
+    });
+
+    await refreshSelectedDrink(selected.drinkId);
+  };
+
+  // Update selected drink detail
+  const handleEditDetail = async (values: DrinkDetailFormSubmitValues) => {
+    if (!selected?.drinkId || !selectedDetail?.drinkDetailId) {
+      return;
+    }
+
+    await editDrinkDetail({
+      drinkDetailId: selectedDetail.drinkDetailId,
+      size: values.size,
+      price: values.price,
+    });
+
+    await refreshSelectedDrink(selected.drinkId);
+  };
+
+  // Confirm drink detail deletion
+  const handleDeleteDetail = (record: DrinkVariantItem) => {
+    if (!selected?.drinkId || !record.drinkDetailId) {
+      return;
+    }
+
+    const drinkId = selected.drinkId;
+
+    confirmDelete({
+      title: t('drinkDetails.deleteConfirmTitle'),
+      content: t('drinkDetails.deleteConfirmDesc', {
+        size: record.size,
+      }),
+      okText: t('form.delete'),
+      cancelText: t('form.cancel'),
+      okDanger: true,
+      onConfirm: async () => {
+        await deleteDrinkDetail({
+          drinkDetailId: record.drinkDetailId,
+        });
+
+        await refreshSelectedDrink(drinkId);
+      },
+    });
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 rounded-xl bg-white p-3 shadow-sm sm:p-4">
+      {/* Page title */}
       <Typography.Title level={4} className="mb-0!">
         {t('drinks.title')}
       </Typography.Title>
@@ -146,7 +277,7 @@ export function DrinksPage() {
             options={shopOptions}
             loading={optionsLoading}
             value={currentShopId || undefined}
-            onChange={(val) => handleShopFilter(val ?? '')}
+            onChange={(value) => handleShopFilter(value ?? '')}
             className="w-full sm:w-52"
           />
         )}
@@ -166,22 +297,25 @@ export function DrinksPage() {
 
       {/* Grid container with drinks list */}
       <div className="relative min-h-0 w-full flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/30 p-2 sm:p-3">
+        {/* Loading overlay while fetching or deleting drinks */}
         {(loading || deleteLoading) && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
             <Spin description={t('common.loading')} />
           </div>
         )}
+
+        {/* Empty state or drink card grid */}
         {items.length === 0 && !loading ? (
-          <div className="py-16 flex justify-center items-center w-full min-h-[400px]">
+          <div className="flex min-h-[400px] w-full items-center justify-center py-16">
             <Empty description={t('drinks.empty')} />
           </div>
         ) : (
           <div className="grid w-full grid-cols-1 items-stretch justify-start gap-3 px-1 pt-1 pb-3 min-[380px]:grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-            {items.map((g) => (
+            {items.map((drink) => (
               <DrinkCardGrouped
-                key={g.drinkId}
-                record={g}
-                onClick={() => onCardClick(g)}
+                key={drink.drinkId}
+                record={drink}
+                onClick={() => onCardClick(drink)}
                 onDelete={handleDeleteDrink}
                 onEdit={handleOpenEdit}
                 isStaff={isStaff}
@@ -200,19 +334,29 @@ export function DrinksPage() {
             current={currentPage}
             pageSize={currentPageSize}
             total={totalElements}
-            onChange={(p, ps) => handlePageChange(p, ps)}
+            onChange={(page, pageSize) => handlePageChange(page, pageSize)}
             showSizeChanger={false}
           />
         </div>
 
-        <div className="flex justify-end w-full sm:w-[120px]">
+        {/* Page size selection */}
+        <div className="flex w-full justify-end sm:w-[120px]">
           <Select
             value={currentPageSize}
-            onChange={(val) => handlePageChange(1, Number(val))}
+            onChange={(value) => handlePageChange(1, Number(value))}
             options={[
-              { value: 10, label: `10 / ${t('table.perPage')}` },
-              { value: 15, label: `15 / ${t('table.perPage')}` },
-              { value: 20, label: `20 / ${t('table.perPage')}` },
+              {
+                value: 10,
+                label: `10 / ${t('table.perPage')}`,
+              },
+              {
+                value: 15,
+                label: `15 / ${t('table.perPage')}`,
+              },
+              {
+                value: 20,
+                label: `20 / ${t('table.perPage')}`,
+              },
             ]}
             className="w-full sm:w-[120px]"
           />
@@ -224,9 +368,35 @@ export function DrinksPage() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         selected={selected}
-        detailLoading={detailLoading}
-        selectedVariantIndex={selectedVariantIndex}
-        onSelectedVariantIndexChange={setSelectedVariantIndex}
+        detailLoading={detailLoading || deleteDetailLoading}
+        isStaff={isStaff}
+        onAdd={handleOpenCreateDetail}
+        onEdit={handleOpenEditDetail}
+        onDelete={handleDeleteDetail}
+      />
+
+      {/* Create Drink Detail Modal */}
+      <DrinkDetailFormModal
+        open={createDetailOpen}
+        mode="create"
+        availableSizes={availableDetailSizes}
+        loading={createDetailLoading}
+        onClose={() => setCreateDetailOpen(false)}
+        onSubmit={handleCreateDetail}
+      />
+
+      {/* Edit Drink Detail Modal */}
+      <DrinkDetailFormModal
+        open={editDetailOpen}
+        mode="edit"
+        record={selectedDetail}
+        availableSizes={DRINK_SIZES}
+        loading={editDetailLoading}
+        onClose={() => {
+          setEditDetailOpen(false);
+          setSelectedDetail(null);
+        }}
+        onSubmit={handleEditDetail}
       />
 
       {/* Create Drink Modal */}

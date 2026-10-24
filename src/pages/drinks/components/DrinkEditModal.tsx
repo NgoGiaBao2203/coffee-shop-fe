@@ -4,7 +4,6 @@ import type { UploadChangeParam } from 'antd/es/upload';
 import { useTranslation } from 'react-i18next';
 import type { DrinkItem, EditDrinkRequest, CategorySelectOption } from '../types';
 import { resolveImageUrl } from '@/utils/image';
-import { formatPrice } from '@/utils/formatPrice';
 import { DrinkFormModal } from './DrinkFormModal';
 import {
   DrinkCategoryField,
@@ -31,15 +30,26 @@ interface Props {
   categoryOptions?: CategorySelectOption[];
 }
 
+// Supported active status values from different API formats
 const ACTIVE_STATUSES = new Set<unknown>([1, '1', 'ACTIVE', 'Active', 'Đang bán']);
+
+// Supported inactive status values from different API formats
 const INACTIVE_STATUSES = new Set<unknown>([0, '0', 'INACTIVE', 'Inactive', 'Ngừng bán']);
 
+// Convert drink status to form value
 const parseStatus = (status: unknown): number => {
-  if (ACTIVE_STATUSES.has(status)) return 1;
-  if (INACTIVE_STATUSES.has(status)) return 0;
+  if (ACTIVE_STATUSES.has(status)) {
+    return 1;
+  }
+
+  if (INACTIVE_STATUSES.has(status)) {
+    return 0;
+  }
+
   return 1;
 };
 
+// Normalize upload value for Ant Design Form
 const normalizeFileList = (event: UploadChangeParam | UploadFile[]) =>
   Array.isArray(event) ? event : event.fileList;
 
@@ -52,9 +62,13 @@ export function DrinkEditModal({
   categoryOptions = [],
 }: Props) {
   const { t } = useTranslation();
+
   const [form] = Form.useForm<DrinkEditFormValues>();
+
+  // Track modal opening to prevent resetting form multiple times
   const isOpenedRef = useRef(false);
 
+  // Filter categories by the drink shop
   const filteredCategoryOptions = useMemo(
     () =>
       record?.shopId
@@ -63,15 +77,21 @@ export function DrinkEditModal({
     [categoryOptions, record],
   );
 
+  // Load current drink data when opening the edit modal
   useEffect(() => {
     if (!open) {
       isOpenedRef.current = false;
       return;
     }
-    if (isOpenedRef.current || !record) return;
+
+    if (isOpenedRef.current || !record) {
+      return;
+    }
 
     isOpenedRef.current = true;
     form.resetFields();
+
+    // Build initial upload file from current drink image
     const initialFiles: UploadFile[] = record.imageUrl
       ? [
           {
@@ -83,6 +103,7 @@ export function DrinkEditModal({
         ]
       : [];
 
+    // Set current drink values into the form
     form.setFieldsValue({
       drinkId: record.drinkId,
       drinkName: record.drinkName,
@@ -92,15 +113,18 @@ export function DrinkEditModal({
     });
   }, [open, record, form]);
 
+  // Reset form data when closing the modal
   const handleClose = () => {
     isOpenedRef.current = false;
     form.resetFields();
     onClose();
   };
 
+  // Build edit drink request and submit form
   const handleSubmit = async (values: DrinkEditFormValues) => {
     try {
       const file = values.fileList?.[0];
+
       await onSubmit(
         {
           drinkId: record?.drinkId || values.drinkId || '',
@@ -111,8 +135,10 @@ export function DrinkEditModal({
         },
         file?.originFileObj as File | undefined,
       );
+
       handleClose();
     } catch (error: unknown) {
+      // Show drink name conflict error on the form
       setDrinkNameConflictError(error, form, t('drinks.nameConflict'));
     }
   };
@@ -128,18 +154,13 @@ export function DrinkEditModal({
       submitLabel={t('form.save')}
       destroyOnHidden
     >
+      {/* Drink name */}
       <DrinkNameField />
+
+      {/* Drink category */}
       <DrinkCategoryField options={filteredCategoryOptions} />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Form.Item label={t('drinks.price')}>
-          <Input value={formatPrice(record?.variants?.[0]?.price)} readOnly />
-        </Form.Item>
-        <Form.Item label={t('drinks.size')}>
-          <Input value={record?.variants?.[0]?.size ?? '—'} disabled />
-        </Form.Item>
-      </div>
-
+      {/* Drink image upload */}
       <Form.Item
         noStyle
         shouldUpdate={(previous, current) => previous.fileList !== current.fileList}
@@ -163,7 +184,10 @@ export function DrinkEditModal({
         )}
       </Form.Item>
 
+      {/* Drink selling status */}
       <DrinkStatusField required={false} />
+
+      {/* Hidden drink ID used for update request */}
       <Form.Item name="drinkId" hidden>
         <Input />
       </Form.Item>

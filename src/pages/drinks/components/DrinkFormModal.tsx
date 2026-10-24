@@ -36,8 +36,10 @@ export function DrinkFormModal<T extends object>({
       width="min(520px, calc(100vw - 24px))"
       destroyOnHidden={destroyOnHidden}
       footer={
+        // Form action buttons
         <div className="flex justify-end gap-2">
           <Button onClick={onClose}>{t('form.cancel')}</Button>
+
           <Button type="primary" loading={loading} onClick={() => form.submit()}>
             {submitLabel}
           </Button>
@@ -45,13 +47,21 @@ export function DrinkFormModal<T extends object>({
       }
     >
       <Divider className="my-3!" />
+
+      {/* Shared form container for drink create and edit modals */}
       <Form<T>
         form={form}
         layout="vertical"
         onFinish={onFinish}
         onValuesChange={(changedValues) => {
+          // Clear drink name API error when the value changes
           if ('drinkName' in changedValues) {
-            form.setFields([{ name: ['drinkName'] as never, errors: [] }]);
+            form.setFields([
+              {
+                name: ['drinkName'] as never,
+                errors: [],
+              },
+            ]);
           }
         }}
       >

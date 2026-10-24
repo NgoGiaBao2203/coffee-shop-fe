@@ -1,3 +1,5 @@
+import type { DrinkSize } from '../constants';
+
 export interface DrinkVariantItem {
   drinkDetailId: string;
   size: string;
@@ -88,8 +90,8 @@ export interface CategoryDropdownResponse {
 }
 
 export interface CategorySelectOption {
-  value: string; // categoryId
-  label: string; // shopName - categoryName
+  value: string;
+  label: string;
   shopId: string;
 }
 
@@ -102,6 +104,42 @@ export interface EditDrinkRequest {
 }
 
 export interface EditDrinkResponse {
+  code: string;
+  message: string;
+  traceId: string;
+}
+
+// Drink Detail
+
+export interface CreateDrinkDetailRequest {
+  drinkId: string;
+  size: DrinkSize;
+  price: number;
+}
+
+export interface CreateDrinkDetailResponse {
+  code: string;
+  message: string;
+  traceId: string;
+}
+
+export interface EditDrinkDetailRequest {
+  drinkDetailId: string;
+  size: DrinkSize;
+  price: number;
+}
+
+export interface EditDrinkDetailResponse {
+  code: string;
+  message: string;
+  traceId: string;
+}
+
+export interface DeleteDrinkDetailRequest {
+  drinkDetailId: string;
+}
+
+export interface DeleteDrinkDetailResponse {
   code: string;
   message: string;
   traceId: string;
