@@ -99,6 +99,7 @@
     }
   },
   "drinkDetails": {
+    "inactiveNotice": "Đồ uống đã ngừng bán. Không thể thêm hoặc chỉnh sửa kích cỡ và giá.",
     "sizesAndPrices": "Kích cỡ & Giá",
     "addSize": "Thêm kích cỡ",
     "selectSize": "Chọn kích cỡ",

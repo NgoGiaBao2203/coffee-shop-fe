@@ -3,7 +3,7 @@ import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/utils/image';
 import { formatPrice } from '@/utils/formatPrice';
-import { DRINK_SIZES } from '../constants';
+import { DRINK_SIZES, isDrinkActive } from '../constants';
 import type { DrinkItem, DrinkVariantItem } from '../types';
 
 interface DrinkDetailDrawerProps {
@@ -51,10 +51,7 @@ export function DrinkDetailDrawer({
   const hasAvailableSize = DRINK_SIZES.some((size) => !existingSizes.has(size));
 
   // Check current drink selling status
-  const isActive =
-    selected?.status === t('drinks.statusActive') ||
-    selected?.status === 'ACTIVE' ||
-    selected?.status === '1';
+  const isActive = isDrinkActive(selected?.status);
 
   return (
     <Drawer
@@ -123,13 +120,19 @@ export function DrinkDetailDrawer({
                     type="primary"
                     size="small"
                     icon={<PlusOutlined />}
-                    disabled={!hasAvailableSize}
+                    disabled={!isActive || detailLoading || !hasAvailableSize}
                     onClick={onAdd}
                   >
                     {t('drinkDetails.addSize')}
                   </Button>
                 )}
               </div>
+
+              {!isStaff && !isActive && (
+                <Typography.Paragraph type="secondary">
+                  {t('drinkDetails.inactiveNotice')}
+                </Typography.Paragraph>
+              )}
 
               {/* Show empty state when no variants exist */}
               {variants.length === 0 ? (
@@ -158,6 +161,7 @@ export function DrinkDetailDrawer({
                               shape="circle"
                               size="small"
                               icon={<EditOutlined />}
+                              disabled={!isActive || detailLoading}
                               onClick={() => onEdit(variant)}
                             />
                           )}

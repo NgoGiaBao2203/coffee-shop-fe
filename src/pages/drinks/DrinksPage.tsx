@@ -10,7 +10,7 @@ import { ROLES } from '@/permission/roles';
 import { useDrinks } from './hooks/useDrinks';
 import { useDrinkDetails } from './hooks/useDrinkDetails';
 import { getDrinkDetailApi } from './api/drinksAPI';
-import { DRINK_SIZES, type DrinkSize } from './constants';
+import { DRINK_SIZES, isDrinkActive, type DrinkSize } from './constants';
 import type { DrinkItem, DrinkVariantItem } from './types';
 import { DrinkCardGrouped } from './components/DrinkCardGrouped';
 import { DrinkCreateModal } from './components/DrinkCreateModal';
@@ -94,6 +94,8 @@ export function DrinksPage() {
   const [selected, setSelected] = useState<DrinkItem | null>(null);
   const [selectedEditRecord, setSelectedEditRecord] = useState<DrinkItem | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<DrinkVariantItem | null>(null);
+
+  const canManageDetails = !isStaff && isDrinkActive(selected?.status) && !detailLoading;
 
   // Get sizes that are not currently used by the selected drink
   const availableDetailSizes = useMemo(() => {
@@ -183,7 +185,7 @@ export function DrinksPage() {
 
   // Open create detail modal when another size is available
   const handleOpenCreateDetail = () => {
-    if (availableDetailSizes.length === 0) {
+    if (!canManageDetails || availableDetailSizes.length === 0) {
       return;
     }
 
@@ -192,12 +194,18 @@ export function DrinksPage() {
 
   // Open edit modal for selected drink detail
   const handleOpenEditDetail = (record: DrinkVariantItem) => {
+    if (!canManageDetails) return;
+
     setSelectedDetail(record);
     setEditDetailOpen(true);
   };
 
   // Create a new size and price variant for selected drink
   const handleCreateDetail = async (values: DrinkDetailFormSubmitValues) => {
+    if (!canManageDetails) {
+      throw new Error(t('drinkDetails.inactiveNotice'));
+    }
+
     if (!selected?.drinkId) {
       return;
     }
@@ -213,6 +221,10 @@ export function DrinksPage() {
 
   // Update selected drink detail
   const handleEditDetail = async (values: DrinkDetailFormSubmitValues) => {
+    if (!canManageDetails) {
+      throw new Error(t('drinkDetails.inactiveNotice'));
+    }
+
     if (!selected?.drinkId || !selectedDetail?.drinkDetailId) {
       return;
     }
