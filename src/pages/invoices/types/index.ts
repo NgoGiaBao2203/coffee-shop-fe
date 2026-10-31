@@ -73,12 +73,9 @@ export interface EditInvoiceRequest {
   }[];
 }
 
-export interface PayInvoiceRequest {
+export interface UpdateInvoiceStatusRequest {
   invoiceId: string;
-}
-
-export interface CancelInvoiceRequest {
-  invoiceId: string;
+  status: 1 | 2;
 }
 
 export interface InvoiceActionResponse {

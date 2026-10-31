@@ -38,8 +38,7 @@ export const ENDPOINT = {
   GET_INVOICES: '/invoices',
   CREATE_INVOICE: '/invoice/create',
   EDIT_INVOICE: '/invoice/edit',
-  PAY_INVOICE: '/invoice/pay',
-  CANCEL_INVOICE: '/invoice/cancel',
+  UPDATE_INVOICE_STATUS: '/invoice/status',
 
   // Tables
   GET_TABLES: '/tables',

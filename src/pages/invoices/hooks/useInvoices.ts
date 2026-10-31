@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   getInvoicesApi,
   editInvoiceApi,
-  payInvoiceApi,
-  cancelInvoiceApi,
+  updateInvoiceStatusApi,
   getShopNamesApi,
 } from '../api/invoicesAPI';
 import { RESPONSE_CODE } from '@/constants/messages';
@@ -145,7 +144,7 @@ export function useInvoices() {
     async (invoiceId: string) => {
       setPayLoading(true);
       try {
-        await payInvoiceApi({ invoiceId });
+        await updateInvoiceStatusApi({ invoiceId, status: 1 });
         toast.success(t('invoices.paySuccess'));
         await fetchInvoices(params);
       } catch (error) {
@@ -163,7 +162,7 @@ export function useInvoices() {
     async (invoiceId: string) => {
       setCancelLoading(true);
       try {
-        await cancelInvoiceApi({ invoiceId });
+        await updateInvoiceStatusApi({ invoiceId, status: 2 });
         toast.success(t('invoices.cancelSuccess'));
         await fetchInvoices(params);
       } catch (error) {

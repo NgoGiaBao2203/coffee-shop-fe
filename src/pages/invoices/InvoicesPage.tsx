@@ -50,7 +50,7 @@ export function InvoicesPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
-  const isAdmin = roleName === ROLES.OWNER;
+  const isOwner = roleName === ROLES.OWNER || roleName?.toUpperCase() === 'OWNER';
 
   const {
     items,
@@ -91,6 +91,19 @@ export function InvoicesPage() {
     }
   }, [showEmptyModal, showError, closeEmptyModal, t]);
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return t('invoices.statusOptions.serving');
+      case 'COMPLETED':
+        return t('invoices.statusOptions.paid');
+      case 'CANCELLED':
+        return t('invoices.statusOptions.cancelled');
+      default:
+        return status;
+    }
+  };
+
   const columns: AppColumnType<InvoiceItem>[] = [
     {
       key: 'tableNumber',
@@ -129,10 +142,10 @@ export function InvoicesPage() {
       width: 140,
       render: (val: string) => {
         let color = 'default';
-        if (val === t('invoices.statusOptions.serving')) color = 'processing';
-        else if (val === t('invoices.statusOptions.paid')) color = 'success';
-        else if (val === t('invoices.statusOptions.cancelled')) color = 'error';
-        return <Tag color={color}>{val}</Tag>;
+        if (val === 'PENDING') color = 'processing';
+        else if (val === 'COMPLETED') color = 'success';
+        else if (val === 'CANCELLED') color = 'error';
+        return <Tag color={color}>{getStatusLabel(val)}</Tag>;
       },
     },
     {
@@ -149,7 +162,7 @@ export function InvoicesPage() {
       fixed: 'right',
       align: 'center',
       render: (_: unknown, record: InvoiceItem) => {
-        const isServing = record.status === t('invoices.statusOptions.serving');
+        const isServing = record.status === 'PENDING';
         return (
           <div
             className="flex items-center justify-center gap-1"
@@ -259,7 +272,7 @@ export function InvoicesPage() {
         />
 
         {/* Shop filter dropdown: Only to Owner */}
-        {isAdmin && (
+        {isOwner && (
           <Select
             allowClear
             placeholder={t('invoices.filterShop')}
@@ -318,14 +331,14 @@ export function InvoicesPage() {
               <Descriptions.Item label={t('invoices.status')}>
                 <Tag
                   color={
-                    selectedRecord.status === t('invoices.statusOptions.serving')
+                    selectedRecord.status === 'PENDING'
                       ? 'processing'
-                      : selectedRecord.status === t('invoices.statusOptions.paid')
+                      : selectedRecord.status === 'COMPLETED'
                         ? 'success'
                         : 'error'
                   }
                 >
-                  {selectedRecord.status}
+                  {getStatusLabel(selectedRecord.status)}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label={t('invoices.createdAt')}>

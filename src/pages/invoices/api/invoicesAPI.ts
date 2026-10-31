@@ -5,14 +5,17 @@ import type {
   InvoiceListResponse,
   CreateInvoiceRequest,
   EditInvoiceRequest,
-  PayInvoiceRequest,
-  CancelInvoiceRequest,
+  UpdateInvoiceStatusRequest,
   InvoiceActionResponse,
   ShopNameListResponse,
 } from '../types';
 
 export async function getInvoicesApi(payload: InvoiceListParams): Promise<InvoiceListResponse> {
-  const response = await api.post<InvoiceListResponse>(ENDPOINT.GET_INVOICES, payload);
+  const response = await api.post<InvoiceListResponse>(ENDPOINT.GET_INVOICES, {
+    ...payload,
+    shopId: payload.shopId || undefined,
+    status: payload.status ? Number(payload.status) : undefined,
+  });
   return response.data;
 }
 
@@ -28,15 +31,10 @@ export async function editInvoiceApi(payload: EditInvoiceRequest): Promise<Invoi
   return response.data;
 }
 
-export async function payInvoiceApi(payload: PayInvoiceRequest): Promise<InvoiceActionResponse> {
-  const response = await api.put<InvoiceActionResponse>(ENDPOINT.PAY_INVOICE, payload);
-  return response.data;
-}
-
-export async function cancelInvoiceApi(
-  payload: CancelInvoiceRequest,
+export async function updateInvoiceStatusApi(
+  payload: UpdateInvoiceStatusRequest,
 ): Promise<InvoiceActionResponse> {
-  const response = await api.put<InvoiceActionResponse>(ENDPOINT.CANCEL_INVOICE, payload);
+  const response = await api.put<InvoiceActionResponse>(ENDPOINT.UPDATE_INVOICE_STATUS, payload);
   return response.data;
 }
 
