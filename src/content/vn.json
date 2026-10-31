@@ -244,6 +244,40 @@
     "emptySearch": "Không tìm thấy dữ liệu phù hợp",
     "emptyData": "Không có dữ liệu"
   },
+  "tables": {
+    "title": "Quản Lý Bàn",
+    "searchPlaceholder": "Tìm kiếm theo số bàn, mô tả...",
+    "searchMaxLength": "Từ khóa tìm kiếm không được vượt quá 100 ký tự.",
+    "searchInvalid": "Từ khóa tìm kiếm chứa ký tự không hợp lệ.",
+    "emptySearch": "Không tìm thấy bàn nào phù hợp với từ khóa tìm kiếm.",
+    "filterStatus": "Lọc trạng thái",
+    "filterShop": "Lọc chi nhánh",
+    "createTitle": "Thêm bàn mới",
+    "editTitle": "Chỉnh sửa bàn",
+    "tableNumber": "Số bàn",
+    "tableNumberPlaceholder": "Nhập số bàn...",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Nhập mô tả (không bắt buộc)...",
+    "status": "Trạng thái",
+    "shopName": "Chi nhánh",
+    "tableNumberRequired": "Vui lòng nhập số bàn.",
+    "tableNumberInvalid": "Số bàn phải là số nguyên từ 1 đến 9999.",
+    "tableNumberMax": "Số bàn không được quá 9999.",
+    "shopRequired": "Vui lòng chọn chi nhánh.",
+    "selectShopFirst": "Vui lòng chọn chi nhánh trước khi thao tác.",
+    "numberConflict": "Số bàn đã tồn tại trong chi nhánh.",
+    "createSuccess": "Thêm bàn thành công.",
+    "editSuccess": "Chỉnh sửa bàn thành công.",
+    "deleteSuccess": "Xoá bàn thành công.",
+    "deletePendingInvoices": "Không thể xóa bàn đang có hóa đơn chưa thanh toán.",
+    "deleteConfirmDesc": "Bạn có chắc chắn muốn xoá bàn {{name}} không?",
+    "statusOptions": {
+      "available": "Trống",
+      "occupied": "Đã có khách",
+      "reserved": "Đã đặt trước",
+      "unknown": "Không xác định"
+    }
+  },
   "form": {
     "titleView": "Chi tiết",
     "titleEdit": "Chỉnh sửa",
@@ -268,7 +302,8 @@
     "categories": "Danh Mục",
     "revenues": "Doanh Thu",
     "staffs": "Nhân Viên",
-    "shops": "Chi Nhánh"
+    "shops": "Chi Nhánh",
+    "tables": "Bàn"
   },
   "login": {
     "title": "Chào Mừng Trở Lại",
