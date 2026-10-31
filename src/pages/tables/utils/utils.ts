@@ -90,6 +90,7 @@ const TABLE_FORM_FIELDS = new Set(['tableNumber', 'description', 'status', 'shop
 export function getTableFormApiError(
   error: unknown,
   numberConflictMessage: string,
+  pendingInvoicesMessage: string,
 ): TableFormApiError {
   if (!axios.isAxiosError(error)) {
     // Local errors are already handled by the mutation hook; avoid a second notification here.
@@ -101,6 +102,10 @@ export function getTableFormApiError(
   const errorMessages = [response?.message, ...details.map((detail) => detail.message)]
     .filter((message): message is string => typeof message === 'string')
     .map((message) => message.toLowerCase());
+  if (errorMessages.some((message) => message.includes('pending invoices'))) {
+    return { fieldErrors: [], message: pendingInvoicesMessage };
+  }
+
   const isTableNumberConflict =
     response?.code === RESPONSE_CODE.CONFLICT ||
     details.some((detail) => detail.errorCode === RESPONSE_CODE.CONFLICT) ||

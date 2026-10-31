@@ -9,7 +9,11 @@ export function useTableFormError(form: FormInstance) {
 
   return useCallback(
     (error: unknown) => {
-      const { fieldErrors, message } = getTableFormApiError(error, t('tables.numberConflict'));
+      const { fieldErrors, message } = getTableFormApiError(
+        error,
+        t('tables.numberConflict'),
+        t('tables.statusPendingInvoices'),
+      );
 
       if (fieldErrors.length > 0) {
         form.setFields(fieldErrors);
@@ -17,7 +21,7 @@ export function useTableFormError(form: FormInstance) {
 
       if (message) {
         notification.error({
-          message: t('common.error'),
+          title: t('common.error'),
           description: message,
           placement: 'topRight',
           duration: 3,

@@ -266,6 +266,7 @@
     "shopRequired": "Vui lòng chọn chi nhánh.",
     "selectShopFirst": "Vui lòng chọn chi nhánh trước khi thao tác.",
     "numberConflict": "Số bàn đã tồn tại trong chi nhánh.",
+    "statusPendingInvoices": "Không thể đổi trạng thái bàn khi có hóa đơn chưa thanh toán.",
     "createSuccess": "Thêm bàn thành công.",
     "editSuccess": "Chỉnh sửa bàn thành công.",
     "deleteSuccess": "Xoá bàn thành công.",
