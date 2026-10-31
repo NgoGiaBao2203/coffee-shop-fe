@@ -160,8 +160,7 @@ export function TableShopField({
         disabled={disabled}
         options={options}
         loading={optionsLoading}
-        showSearch
-        optionFilterProp="label"
+        showSearch={{ optionFilterProp: 'label' }}
       />
     </Form.Item>
   );

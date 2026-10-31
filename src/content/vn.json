@@ -98,6 +98,24 @@
       "searchInvalid": "Từ khóa tìm kiếm chứa ký tự không hợp lệ."
     }
   },
+  "drinkDetails": {
+    "inactiveNotice": "Đồ uống đã ngừng bán. Không thể thêm hoặc chỉnh sửa kích cỡ và giá.",
+    "sizesAndPrices": "Kích cỡ & Giá",
+    "addSize": "Thêm kích cỡ",
+    "selectSize": "Chọn kích cỡ",
+    "sizeCount": "{{count}} kích cỡ",
+    "empty": "Chưa có kích cỡ",
+    "createTitle": "Thêm kích cỡ",
+    "editTitle": "Chỉnh sửa kích cỡ",
+    "createSuccess": "Thêm kích cỡ thành công!",
+    "editSuccess": "Cập nhật kích cỡ thành công!",
+    "deleteSuccess": "Xoá kích cỡ thành công!",
+    "deleteConfirmTitle": "Xác nhận xoá kích cỡ",
+    "deleteConfirmDesc": "Bạn có chắc muốn xoá kích cỡ {{size}} không?",
+    "validation": {
+      "priceInvalid": "Giá phải là số lớn hơn 0."
+    }
+  },
   "categories": {
     "title": "Danh Mục",
     "name": "Tên danh mục",
