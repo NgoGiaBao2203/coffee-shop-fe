@@ -22,17 +22,11 @@ const SEARCH_MAX_LENGTH = 100;
 function formatDateTime(dateStr?: string | null): string {
   if (!dateStr) return '—';
   try {
-    const parsed = new Date(dateStr);
-    if (isNaN(parsed.getTime())) {
-      const fallback = new Date(dateStr.replace(' ', 'T'));
-      if (isNaN(fallback.getTime())) return dateStr;
-      const hh = String(fallback.getHours()).padStart(2, '0');
-      const mm = String(fallback.getMinutes()).padStart(2, '0');
-      const dd = String(fallback.getDate()).padStart(2, '0');
-      const MM = String(fallback.getMonth() + 1).padStart(2, '0');
-      const yyyy = fallback.getFullYear();
-      return `${hh}:${mm} ${dd}/${MM}/${yyyy}`;
+    let parsed = new Date(dateStr);
+    if (Number.isNaN(parsed.getTime())) {
+      parsed = new Date(dateStr.replace(' ', 'T'));
     }
+    if (Number.isNaN(parsed.getTime())) return dateStr;
     const hh = String(parsed.getHours()).padStart(2, '0');
     const mm = String(parsed.getMinutes()).padStart(2, '0');
     const dd = String(parsed.getDate()).padStart(2, '0');
@@ -215,8 +209,7 @@ export function TablesPage() {
             value={currentShopId || undefined}
             onChange={(val) => handleShopFilter(val ?? '')}
             className="w-52"
-            showSearch
-            optionFilterProp="label"
+            showSearch={{ optionFilterProp: 'label' }}
           />
         )}
 

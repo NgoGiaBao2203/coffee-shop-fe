@@ -58,6 +58,27 @@ interface TableApiErrorResponse {
   errorDetails?: TableApiErrorDetail[] | null;
 }
 
+/** Returns the delete error message handled by the table mutation hook. */
+export function getTableDeleteErrorMessage(
+  error: unknown,
+  pendingInvoicesMessage: string,
+): string | undefined {
+  if (!axios.isAxiosError<TableApiErrorResponse>(error)) return undefined;
+
+  const response = error.response?.data;
+  if (!response) return undefined;
+  if (response.code === RESPONSE_CODE.NOT_FOUND) {
+    return getResponseMessage(RESPONSE_CODE.NOT_FOUND);
+  }
+  if (
+    typeof response.message === 'string' &&
+    response.message.toLowerCase().includes('pending invoices')
+  ) {
+    return pendingInvoicesMessage;
+  }
+  return response.code ? getResponseMessage(response.code) : undefined;
+}
+
 export interface TableFormApiError {
   fieldErrors: Array<{ name: string; errors: string[] }>;
   message?: string;

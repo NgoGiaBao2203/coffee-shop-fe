@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
-import { RESPONSE_CODE } from '@/constants/messages';
-import { getResponseMessage } from '@/utils/getResponseMessage';
 import { useToast } from '@/components/toast/useToast';
 import { getShopNamesApi } from '@/pages/staffs/api/staffsApi';
 import { getTablesApi, createTableApi, editTableApi, deleteTableApi } from '../api/tablesApi';
 import type { SearchTablesRequest, TableItem, TablePagination, ShopNameItem } from '../types';
 import type { TableCreateValues } from '../components/TableCreateModal';
 import type { TableEditValues } from '../components/TableEditModal';
+import { getTableDeleteErrorMessage } from '../utils/utils';
 
 const DEFAULT_PARAMS: SearchTablesRequest = {
   page: 1,
@@ -236,18 +234,8 @@ export function useTables(initialPage = 1, initialSize = 10) {
           await fetchTables(params);
         }
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data) {
-          const resData = error.response.data;
-          const message = typeof resData.message === 'string' ? resData.message.toLowerCase() : '';
-
-          if (resData.code === RESPONSE_CODE.NOT_FOUND || resData.code === 'ER004') {
-            toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
-          } else if (message.includes('pending invoices')) {
-            toast.error(t('tables.deletePendingInvoices'));
-          } else if (resData.code) {
-            toast.error(getResponseMessage(resData.code));
-          }
-        }
+        const message = getTableDeleteErrorMessage(error, t('tables.deletePendingInvoices'));
+        if (message) toast.error(message);
         throw error;
       } finally {
         setDeleteLoading(false);
