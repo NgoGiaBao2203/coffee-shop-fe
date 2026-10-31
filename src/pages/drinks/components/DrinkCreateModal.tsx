@@ -24,12 +24,12 @@ interface DrinkCreateFormValues {
 }
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (values: CreateDrinkRequest, imageFile?: File) => Promise<void>;
-  loading: boolean;
-  categoryOptions?: CategorySelectOption[];
-  shopId?: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly onSubmit: (values: CreateDrinkRequest, imageFile?: File) => Promise<void>;
+  readonly loading: boolean;
+  readonly categoryOptions?: CategorySelectOption[];
+  readonly shopId?: string;
 }
 
 export function DrinkCreateModal({

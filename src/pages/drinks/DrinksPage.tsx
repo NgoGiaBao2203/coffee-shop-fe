@@ -10,8 +10,8 @@ import { ROLES } from '@/permission/roles';
 import { useDrinks } from './hooks/useDrinks';
 import { useDrinkDetails } from './hooks/useDrinkDetails';
 import { getDrinkDetailApi } from './api/drinksAPI';
-import { DRINK_SIZES, isDrinkActive, type DrinkSize } from './constants';
-import type { DrinkItem, DrinkVariantItem } from './types';
+import { DRINK_SIZES, isDrinkActive } from './constants';
+import type { DrinkDetailSubmitValues, DrinkItem, DrinkVariantItem } from './types';
 import { DrinkCardGrouped } from './components/DrinkCardGrouped';
 import { DrinkCreateModal } from './components/DrinkCreateModal';
 import { DrinkEditModal } from './components/DrinkEditModal';
@@ -19,11 +19,6 @@ import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
 import { DrinkDetailFormModal } from './components/DrinkDetailFormModal';
 
 const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
-
-interface DrinkDetailFormSubmitValues {
-  size: DrinkSize;
-  price: number;
-}
 
 export function DrinksPage() {
   const { t } = useTranslation();
@@ -201,7 +196,7 @@ export function DrinksPage() {
   };
 
   // Create a new size and price variant for selected drink
-  const handleCreateDetail = async (values: DrinkDetailFormSubmitValues) => {
+  const handleCreateDetail = async (values: DrinkDetailSubmitValues) => {
     if (!canManageDetails) {
       throw new Error(t('drinkDetails.inactiveNotice'));
     }
@@ -220,7 +215,7 @@ export function DrinksPage() {
   };
 
   // Update selected drink detail
-  const handleEditDetail = async (values: DrinkDetailFormSubmitValues) => {
+  const handleEditDetail = async (values: DrinkDetailSubmitValues) => {
     if (!canManageDetails) {
       throw new Error(t('drinkDetails.inactiveNotice'));
     }

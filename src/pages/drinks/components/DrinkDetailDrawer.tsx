@@ -160,6 +160,7 @@ export function DrinkDetailDrawer({
                               type="text"
                               shape="circle"
                               size="small"
+                              aria-label={t('form.edit')}
                               icon={<EditOutlined />}
                               disabled={!isActive || detailLoading}
                               onClick={() => onEdit(variant)}
@@ -172,7 +173,9 @@ export function DrinkDetailDrawer({
                               type="text"
                               shape="circle"
                               size="small"
+                              aria-label={t('form.delete')}
                               icon={<DeleteOutlined />}
+                              disabled={detailLoading}
                               onClick={() => onDelete(variant)}
                             />
                           )}

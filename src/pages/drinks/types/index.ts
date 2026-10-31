@@ -111,6 +111,16 @@ export interface EditDrinkResponse {
 
 // Drink Detail
 
+export interface DrinkDetailFormValues {
+  size: DrinkSize;
+  price: string;
+}
+
+export interface DrinkDetailSubmitValues {
+  size: DrinkSize;
+  price: number;
+}
+
 export interface CreateDrinkDetailRequest {
   drinkId: string;
   size: DrinkSize;

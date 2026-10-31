@@ -6,11 +6,11 @@ import type { DrinkItem } from '../types';
 import { formatPrice } from '@/utils/formatPrice';
 
 interface Props {
-  record: DrinkItem;
-  onClick?: (record: DrinkItem) => void;
-  onDelete?: (record: DrinkItem) => void;
-  onEdit?: (record: DrinkItem) => void;
-  isStaff?: boolean;
+  readonly record: DrinkItem;
+  readonly onClick?: (record: DrinkItem) => void;
+  readonly onDelete?: (record: DrinkItem) => void;
+  readonly onEdit?: (record: DrinkItem) => void;
+  readonly isStaff?: boolean;
 }
 
 export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = false }: Props) {

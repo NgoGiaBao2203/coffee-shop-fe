@@ -9,11 +9,6 @@ import {
   deleteDrinkDetailApi,
   editDrinkDetailApi,
 } from '../api/drinkDetailsAPI';
-import type {
-  CreateDrinkDetailRequest,
-  DeleteDrinkDetailRequest,
-  EditDrinkDetailRequest,
-} from '../types';
 
 interface ApiErrorDetail {
   errorCode?: string;
@@ -26,11 +21,11 @@ interface ApiErrorResponse {
 
 // Get readable error message from drink detail API response
 function getDrinkDetailApiErrorMessage(error: unknown): string {
-  if (!axios.isAxiosError(error)) {
+  if (!axios.isAxiosError<ApiErrorResponse>(error)) {
     return getResponseMessage(RESPONSE_CODE.INVALID_REQUEST);
   }
 
-  const response = error.response?.data as ApiErrorResponse | undefined;
+  const response = error.response?.data;
 
   const errorDetails = Array.isArray(response?.errorDetails) ? response.errorDetails : [];
 
@@ -41,70 +36,47 @@ function getDrinkDetailApiErrorMessage(error: unknown): string {
   return getResponseMessage(errorCode || RESPONSE_CODE.INVALID_REQUEST);
 }
 
+// Share mutation handling while keeping each action's loading state independent
+function useDrinkDetailMutation<T>(
+  request: (payload: T) => Promise<unknown>,
+  successMessage: string,
+) {
+  const toast = useToast();
+  const [loading, setLoading] = useState(false);
+
+  const mutate = useCallback(
+    async (payload: T) => {
+      setLoading(true);
+      try {
+        await request(payload);
+        toast.success(successMessage);
+      } catch (error) {
+        toast.error(getDrinkDetailApiErrorMessage(error));
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [request, successMessage, toast],
+  );
+
+  return { loading, mutate };
+}
+
 export function useDrinkDetails() {
   const { t } = useTranslation();
-  const toast = useToast();
 
-  // Loading states for drink detail CRUD actions
-  const [createDetailLoading, setCreateDetailLoading] = useState(false);
-  const [editDetailLoading, setEditDetailLoading] = useState(false);
-  const [deleteDetailLoading, setDeleteDetailLoading] = useState(false);
-
-  // Create a new drink detail
-  const createDrinkDetail = useCallback(
-    async (payload: CreateDrinkDetailRequest) => {
-      setCreateDetailLoading(true);
-
-      try {
-        await createDrinkDetailApi(payload);
-        toast.success(t('drinkDetails.createSuccess'));
-      } catch (error) {
-        // Show API validation or request error
-        toast.error(getDrinkDetailApiErrorMessage(error));
-        throw error;
-      } finally {
-        setCreateDetailLoading(false);
-      }
-    },
-    [t, toast],
+  const { loading: createDetailLoading, mutate: createDrinkDetail } = useDrinkDetailMutation(
+    createDrinkDetailApi,
+    t('drinkDetails.createSuccess'),
   );
-
-  // Update an existing drink detail
-  const editDrinkDetail = useCallback(
-    async (payload: EditDrinkDetailRequest) => {
-      setEditDetailLoading(true);
-
-      try {
-        await editDrinkDetailApi(payload);
-        toast.success(t('drinkDetails.editSuccess'));
-      } catch (error) {
-        // Show API validation or request error
-        toast.error(getDrinkDetailApiErrorMessage(error));
-        throw error;
-      } finally {
-        setEditDetailLoading(false);
-      }
-    },
-    [t, toast],
+  const { loading: editDetailLoading, mutate: editDrinkDetail } = useDrinkDetailMutation(
+    editDrinkDetailApi,
+    t('drinkDetails.editSuccess'),
   );
-
-  // Delete an existing drink detail
-  const deleteDrinkDetail = useCallback(
-    async (payload: DeleteDrinkDetailRequest) => {
-      setDeleteDetailLoading(true);
-
-      try {
-        await deleteDrinkDetailApi(payload);
-        toast.success(t('drinkDetails.deleteSuccess'));
-      } catch (error) {
-        // Show API validation or request error
-        toast.error(getDrinkDetailApiErrorMessage(error));
-        throw error;
-      } finally {
-        setDeleteDetailLoading(false);
-      }
-    },
-    [t, toast],
+  const { loading: deleteDetailLoading, mutate: deleteDrinkDetail } = useDrinkDetailMutation(
+    deleteDrinkDetailApi,
+    t('drinkDetails.deleteSuccess'),
   );
 
   // Expose drink detail actions and loading states

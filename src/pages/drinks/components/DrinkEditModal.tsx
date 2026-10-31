@@ -22,12 +22,12 @@ interface DrinkEditFormValues {
 }
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
-  record: DrinkItem | null;
-  onSubmit: (values: EditDrinkRequest, imageFile?: File) => Promise<void>;
-  loading: boolean;
-  categoryOptions?: CategorySelectOption[];
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly record: DrinkItem | null;
+  readonly onSubmit: (values: EditDrinkRequest, imageFile?: File) => Promise<void>;
+  readonly loading: boolean;
+  readonly categoryOptions?: CategorySelectOption[];
 }
 
 // Supported active status values from different API formats

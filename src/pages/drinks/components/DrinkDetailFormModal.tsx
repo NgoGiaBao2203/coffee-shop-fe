@@ -3,18 +3,8 @@ import { Form, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { DrinkFormModal } from './DrinkFormModal';
 import { DrinkPriceField } from './DrinkFormFields';
-import type { DrinkVariantItem } from '../types';
+import type { DrinkDetailFormValues, DrinkDetailSubmitValues, DrinkVariantItem } from '../types';
 import type { DrinkSize } from '../constants';
-
-interface DrinkDetailFormValues {
-  size: DrinkSize;
-  price: string;
-}
-
-interface DrinkDetailSubmitValues {
-  size: DrinkSize;
-  price: number;
-}
 
 interface Props {
   readonly open: boolean;
