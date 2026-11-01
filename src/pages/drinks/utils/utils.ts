@@ -1,6 +1,47 @@
 import axios from 'axios';
 import type { FormInstance } from 'antd';
 import { RESPONSE_CODE } from '@/constants/messages';
+import type { DrinkItem } from '../types';
+
+const DRINK_SIZE_EXISTS_MESSAGE = 'drink size already exists';
+
+/** Finds a drink with the same name in the same shop (trimmed, case-insensitive). */
+export function findDrinkByName(
+  drinks: readonly DrinkItem[],
+  drinkName: string | undefined,
+  shopId: string | undefined,
+): DrinkItem | undefined {
+  const normalizedName = drinkName?.trim().toLowerCase();
+
+  if (!normalizedName) return undefined;
+
+  return drinks.find(
+    (drink) =>
+      !drink.isDeleted &&
+      (!shopId || drink.shopId === shopId) &&
+      drink.drinkName.trim().toLowerCase() === normalizedName,
+  );
+}
+
+/** Checks whether the API rejected the request because the drink already has this size. */
+export function isDrinkSizeExistsError(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return false;
+
+  const message = error.response?.data?.message;
+
+  return (
+    error.response?.data?.code === RESPONSE_CODE.INVALID_REQUEST &&
+    typeof message === 'string' &&
+    message.trim().toLowerCase() === DRINK_SIZE_EXISTS_MESSAGE
+  );
+}
+
+/** Shows the duplicated-size error on the size field of the form. */
+export function setDrinkSizeExistsError(error: unknown, form: FormInstance, message: string) {
+  if (!isDrinkSizeExistsError(error)) return;
+
+  form.setFields([{ name: 'size', errors: [message] }]);
+}
 
 /** Maps drink-name conflict responses to the drink name field in the form. */
 export function setDrinkNameConflictError(error: unknown, form: FormInstance, message: string) {

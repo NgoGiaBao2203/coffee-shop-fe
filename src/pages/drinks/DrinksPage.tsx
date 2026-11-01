@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusOutlined } from '@ant-design/icons';
-import { Pagination, Empty, Spin, Button, Typography, Select } from 'antd';
+import { PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { Pagination, Empty, Spin, Button, Typography, Select, Tooltip } from 'antd';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
@@ -17,6 +17,7 @@ import { DrinkCreateModal } from './components/DrinkCreateModal';
 import { DrinkEditModal } from './components/DrinkEditModal';
 import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
 import { DrinkDetailFormModal } from './components/DrinkDetailFormModal';
+import { DrinkOrderModal } from './components/DrinkOrderModal';
 
 const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
 
@@ -81,6 +82,7 @@ export function DrinksPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [createDetailOpen, setCreateDetailOpen] = useState(false);
   const [editDetailOpen, setEditDetailOpen] = useState(false);
@@ -89,6 +91,10 @@ export function DrinksPage() {
   const [selected, setSelected] = useState<DrinkItem | null>(null);
   const [selectedEditRecord, setSelectedEditRecord] = useState<DrinkItem | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<DrinkVariantItem | null>(null);
+
+  // OWNER must pick a shop filter before ordering; other roles use their own shop
+
+  const canCreateOrder = !isOwner || !!currentShopId;
 
   const canManageDetails = !isStaff && isDrinkActive(selected?.status) && !detailLoading;
 
@@ -289,6 +295,18 @@ export function DrinksPage() {
           />
         )}
 
+        {/* Create Order Button (cash payment, creates a paid invoice) */}
+        <Tooltip title={canCreateOrder ? undefined : t('drinks.orderSelectShopHint')}>
+          <Button
+            icon={<ShoppingCartOutlined />}
+            disabled={!canCreateOrder}
+            onClick={() => setOrderOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            {t('drinks.orderBtn')}
+          </Button>
+        </Tooltip>
+
         {/* Create Drink Button (hidden for STAFF) */}
         {!isStaff && (
           <Button
@@ -406,6 +424,14 @@ export function DrinksPage() {
         onSubmit={handleEditDetail}
       />
 
+      {/* Create Order Modal */}
+      <DrinkOrderModal
+        open={orderOpen}
+        shopId={currentShopId}
+        onClose={() => setOrderOpen(false)}
+        onCreated={() => setOrderOpen(false)}
+      />
+
       {/* Create Drink Modal */}
       <DrinkCreateModal
         open={createOpen}
@@ -413,6 +439,7 @@ export function DrinksPage() {
         onSubmit={createDrink}
         loading={createLoading}
         categoryOptions={categoryOptions}
+        drinks={items}
       />
 
       {/* Edit Drink Modal */}

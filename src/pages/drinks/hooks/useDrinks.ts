@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast/useToast';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { getResponseMessage } from '@/utils/getResponseMessage';
+import { isDrinkSizeExistsError } from '../utils/utils';
 import {
   getDrinksApi,
   createDrinkApi,
@@ -35,6 +36,12 @@ function showDrinkApiError(
   const errorDetails: { errorCode?: string }[] = Array.isArray(response?.errorDetails)
     ? response.errorDetails
     : [];
+
+  // Drink name exists with the same size (create merges new sizes into the existing drink)
+  if (isDrinkSizeExistsError(error)) {
+    showError(t('drinks.sizeExists'));
+    return;
+  }
 
   // Check drink name conflict response
   const isNameConflict =

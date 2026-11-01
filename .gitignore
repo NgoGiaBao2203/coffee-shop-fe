@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude & reports
+.claude
+reports
+
+# API docs
+api-docs/

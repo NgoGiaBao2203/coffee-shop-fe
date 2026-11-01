@@ -154,3 +154,13 @@ export interface DeleteDrinkDetailResponse {
   message: string;
   traceId: string;
 }
+
+// Order (cash payment)
+
+export interface OrderCartLine {
+  drinkDetailId: string;
+  drinkName: string;
+  size: string;
+  unitPrice: number;
+  quantity: number;
+}
