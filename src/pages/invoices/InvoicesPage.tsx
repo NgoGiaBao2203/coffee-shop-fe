@@ -106,6 +106,13 @@ export function InvoicesPage() {
 
   const columns: AppColumnType<InvoiceItem>[] = [
     {
+      key: 'invoiceCode',
+      dataIndex: 'invoiceCode',
+      title: t('invoices.invoiceCode'),
+      width: 200,
+      render: (val?: string) => val || '—',
+    },
+    {
       key: 'tableNumber',
       dataIndex: 'tableNumber',
       title: t('invoices.tableNumber'),
@@ -317,6 +324,9 @@ export function InvoicesPage() {
         {selectedRecord && (
           <div className="flex flex-col gap-4">
             <Descriptions size="small" column={1} bordered>
+              <Descriptions.Item label={t('invoices.invoiceCode')}>
+                {selectedRecord.invoiceCode || '—'}
+              </Descriptions.Item>
               <Descriptions.Item label={t('invoices.shopName')}>
                 {selectedRecord.shopName || '—'}
               </Descriptions.Item>

@@ -45,7 +45,7 @@ export function InvoiceEditModal({
               size: i.size,
               quantity: i.quantity,
               unitPrice: i.unitPrice,
-              note: i.note,
+              note: i.note ?? undefined,
             }))
           : [],
       );
