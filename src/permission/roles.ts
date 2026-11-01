@@ -20,3 +20,20 @@ export const NAV_PERMISSIONS: Record<string, Role[]> = {
   '/shop': [ROLES.OWNER],
   '/invoices': [ROLES.OWNER, ROLES.MANAGER, ROLES.STAFF],
 };
+
+// Landing page per role: after login, on "/" and when opening a route the role cannot access
+const HOME_PATHS: Record<Role, string> = {
+  [ROLES.OWNER]: '/shop',
+  [ROLES.MANAGER]: '/drinks',
+  [ROLES.STAFF]: '/drinks',
+};
+
+export function getHomePath(role?: string): string {
+  return HOME_PATHS[role as Role] ?? '/drinks';
+}
+
+// Routes not listed in NAV_PERMISSIONS are open to every role
+export function canAccessPath(path: string, role?: string): boolean {
+  const allowedRoles = NAV_PERMISSIONS[path];
+  return !allowedRoles || allowedRoles.includes(role as Role);
+}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { ShoppingCartOutlined } from '@ant-design/icons';
 import { Pagination, Empty, Spin, Button, Typography, Select, Tooltip } from 'antd';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
@@ -18,6 +18,7 @@ import { DrinkEditModal } from './components/DrinkEditModal';
 import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
 import { DrinkDetailFormModal } from './components/DrinkDetailFormModal';
 import { DrinkOrderModal } from './components/DrinkOrderModal';
+import { CreateButton } from '@/components/button/CreateButton';
 
 const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
 
@@ -25,7 +26,7 @@ export function DrinksPage() {
   const { t } = useTranslation();
 
   const { showError } = useNotifyModal();
-  const { confirm: confirmDelete } = useConfirmModal();
+  const { confirmDelete } = useConfirmModal();
 
   // Role authorization checks
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
@@ -177,9 +178,6 @@ export function DrinksPage() {
     confirmDelete({
       title: t('table.deleteConfirmTitle'),
       content: t('table.deleteConfirmDesc'),
-      okText: t('table.deleteOk'),
-      cancelText: t('table.deleteCancel'),
-      okDanger: true,
       onConfirm: () => deleteDrink(targetId),
     });
   };
@@ -252,9 +250,6 @@ export function DrinksPage() {
       content: t('drinkDetails.deleteConfirmDesc', {
         size: record.size,
       }),
-      okText: t('form.delete'),
-      cancelText: t('form.cancel'),
-      okDanger: true,
       onConfirm: async () => {
         await deleteDrinkDetail({
           drinkDetailId: record.drinkDetailId,
@@ -309,14 +304,7 @@ export function DrinksPage() {
 
         {/* Create Drink Button (hidden for STAFF) */}
         {!isStaff && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateOpen(true)}
-            className="w-full sm:w-auto"
-          >
-            {t('form.create')}
-          </Button>
+          <CreateButton onClick={() => setCreateOpen(true)} className="w-full sm:w-auto" />
         )}
       </div>
 

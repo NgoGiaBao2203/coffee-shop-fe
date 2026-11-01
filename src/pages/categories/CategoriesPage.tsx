@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Typography, Button, Select } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Typography, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -12,6 +11,7 @@ import { CategoryCreateModal } from './components/CategoryCreateModal';
 import { CategoryEditModal } from './components/CategoryEditModal';
 import { useCategories } from './hooks/useCategories';
 import type { CategoryItem } from './types';
+import { CreateButton } from '@/components/button/CreateButton';
 
 // Allows: Unicode letters, numbers, spaces, and punctuation: - & / ( ) , . '
 const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
@@ -47,7 +47,7 @@ export function CategoriesPage() {
     optionsLoading,
   } = useCategories();
 
-  const { confirm: confirmDelete } = useConfirmModal();
+  const { confirmDelete } = useConfirmModal();
 
   const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -114,11 +114,7 @@ export function CategoriesPage() {
             className="w-52"
           />
         )}
-        {!isStaff && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            {t('form.create')}
-          </Button>
-        )}
+        {!isStaff && <CreateButton onClick={() => setCreateOpen(true)} />}
       </div>
 
       <TableGrid<CategoryItem>
@@ -140,9 +136,6 @@ export function CategoriesPage() {
             confirmDelete({
               title: t('table.deleteConfirmTitle'),
               content: t('categories.deleteConfirmDesc', { name: record.categoryName }),
-              okText: t('table.deleteOk'),
-              cancelText: t('table.deleteCancel'),
-              okDanger: true,
               onConfirm: () => deleteCategory(record.categoryId),
             });
           },

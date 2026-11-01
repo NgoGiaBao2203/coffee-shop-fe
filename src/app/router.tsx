@@ -31,8 +31,9 @@ export const router = createHashRouter([
         element: <MainLayout />,
         children: [
           {
+            // ProtectedRoute redirects "/" to the role's landing page
             path: '/',
-            element: <Navigate to="/shop" replace />,
+            element: null,
           },
           {
             path: '/drinks',

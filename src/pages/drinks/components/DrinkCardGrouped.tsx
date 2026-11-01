@@ -1,9 +1,9 @@
-import { Card, Typography, Button, Tag } from 'antd';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { Card, Typography, Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/utils/image';
 import type { DrinkItem } from '../types';
 import { formatPrice } from '@/utils/formatPrice';
+import { DeleteIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
 interface Props {
   readonly record: DrinkItem;
@@ -108,12 +108,9 @@ export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = 
         {!isStaff && (onEdit || onDelete) && (
           <div className="flex items-center justify-end gap-1">
             {onEdit && (
-              <Button
-                type="text"
-                shape="circle"
-                size="small"
+              <EditIconButton
                 className="flex items-center justify-center opacity-70 group-hover:opacity-100 hover:bg-blue-50 text-blue-600"
-                icon={<EditOutlined style={{ fontSize: 14 }} />}
+                iconSize={14}
                 onClick={(e) => {
                   // Prevent opening detail drawer when editing
                   e.stopPropagation();
@@ -123,13 +120,9 @@ export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = 
             )}
 
             {onDelete && (
-              <Button
-                danger
-                type="text"
-                shape="circle"
-                size="small"
+              <DeleteIconButton
                 className="flex items-center justify-center opacity-70 group-hover:opacity-100 hover:bg-red-50"
-                icon={<DeleteOutlined style={{ fontSize: 14 }} />}
+                iconSize={14}
                 onClick={(e) => {
                   // Prevent opening detail drawer when deleting
                   e.stopPropagation();

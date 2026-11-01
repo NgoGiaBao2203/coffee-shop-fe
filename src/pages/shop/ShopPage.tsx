@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Typography, Button, notification } from 'antd';
-import { PlusOutlined, TeamOutlined } from '@ant-design/icons';
+import { TeamOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,7 @@ import { createShopApi, editShopApi, deleteShopApi } from './api/shopAPI';
 import { ShopCreateModal } from './components/ShopCreateModal';
 import { ShopEditModal } from './components/ShopEditModal';
 import type { ShopItem, CreateShopRequest, EditShopRequest } from './types';
+import { CreateButton } from '@/components/button/CreateButton';
 
 const SEARCH_PATTERN = /^[\p{L}0-9\s.,/&'#-]*$/u;
 const SEARCH_MAX_LENGTH = 100;
@@ -33,7 +34,7 @@ export function ShopPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { showError } = useNotifyModal();
-  const { confirm: confirmDelete } = useConfirmModal();
+  const { confirmDelete } = useConfirmModal();
   const {
     items,
     pagination,
@@ -157,9 +158,6 @@ export function ShopPage() {
     confirmDelete({
       title: t('shops.deleteTitle'),
       content: t('shops.deleteConfirmDesc', { name: record.shopName }),
-      okText: t('table.deleteOk'),
-      cancelText: t('table.deleteCancel'),
-      okDanger: true,
       onConfirm: async () => {
         try {
           await deleteShopApi({ shopId: record.shopId });
@@ -205,9 +203,7 @@ export function ShopPage() {
             placeholder={t('shops.searchPlaceholder')}
           />
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
-          {t('form.create')}
-        </Button>
+        <CreateButton onClick={() => setCreateModalOpen(true)} />
       </div>
 
       <TableGrid<ShopItem>

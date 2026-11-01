@@ -10,7 +10,7 @@ import {
   Table,
   Divider,
 } from 'antd';
-import { CreditCardOutlined, EditOutlined, StopOutlined } from '@ant-design/icons';
+import { CreditCardOutlined, StopOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -21,6 +21,8 @@ import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { InvoiceEditModal } from './components/InvoiceEditModal';
 import { useInvoices } from './hooks/useInvoices';
 import type { InvoiceItem } from './types';
+import { CloseButton } from '@/components/button/CloseButton';
+import { EditIconButton } from '@/components/button/ActionIconButtons';
 
 interface InvoiceDetailItem {
   id?: string | number;
@@ -198,11 +200,10 @@ export function InvoicesPage() {
 
             {/* Edit Action */}
             <Tooltip title={isServing ? t('form.edit') : ''}>
-              <Button
-                type="text"
-                shape="circle"
+              <EditIconButton
+                size="middle"
                 disabled={!isServing}
-                icon={<EditOutlined className={isServing ? 'text-gray-700 text-base' : ''} />}
+                iconClassName={isServing ? 'text-gray-700 text-base' : ''}
                 onClick={() => {
                   setSelectedRecord(record);
                   setEditOpen(true);
@@ -311,15 +312,11 @@ export function InvoicesPage() {
       {/* Drawer View invoice details */}
       <Drawer
         title={t('invoices.detailTitle')}
-        width={580}
+        size={580}
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         closable={true}
-        footer={
-          <div className="flex justify-end">
-            <Button onClick={() => setDetailOpen(false)}>{t('form.close')}</Button>
-          </div>
-        }
+        footer={<CloseButton onClose={() => setDetailOpen(false)} />}
       >
         {selectedRecord && (
           <div className="flex flex-col gap-4">

@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { Modal, Form, Input, Select, Button, Divider } from 'antd';
+import { Modal, Form, Input, Select, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { ROLES } from '@/permission/roles';
 import { useAppSelector } from '@/store/hooks';
 import type { CategoryItem } from '../types';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
 
 export interface CategoryEditValues {
   categoryName: string;
@@ -112,12 +113,7 @@ export function CategoryEditModal({
       title={t('categories.editTitle')}
       width={480}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.save')}
-          </Button>
-        </div>
+        <SubmitButtons onCancel={handleClose} onSubmit={() => form.submit()} loading={loading} />
       }
     >
       <Divider className="my-3!" />

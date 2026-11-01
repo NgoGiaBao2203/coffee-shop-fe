@@ -1,6 +1,5 @@
 import {
   Table,
-  Button,
   Popconfirm,
   Space,
   Pagination,
@@ -9,9 +8,9 @@ import {
   type TableColumnType,
   type TablePaginationConfig,
 } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
+import { DeleteIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
 /** Extended column type — adds `color` (text color for header + cells) on top of Ant Design's TableColumnType */
 export interface AppColumnType<T> extends TableColumnType<T> {
@@ -75,10 +74,8 @@ export function TableGrid<T extends object>({
     render: (_, record) => (
       <Space size="small">
         {onEdit && (
-          <Button
-            type="text"
-            size="small"
-            icon={<EditOutlined />}
+          <EditIconButton
+            shape="default"
             onClick={(e) => {
               e.stopPropagation();
               onEdit(record);
@@ -86,11 +83,8 @@ export function TableGrid<T extends object>({
           />
         )}
         {onDeleteClick && (
-          <Button
-            type="text"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
+          <DeleteIconButton
+            shape="default"
             onClick={(e) => {
               e.stopPropagation();
               onDeleteClick(record);
@@ -108,13 +102,7 @@ export function TableGrid<T extends object>({
             placement="topRight"
             onPopupClick={(e) => e.stopPropagation()}
           >
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={(e) => e.stopPropagation()}
-            />
+            <DeleteIconButton shape="default" onClick={(e) => e.stopPropagation()} />
           </Popconfirm>
         )}
       </Space>

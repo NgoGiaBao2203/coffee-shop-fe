@@ -1,8 +1,9 @@
-import { Modal, Form, Input, Button, Divider, notification } from 'antd';
+import { Modal, Form, Input, Divider, notification } from 'antd';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { RESPONSE_CODE } from '@/constants/messages';
 import type { CreateShopRequest } from '../types';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
 
 export type ShopCreateValues = CreateShopRequest;
 
@@ -111,12 +112,12 @@ export function ShopCreateModal({
       title={t('shops.createTitle')}
       width={560}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.create')}
-          </Button>
-        </div>
+        <SubmitButtons
+          onCancel={handleClose}
+          onSubmit={() => form.submit()}
+          submitText={t('form.create')}
+          loading={loading}
+        />
       }
     >
       <Divider className="my-3!" />

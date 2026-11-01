@@ -156,11 +156,3 @@ export interface DeleteDrinkDetailResponse {
 }
 
 // Order (cash payment)
-
-export interface OrderCartLine {
-  drinkDetailId: string;
-  drinkName: string;
-  size: string;
-  unitPrice: number;
-  quantity: number;
-}

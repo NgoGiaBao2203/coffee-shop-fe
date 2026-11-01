@@ -9,6 +9,7 @@ import { useToast } from '@/components/toast/useToast';
 import { getProfileApi } from '../api/profileApi';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { getResponseMessage } from '@/utils/getResponseMessage';
+import { getHomePath } from '@/permission/roles';
 import type { LoginRequest, ErrorResponse } from '../types';
 
 export function useLogin(form: FormInstance<LoginRequest>) {
@@ -24,7 +25,7 @@ export function useLogin(form: FormInstance<LoginRequest>) {
       const profileResponse = await getProfileApi(values);
       dispatch(setProfile(profileResponse.userProfile));
       toast.success(t('login.toastSuccess'));
-      navigate('/shop', { replace: true });
+      navigate(getHomePath(profileResponse.userProfile.roleName), { replace: true });
     } catch (err) {
       const error = err as AxiosError<ErrorResponse>;
       const data = error.response?.data;

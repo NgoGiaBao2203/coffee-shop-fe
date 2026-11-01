@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { Modal, Form, Input, Select, Button, Divider, notification } from 'antd';
+import { Modal, Form, Input, Select, Divider, notification } from 'antd';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { ROLES } from '@/permission/roles';
 import { useAppSelector } from '@/store/hooks';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
 
 const DEFAULT_ROLE_LABEL = ROLES.STAFF;
 
@@ -112,12 +113,12 @@ export function StaffCreateModal({
       title={t('staffs.createTitle')}
       width={560}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.create')}
-          </Button>
-        </div>
+        <SubmitButtons
+          onCancel={handleClose}
+          onSubmit={() => form.submit()}
+          submitText={t('form.create')}
+          loading={loading}
+        />
       }
     >
       <Divider className="my-3!" />

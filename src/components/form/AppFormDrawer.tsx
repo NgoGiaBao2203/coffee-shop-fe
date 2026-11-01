@@ -1,7 +1,8 @@
-import { Drawer, Button, Descriptions } from 'antd';
+import { Drawer, Descriptions } from 'antd';
 import type { Rule } from 'antd/lib/form';
 import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
+import { CloseButton } from '@/components/button/CloseButton';
 
 export type FormFieldType = 'text' | 'email' | 'number' | 'textarea' | 'select' | 'password';
 
@@ -49,11 +50,7 @@ export function AppFormDrawer<T extends object>({
       onClose={onClose}
       title={t('form.titleView')}
       size={width}
-      footer={
-        <div className="flex justify-end">
-          <Button onClick={onClose}>{t('form.close')}</Button>
-        </div>
-      }
+      footer={<CloseButton onClose={onClose} />}
     >
       <Descriptions column={1} bordered size="small">
         {fields.map((field) => (

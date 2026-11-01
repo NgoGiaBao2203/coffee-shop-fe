@@ -51,11 +51,13 @@ export interface InvoiceListResponse {
   pagination: PaginationInfo;
 }
 
+// 0 = pay later, 1 = paid at the counter
+export type InvoicePaymentStatus = 0 | 1;
+
 export interface CreateInvoiceRequest {
   shopId: string;
   tableId: string;
-  // 0 = pay later, 1 = paid at the counter
-  status: 0 | 1;
+  status: InvoicePaymentStatus;
   items: CreateInvoiceDetailItem[];
 }
 
@@ -68,12 +70,9 @@ export interface CreateInvoiceDetailItem {
 
 export interface EditInvoiceRequest {
   invoiceId: string;
-  tableNumber: number;
-  items: {
-    drinkDetailId: string;
-    quantity: number;
-    note?: string;
-  }[];
+  shopId: string;
+  tableId: string;
+  items: CreateInvoiceDetailItem[];
 }
 
 export interface UpdateInvoiceStatusRequest {

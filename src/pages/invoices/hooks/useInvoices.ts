@@ -20,6 +20,18 @@ import type {
   EditInvoiceRequest,
 } from '../types';
 
+// Backend ER008 messages for PUT /invoice/edit; order matters (most specific first)
+const EDIT_ERROR_MESSAGES: { match: string; key: string; reload?: boolean }[] = [
+  { match: 'Current table is unavailable', key: 'currentTableUnavailable' },
+  { match: 'Table is unavailable', key: 'tableUnavailable' },
+  { match: 'Invoice does not belong', key: 'notBelongToShop' },
+  { match: 'do not have permission', key: 'noPermission' },
+  { match: 'already completed or cancelled', key: 'notEditable', reload: true },
+  { match: 'Invoice cannot be edited', key: 'reload', reload: true },
+  { match: 'could not be saved', key: 'saveFailed' },
+  { match: 'Previous table cannot be released', key: 'releaseTableFailed', reload: true },
+];
+
 const DEFAULT_PARAMS: InvoiceListParams = {
   page: 1,
   size: 10,
@@ -129,8 +141,17 @@ export function useInvoices() {
         toast.success(t('invoices.editSuccess'));
         await fetchInvoices(params);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
-          toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+        if (axios.isAxiosError(error)) {
+          const code = error.response?.data?.code;
+          if (code === RESPONSE_CODE.NOT_FOUND) {
+            toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
+          } else if (code === RESPONSE_CODE.INVALID_REQUEST) {
+            // ER008 is skipped by the interceptor, so map the backend message here
+            const message: string = error.response?.data?.message ?? '';
+            const entry = EDIT_ERROR_MESSAGES.find(({ match }) => message.includes(match));
+            toast.error(entry ? t(`invoices.editErrors.${entry.key}`) : getResponseMessage(code));
+            if (entry?.reload) await fetchInvoices(params);
+          }
         }
         throw error;
       } finally {

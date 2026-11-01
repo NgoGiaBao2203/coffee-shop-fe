@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Typography, Button, Select, Pagination, Empty, Spin } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Typography, Select, Pagination, Empty, Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -14,6 +13,7 @@ import { tableStatusKey } from './utils/utils';
 import { TableCreateModal } from './components/TableCreateModal';
 import { TableEditModal } from './components/TableEditModal';
 import type { TableItem } from './types';
+import { CreateButton } from '@/components/button/CreateButton';
 
 const SEARCH_PATTERN = /^[\p{L}0-9\s.,/&'#-]*$/u;
 const SEARCH_MAX_LENGTH = 100;
@@ -41,7 +41,7 @@ function formatDateTime(dateStr?: string | null): string {
 export function TablesPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
-  const { confirm: confirmDelete } = useConfirmModal();
+  const { confirmDelete } = useConfirmModal();
 
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isStaff = roleName === ROLES.STAFF;
@@ -158,9 +158,6 @@ export function TablesPage() {
     confirmDelete({
       title: t('table.deleteConfirmTitle'),
       content: t('tables.deleteConfirmDesc', { name: record.tableNumber }),
-      okText: t('table.deleteOk'),
-      cancelText: t('table.deleteCancel'),
-      okDanger: true,
       onConfirm: async () => {
         try {
           await deleteTable(record);
@@ -213,11 +210,7 @@ export function TablesPage() {
           />
         )}
 
-        {!isStaff && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            {t('form.create')}
-          </Button>
-        )}
+        {!isStaff && <CreateButton onClick={() => setCreateOpen(true)} />}
       </div>
 
       {/* Table cards square grid */}

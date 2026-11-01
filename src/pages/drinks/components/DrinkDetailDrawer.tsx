@@ -1,10 +1,12 @@
 import { Button, Drawer, Empty, Spin, Tag, Typography } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/utils/image';
 import { formatPrice } from '@/utils/formatPrice';
 import { DRINK_SIZES, isDrinkActive } from '../constants';
 import type { DrinkItem, DrinkVariantItem } from '../types';
+import { CloseButton } from '@/components/button/CloseButton';
+import { DeleteIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
 interface DrinkDetailDrawerProps {
   readonly open: boolean;
@@ -59,11 +61,7 @@ export function DrinkDetailDrawer({
       onClose={onClose}
       size="min(520px, 100vw)"
       title={selected?.drinkName}
-      footer={
-        <div className="flex justify-end">
-          <Button onClick={onClose}>{t('form.close')}</Button>
-        </div>
-      }
+      footer={<CloseButton onClose={onClose} />}
     >
       {/* Show loading state while fetching drink detail */}
       <Spin spinning={detailLoading}>
@@ -156,25 +154,14 @@ export function DrinkDetailDrawer({
                       {!isStaff && (onEdit || onDelete) && (
                         <div className="flex items-center gap-1">
                           {onEdit && (
-                            <Button
-                              type="text"
-                              shape="circle"
-                              size="small"
-                              aria-label={t('form.edit')}
-                              icon={<EditOutlined />}
+                            <EditIconButton
                               disabled={!isActive || detailLoading}
                               onClick={() => onEdit(variant)}
                             />
                           )}
 
                           {onDelete && (
-                            <Button
-                              danger
-                              type="text"
-                              shape="circle"
-                              size="small"
-                              aria-label={t('form.delete')}
-                              icon={<DeleteOutlined />}
+                            <DeleteIconButton
                               disabled={detailLoading}
                               onClick={() => onDelete(variant)}
                             />
