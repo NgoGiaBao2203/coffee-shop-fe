@@ -9,6 +9,7 @@ import {
 } from '../api/invoicesAPI';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { getResponseMessage } from '@/utils/getResponseMessage';
+import { getOrderItemErrors } from '@/utils/orderItemErrors';
 import { useToast } from '@/components/toast/useToast';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -145,7 +146,11 @@ export function useInvoices() {
           const code = error.response?.data?.code;
           if (code === RESPONSE_CODE.NOT_FOUND) {
             toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
-          } else if (code === RESPONSE_CODE.INVALID_REQUEST) {
+          } else if (
+            code === RESPONSE_CODE.INVALID_REQUEST &&
+            getOrderItemErrors(error).length === 0
+          ) {
+            // items[i].quantity errors are shown on the cart lines by the edit modal
             // ER008 is skipped by the interceptor, so map the backend message here
             const message: string = error.response?.data?.message ?? '';
             const entry = EDIT_ERROR_MESSAGES.find(({ match }) => message.includes(match));

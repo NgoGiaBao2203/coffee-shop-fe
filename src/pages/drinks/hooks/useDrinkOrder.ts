@@ -38,7 +38,8 @@ export function useDrinkOrder(open: boolean, shopId: string, onCreated: () => vo
       handleReset();
       onCreated();
     } catch (error) {
-      // Error notification is already shown by the response interceptor
+      // Item quantity errors (ER008) go to their cart lines, others are shown by the interceptor
+      editor.handleItemErrors(error);
       console.error('Failed to create order:', error);
     } finally {
       setCreateLoading(false);

@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast/useToast';
+import { RESPONSE_CODE } from '@/constants/messages';
+import { ORDER_MAX_QUANTITY } from '@/constants/order';
 import { getDrinkDetailApi, getDrinksApi } from '@/pages/drinks/api/drinksAPI';
 import { isDrinkActive } from '@/pages/drinks/constants';
 import type { DrinkItem, DrinkVariantItem } from '@/pages/drinks/types';
 import { getTablesApi } from '@/pages/tables/api/tablesApi';
 import type { TableItem } from '@/pages/tables/types';
 import type { OrderCartLine, OrderInitialValues, OrderPayload } from '@/types/order';
+import { getOrderItemErrors } from '@/utils/orderItemErrors';
+import { getResponseMessage } from '@/utils/getResponseMessage';
 
 // Table status 1 = available (matches the backend check when saving an invoice)
 const TABLE_AVAILABLE_STATUS = 1;
-
-const MAX_QUANTITY = 999;
 
 // Convert a price that may be formatted with commas into a number
 function toNumber(value: number | string): number {
@@ -31,6 +33,8 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
   const [orderShopId, setOrderShopId] = useState('');
   const [tableId, setTableId] = useState<string | undefined>(initialOrder?.tableId);
   const [loading, setLoading] = useState(false);
+  // Quantity errors returned by the backend, keyed by drinkDetailId
+  const [serverItemErrors, setServerItemErrors] = useState<Record<string, string>>({});
 
   // Load sellable drinks via the drinks API, then available tables of that drink's shop
   useEffect(() => {
@@ -119,6 +123,34 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     [cart],
   );
 
+  // Quantity error per cart line: backend error first, otherwise the max check
+  // (an old invoice may still hold more than the max and must be reduced before saving)
+  const itemErrors = useMemo(() => {
+    const errors: Record<string, string> = {};
+
+    cart.forEach(({ drinkDetailId, quantity }) => {
+      const error =
+        serverItemErrors[drinkDetailId] ??
+        (quantity > ORDER_MAX_QUANTITY
+          ? t('order.quantityMax', { max: ORDER_MAX_QUANTITY })
+          : undefined);
+
+      if (error) errors[drinkDetailId] = error;
+    });
+
+    return errors;
+  }, [cart, serverItemErrors, t]);
+
+  const clearServerItemError = (drinkDetailId: string) => {
+    setServerItemErrors((prev) => {
+      if (!(drinkDetailId in prev)) return prev;
+
+      const next = { ...prev };
+      delete next[drinkDetailId];
+      return next;
+    });
+  };
+
   // Load sizes and prices of a drink via the drink detail API (cached per drink)
   const loadVariants = async (drinkId: string) => {
     if (variantsByDrink[drinkId] || variantLoadingIds.includes(drinkId)) return;
@@ -137,15 +169,24 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     }
   };
 
-  // Add one cup of the chosen drink size, or increase its quantity
+  // Add one cup of the chosen drink size, or increase its quantity (up to the max per line)
   const handleAddItem = (drink: DrinkItem, variant: DrinkVariantItem) => {
+    const existingLine = cart.find((line) => line.drinkDetailId === variant.drinkDetailId);
+
+    if (existingLine && existingLine.quantity >= ORDER_MAX_QUANTITY) {
+      toast.warning(t('order.quantityMax', { max: ORDER_MAX_QUANTITY }));
+      return;
+    }
+
+    clearServerItemError(variant.drinkDetailId);
+
     setCart((prev) => {
       const existing = prev.find((line) => line.drinkDetailId === variant.drinkDetailId);
 
       if (existing) {
         return prev.map((line) =>
           line.drinkDetailId === variant.drinkDetailId
-            ? { ...line, quantity: Math.min(line.quantity + 1, MAX_QUANTITY) }
+            ? { ...line, quantity: Math.min(line.quantity + 1, ORDER_MAX_QUANTITY) }
             : line,
         );
       }
@@ -170,19 +211,47 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     );
   };
 
-  const handleQuantityChange = (drinkDetailId: string, quantity: number) =>
+  const handleQuantityChange = (drinkDetailId: string, quantity: number) => {
+    clearServerItemError(drinkDetailId);
     updateLine(drinkDetailId, { quantity });
+  };
 
   const handleNoteChange = (drinkDetailId: string, note: string) =>
     updateLine(drinkDetailId, { note });
 
   const handleRemoveItem = (drinkDetailId: string) => {
+    clearServerItemError(drinkDetailId);
     setCart((prev) => prev.filter((line) => line.drinkDetailId !== drinkDetailId));
   };
 
   const reset = () => {
     setCart(initialOrder?.lines ?? []);
     setTableId(initialOrder?.tableId);
+    setServerItemErrors({});
+  };
+
+  // Show items[i].quantity errors (ER008) on their cart lines; returns true when handled
+  const handleItemErrors = (error: unknown): boolean => {
+    const errors = getOrderItemErrors(error);
+
+    if (errors.length === 0) return false;
+
+    const next: Record<string, string> = {};
+
+    errors.forEach(({ index, code }) => {
+      const line = cart[index];
+
+      if (!line) return;
+
+      next[line.drinkDetailId] =
+        code === RESPONSE_CODE.SIZE_MAX
+          ? t('order.quantityMax', { max: ORDER_MAX_QUANTITY })
+          : getResponseMessage(code);
+    });
+
+    setServerItemErrors(next);
+    toast.error(t('order.itemsInvalid'));
+    return true;
   };
 
   // Validate the form and build the invoice payload; returns null (with a warning) when invalid
@@ -194,6 +263,11 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
 
     if (cart.length === 0 || !orderShopId) {
       toast.warning(t('order.itemsRequired'));
+      return null;
+    }
+
+    if (Object.keys(itemErrors).length > 0) {
+      toast.warning(t('order.itemsInvalid'));
       return null;
     }
 
@@ -218,6 +292,7 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     tableId,
     loading,
     totalAmount,
+    itemErrors,
     // Order can be submitted once it has a table and at least one item
     canSubmit: cart.length > 0 && !!tableId,
     setTableId,
@@ -228,6 +303,7 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     handleRemoveItem,
     reset,
     buildOrderPayload,
+    handleItemErrors,
   };
 }
 

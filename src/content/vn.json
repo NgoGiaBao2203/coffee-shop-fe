@@ -74,7 +74,9 @@
     "itemsRequired": "Vui lòng chọn ít nhất một đồ uống.",
     "total": "Tổng tiền",
     "loadError": "Không thể tải thực đơn hoặc danh sách bàn.",
-    "notePlaceholder": "Ghi chú (tối đa 255 ký tự)"
+    "notePlaceholder": "Ghi chú (tối đa 255 ký tự)",
+    "quantityMax": "Số lượng tối đa là {{max}}.",
+    "itemsInvalid": "Vui lòng kiểm tra lại số lượng các món được đánh dấu."
   },
   "drinks": {
     "title": "Đồ Uống",

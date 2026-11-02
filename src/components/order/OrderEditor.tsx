@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Avatar, Button, Empty, Input, InputNumber, Select, Spin, Typography } from 'antd';
+import { ORDER_MAX_QUANTITY, ORDER_MIN_QUANTITY } from '@/constants/order';
 import { formatPrice } from '@/utils/formatPrice';
 import { resolveImageUrl } from '@/utils/image';
 import type { OrderEditorState } from '@/hooks/useOrderEditor';
@@ -27,6 +28,7 @@ export function OrderEditor({ editor, footerExtra }: Props) {
     tableId,
     loading,
     totalAmount,
+    itemErrors,
     setTableId,
     loadVariants,
     handleAddItem,
@@ -162,11 +164,14 @@ export function OrderEditor({ editor, footerExtra }: Props) {
                     </Typography.Text>
                   </div>
                   <InputNumber
-                    min={1}
-                    max={999}
+                    min={ORDER_MIN_QUANTITY}
+                    max={ORDER_MAX_QUANTITY}
                     precision={0}
                     value={line.quantity}
-                    onChange={(value) => handleQuantityChange(line.drinkDetailId, value ?? 1)}
+                    status={itemErrors[line.drinkDetailId] ? 'error' : undefined}
+                    onChange={(value) =>
+                      handleQuantityChange(line.drinkDetailId, value ?? ORDER_MIN_QUANTITY)
+                    }
                     className="w-20"
                   />
                   <Button
@@ -176,6 +181,11 @@ export function OrderEditor({ editor, footerExtra }: Props) {
                     onClick={() => handleRemoveItem(line.drinkDetailId)}
                   />
                 </div>
+                {itemErrors[line.drinkDetailId] && (
+                  <Typography.Text type="danger" className="text-xs">
+                    {itemErrors[line.drinkDetailId]}
+                  </Typography.Text>
+                )}
                 <Input
                   size="small"
                   maxLength={255}
