@@ -77,19 +77,11 @@ export function DrinkDetailFormModal({
     }
   };
 
-  // Build size options for create and edit modes
-  const sizeOptions =
-    mode === 'edit' && record
-      ? [
-          {
-            value: record.size as DrinkSize,
-            label: record.size,
-          },
-        ]
-      : availableSizes.map((size) => ({
-          value: size,
-          label: size,
-        }));
+  // Size options: free sizes, plus the current size of the edited variant so it stays selectable
+  const sizeOptions = availableSizes.map((size) => ({
+    value: size,
+    label: size,
+  }));
 
   return (
     <DrinkFormModal<DrinkDetailFormValues>
@@ -113,11 +105,7 @@ export function DrinkDetailFormModal({
           },
         ]}
       >
-        <Select
-          options={sizeOptions}
-          disabled={mode === 'edit'}
-          placeholder={t('drinkDetails.selectSize')}
-        />
+        <Select options={sizeOptions} placeholder={t('drinkDetails.selectSize')} />
       </Form.Item>
 
       {/* Drink detail price */}

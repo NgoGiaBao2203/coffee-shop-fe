@@ -114,6 +114,19 @@ export function DrinksPage() {
     return DRINK_SIZES.filter((size) => !existingSizes.has(size));
   }, [selected?.variants]);
 
+  // Sizes the edited variant can switch to: its own size and sizes no other variant uses
+  const editableDetailSizes = useMemo(() => {
+    const normalize = (size: string) => size.trim().toUpperCase();
+    const otherSizes = new Set(
+      (selected?.variants ?? [])
+        .filter((variant) => variant.drinkDetailId !== selectedDetail?.drinkDetailId)
+        .map((variant) => normalize(variant.size)),
+    );
+    const ownSize = selectedDetail ? normalize(selectedDetail.size) : '';
+
+    return DRINK_SIZES.filter((size) => size === ownSize || !otherSizes.has(size));
+  }, [selected?.variants, selectedDetail]);
+
   // Validate search keyword before sending request
   const handleDrinkSearch = (value: string) => {
     const trimmedValue = value.trim();
@@ -415,7 +428,7 @@ export function DrinksPage() {
         open={editDetailOpen}
         mode="edit"
         record={selectedDetail}
-        availableSizes={DRINK_SIZES}
+        availableSizes={editableDetailSizes}
         loading={editDetailLoading}
         onClose={() => {
           setEditDetailOpen(false);
