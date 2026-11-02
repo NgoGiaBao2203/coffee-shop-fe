@@ -11,7 +11,9 @@ import {
   DrinkStatusField,
   DrinkUploadAction,
 } from './DrinkFormFields';
-import { findDrinkByName, setDrinkSizeExistsError } from '../utils/utils';
+import { useFormApiError } from '@/hooks/useFormApiError';
+import { useDrinkImageUpload } from '../hooks/useDrinkImageUpload';
+import { findDrinkByName } from '../utils/utils';
 import { DEFAULT_DRINK_SIZE, DRINK_SIZES } from '../constants';
 
 const FALLBACK_DRINK_IMAGE = 'https://placehold.co/400x300?text=Drink';
@@ -47,6 +49,8 @@ export function DrinkCreateModal({
   const { t } = useTranslation();
 
   const [form] = Form.useForm<DrinkCreateFormValues>();
+  const handleFormError = useFormApiError();
+  const imageUploadProps = useDrinkImageUpload();
 
   // Store selected drink image before submitting
   const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -120,9 +124,9 @@ export function DrinkCreateModal({
       await onSubmit(payload, file?.originFileObj as File | undefined);
 
       handleClose();
-    } catch (error: unknown) {
-      // Show duplicated size error on the size field
-      setDrinkSizeExistsError(error, form, t('drinks.sizeExists'));
+    } catch (error) {
+      // e.g. a duplicated size goes to the size field
+      handleFormError(error, form);
     }
   };
 
@@ -171,10 +175,9 @@ export function DrinkCreateModal({
         <Upload
           listType="picture-card"
           fileList={fileList}
-          beforeUpload={() => false}
+          {...imageUploadProps}
           onChange={handleUploadChange}
           maxCount={1}
-          accept="image/*"
           disabled={!!matchedDrink}
         >
           {fileList.length < 1 && <DrinkUploadAction />}

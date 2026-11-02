@@ -88,10 +88,14 @@
     "image": "Hình ảnh",
     "empty": "Không có dữ liệu đồ uống",
     "category": "Danh mục",
+    "shopName": "Chi nhánh",
     "chooseSize": "Chọn kích cỡ",
     "searchPlaceholder": "Tìm kiếm đồ uống...",
     "emptySearch": "Không tìm thấy đồ uống nào phù hợp với từ khóa tìm kiếm.",
     "uploadImage": "Tải ảnh lên",
+    "imageTypeInvalid": "Chỉ chấp nhận ảnh định dạng JPG hoặc PNG.",
+    "imageTooLarge": "Ảnh tối đa 5MB.",
+    "imageNotValid": "Ảnh không hợp lệ, vui lòng chọn ảnh khác.",
     "noCategory": "Chưa có dữ liệu danh mục cho chi nhánh này",
     "statusActive": "Đang bán",
     "statusInactive": "Ngừng bán",
@@ -250,7 +254,6 @@
     "emptySearch": "Không tìm thấy nhân viên nào phù hợp với từ khóa tìm kiếm.",
     "editTitle": "Chỉnh sửa nhân viên",
     "fullNameRequired": "Vui lòng nhập họ và tên.",
-    "phoneNumberConflict": "Số điện thoại đã tồn tại.",
     "createdAt": "Ngày tạo",
     "updatedAt": "Ngày cập nhật",
     "deleteSuccess": "Xoá nhân viên thành công.",
@@ -264,7 +267,9 @@
     "phoneConflict": "Số điện thoại đã tồn tại.",
     "emailConflict": "Email đã tồn tại.",
     "filterRole": "Lọc theo vai trò",
-    "filterShop": "Lọc theo chi nhánh"
+    "filterShop": "Lọc theo chi nhánh",
+    "roleRequired": "Vui lòng chọn vai trò.",
+    "shopRequired": "Vui lòng chọn chi nhánh."
   },
   "table": {
     "actions": "Thao tác",
@@ -308,7 +313,8 @@
       "occupied": "Đã có khách",
       "reserved": "Đã đặt trước",
       "unknown": "Không xác định"
-    }
+    },
+    "occupiedHasPendingInvoice": "Bàn còn hóa đơn chưa thanh toán. Vui lòng thanh toán hoặc hủy hóa đơn trước khi đổi trạng thái bàn."
   },
   "form": {
     "titleView": "Chi tiết",
@@ -359,14 +365,30 @@
     "ER008": "Dữ liệu yêu cầu không hợp lệ.",
     "ER009": "Tên đăng nhập hoặc mật khẩu không đúng.",
     "ER010": "Tài khoản của bạn đã bị vô hiệu hóa.",
-    "ER011": "Tên danh mục đã tồn tại trong chi nhánh.",
     "ER500": "Đã xảy ra lỗi máy chủ nội bộ. Vui lòng thử lại sau.",
     "EV001": "Trường này là bắt buộc.",
     "EV002": "Mật khẩu không đúng độ dài yêu cầu.",
+    "EV003": "Giá trị phải lớn hơn hoặc bằng 1.",
+    "EV004": "Giá trị nhỏ hơn mức tối thiểu cho phép.",
     "EV005": "Độ dài dữ liệu vượt quá giới hạn cho phép.",
+    "EV006": "Trường sắp xếp không hợp lệ.",
     "EV007": "Dữ liệu chứa ký tự không hợp lệ.",
     "EV008": "Số điện thoại không hợp lệ (phải bắt đầu bằng số 0).",
     "EV009": "Số điện thoại phải có độ dài từ 10 đến 11 chữ số.",
-    "EV010": "Giá phải là số lớn hơn 1."
+    "EV010": "Giá phải là số lớn hơn 0.",
+    "EV011": "Trạng thái không hợp lệ."
+  },
+  "apiMessages": {
+    "staleData": "Dữ liệu đã bị xoá hoặc thay đổi bởi thao tác khác. Danh sách sẽ được tải lại.",
+    "reload": "Dữ liệu đã thay đổi. Vui lòng tải lại và thử lại.",
+    "notAssignedShop": "Tài khoản chưa được gán vào chi nhánh nào.",
+    "noShopPermission": "Bạn không có quyền thao tác trên chi nhánh này.",
+    "invoiceCreateNoPermission": "Bạn không có quyền tạo hóa đơn.",
+    "invoiceChangeNoPermission": "Bạn chỉ được thanh toán hoặc hủy hóa đơn do chính mình tạo.",
+    "invoiceTotalExceeded": "Tổng tiền hóa đơn vượt quá giới hạn cho phép.",
+    "drinkUnavailable": "Có đồ uống đã ngừng bán hoặc không thuộc chi nhánh này. Thực đơn sẽ được tải lại.",
+    "drinkPriceChanged": "Giá đồ uống đã thay đổi. Vui lòng kiểm tra lại giá và thử lại.",
+    "drinkLastSize": "Đồ uống phải có ít nhất một kích cỡ đang bán.",
+    "tableNotBelong": "Bàn không thuộc chi nhánh này."
   }
 }

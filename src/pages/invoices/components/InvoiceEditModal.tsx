@@ -54,8 +54,8 @@ function InvoiceEditModalBody({ open, onClose, record, onSubmit, loading = false
       await onSubmit({ invoiceId: record.invoiceId, ...order });
       onClose();
     } catch (error) {
-      // Item quantity errors (ER008) go to their cart lines, others are shown by useInvoices
-      editor.handleItemErrors(error);
+      // ER008 is shown by the order editor, other codes by the interceptor
+      editor.handleOrderError(error);
     }
   };
 

@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
 import { Modal, Form, Input, Select, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { RESPONSE_CODE } from '@/constants/messages';
 import { ROLES } from '@/permission/roles';
 import { useAppSelector } from '@/store/hooks';
 import { SubmitButtons } from '@/components/button/SubmitButtons';
+import { useFormApiError } from '@/hooks/useFormApiError';
 
 export interface CategoryCreateValues {
   categoryName: string;
@@ -36,29 +35,16 @@ export function CategoryCreateModal({
 }: CategoryCreateModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<CategoryCreateValues>();
-  const profileShopId = useAppSelector(
-    (state) => (state.auth.profile as { shopId?: string } | null)?.shopId,
-  );
-  const profileShopName = useAppSelector((state) => state.auth.profile?.shopName);
+  const handleFormError = useFormApiError();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isManager = roleName === ROLES.MANAGER;
 
+  // Default to the first shop; for MANAGER the options only contain their own shop
   useEffect(() => {
-    if (!open) return;
-
-    if (isManager) {
-      if (profileShopId) {
-        form.setFieldValue('shopId', profileShopId);
-      } else if (shopOptions.length > 0 && profileShopName) {
-        const matchedShop = shopOptions.find(
-          (s) => s.label.trim().toLowerCase() === profileShopName.trim().toLowerCase(),
-        );
-        form.setFieldValue('shopId', matchedShop?.value ?? shopOptions[0].value);
-      }
-    } else if (shopOptions.length > 0) {
+    if (open && shopOptions.length > 0) {
       form.setFieldValue('shopId', shopOptions[0].value);
     }
-  }, [open, shopOptions, isManager, profileShopId, profileShopName, form]);
+  }, [open, shopOptions, form]);
 
   const handleClose = () => {
     form.resetFields();
@@ -69,22 +55,8 @@ export function CategoryCreateModal({
     try {
       await onSubmit({ ...values, categoryName: values.categoryName.trim() });
       handleClose();
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const resCode = error.response?.data?.code;
-        if (
-          resCode === RESPONSE_CODE.CONFLICT ||
-          resCode === 'ER005' ||
-          resCode === RESPONSE_CODE.INVALID_REQUEST
-        ) {
-          form.setFields([
-            {
-              name: 'categoryName',
-              errors: [t('categories.nameConflict')],
-            },
-          ]);
-        }
-      }
+    } catch (error) {
+      handleFormError(error, form);
     }
   };
 

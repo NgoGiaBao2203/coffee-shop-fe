@@ -5,7 +5,8 @@ import { ENV } from '@/constants/evn';
 import { RESPONSE_CODE } from '@/constants/messages';
 import { store } from '@/store/store';
 import { clearProfile } from '@/store/authSlice';
-import { getResponseMessage } from '@/utils/getResponseMessage';
+import type { ApiErrorResponse } from '@/types/api';
+import { getApiErrorMessage } from '@/utils/apiError';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -14,16 +15,6 @@ declare module 'axios' {
   interface InternalAxiosRequestConfig {
     suppressCodes?: string[];
   }
-}
-
-interface ApiErrorDetail {
-  field: string;
-  message: string;
-}
-
-interface ApiResponseBody {
-  code?: string;
-  errorDetails?: ApiErrorDetail[] | null;
 }
 
 export const api = axios.create({
@@ -45,10 +36,10 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
-// Response interceptor — map backend response code to localized message
+// Response interceptor — show the localized error unless the call site handles that code itself
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiResponseBody>) => {
+  (error: AxiosError<ApiErrorResponse>) => {
     // Fall back to INTERNAL_SERVER_ERROR if response is undefined (e.g. backend offline or network down)
     const code = error.response?.data?.code ?? RESPONSE_CODE.INTERNAL_SERVER_ERROR;
 
@@ -59,13 +50,15 @@ api.interceptors.response.use(
     // Retrieve localized error title from i18n translation resources
     const errorTitle = i18n.t('common.error');
 
-    // Validation errors (ER008) are handled at the call site with field-level messages
+    // Pass `suppressCodes` when the call site renders the error itself (e.g. field-level ER008)
     const suppressCodes = error.config?.suppressCodes ?? [];
-    if (code !== RESPONSE_CODE.INVALID_REQUEST && !suppressCodes.includes(code)) {
+    if (!suppressCodes.includes(code)) {
+      const description = getApiErrorMessage(error);
+
       notification.error({
-        key: `api_error_${code}`,
+        key: `api_error_${code}_${description}`,
         title: errorTitle,
-        description: getResponseMessage(code),
+        description,
         placement: 'topRight',
         duration: 3,
       });

@@ -38,8 +38,8 @@ export function useDrinkOrder(open: boolean, shopId: string, onCreated: () => vo
       handleReset();
       onCreated();
     } catch (error) {
-      // Item quantity errors (ER008) go to their cart lines, others are shown by the interceptor
-      editor.handleItemErrors(error);
+      // ER008 is shown by the order editor, other codes by the interceptor
+      editor.handleOrderError(error);
       console.error('Failed to create order:', error);
     } finally {
       setCreateLoading(false);

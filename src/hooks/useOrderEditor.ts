@@ -9,6 +9,7 @@ import type { DrinkItem, DrinkVariantItem } from '@/pages/drinks/types';
 import { getTablesApi } from '@/pages/tables/api/tablesApi';
 import type { TableItem } from '@/pages/tables/types';
 import type { OrderCartLine, OrderInitialValues, OrderPayload } from '@/types/order';
+import { getApiErrorCode, getApiErrorMessage } from '@/utils/apiError';
 import { getOrderItemErrors } from '@/utils/orderItemErrors';
 import { getResponseMessage } from '@/utils/getResponseMessage';
 
@@ -111,7 +112,7 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     if (initialOrder && !tables.some((table) => table.tableId === initialOrder.tableId)) {
       options.unshift({
         value: initialOrder.tableId,
-        label: `${t('order.table')} ${initialOrder.tableNumber}`,
+        label: `${t('order.table')} ${initialOrder.tableNumber ?? ''}`.trim(),
       });
     }
 
@@ -230,11 +231,17 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     setServerItemErrors({});
   };
 
-  // Show items[i].quantity errors (ER008) on their cart lines; returns true when handled
-  const handleItemErrors = (error: unknown): boolean => {
+  // Show an ER008 of the invoice create/edit APIs (suppressed in the interceptor):
+  // items[i].quantity errors on their cart lines, any other rule (table, price...) as a toast
+  const handleOrderError = (error: unknown) => {
+    if (getApiErrorCode(error) !== RESPONSE_CODE.INVALID_REQUEST) return;
+
     const errors = getOrderItemErrors(error);
 
-    if (errors.length === 0) return false;
+    if (errors.length === 0) {
+      toast.error(getApiErrorMessage(error));
+      return;
+    }
 
     const next: Record<string, string> = {};
 
@@ -251,7 +258,6 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
 
     setServerItemErrors(next);
     toast.error(t('order.itemsInvalid'));
-    return true;
   };
 
   // Validate the form and build the invoice payload; returns null (with a warning) when invalid
@@ -303,7 +309,7 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     handleRemoveItem,
     reset,
     buildOrderPayload,
-    handleItemErrors,
+    handleOrderError,
   };
 }
 

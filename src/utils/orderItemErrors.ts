@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { RESPONSE_CODE } from '@/constants/messages';
+import { getApiErrorResponse } from '@/utils/apiError';
 
 const ITEM_QUANTITY_FIELD = /^items\[(\d+)]\.quantity$/;
 
@@ -10,17 +10,11 @@ export interface OrderItemError {
 
 // Read the items[i].quantity errors of an ER008 response from the invoice create/edit APIs
 export function getOrderItemErrors(error: unknown): OrderItemError[] {
-  if (!axios.isAxiosError(error) || error.response?.data?.code !== RESPONSE_CODE.INVALID_REQUEST) {
-    return [];
-  }
+  const response = getApiErrorResponse(error);
 
-  const details: { field?: string; message?: string }[] = Array.isArray(
-    error.response.data.errorDetails,
-  )
-    ? error.response.data.errorDetails
-    : [];
+  if (response?.code !== RESPONSE_CODE.INVALID_REQUEST) return [];
 
-  return details.flatMap(({ field, message }) => {
+  return (response.errorDetails ?? []).flatMap(({ field, message }) => {
     const match = ITEM_QUANTITY_FIELD.exec(field ?? '');
     return match && message ? [{ index: Number(match[1]), code: message }] : [];
   });

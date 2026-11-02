@@ -4,6 +4,7 @@ import type { UploadChangeParam } from 'antd/es/upload';
 import { useTranslation } from 'react-i18next';
 import type { DrinkItem, EditDrinkRequest, CategorySelectOption } from '../types';
 import { resolveImageUrl } from '@/utils/image';
+import { DeleteIconButton } from '@/components/button/ActionIconButtons';
 import { DrinkFormModal } from './DrinkFormModal';
 import {
   DrinkCategoryField,
@@ -11,7 +12,8 @@ import {
   DrinkStatusField,
   DrinkUploadAction,
 } from './DrinkFormFields';
-import { setDrinkNameConflictError } from '../utils/utils';
+import { useFormApiError } from '@/hooks/useFormApiError';
+import { useDrinkImageUpload } from '../hooks/useDrinkImageUpload';
 
 interface DrinkEditFormValues {
   drinkId: string;
@@ -64,6 +66,8 @@ export function DrinkEditModal({
   const { t } = useTranslation();
 
   const [form] = Form.useForm<DrinkEditFormValues>();
+  const handleFormError = useFormApiError();
+  const imageUploadProps = useDrinkImageUpload();
 
   // Track modal opening to prevent resetting form multiple times
   const isOpenedRef = useRef(false);
@@ -137,9 +141,9 @@ export function DrinkEditModal({
       );
 
       handleClose();
-    } catch (error: unknown) {
-      // Show drink name conflict error on the form
-      setDrinkNameConflictError(error, form, t('drinks.nameConflict'));
+    } catch (error) {
+      // e.g. a duplicated name goes to the drink name field
+      handleFormError(error, form);
     }
   };
 
@@ -174,9 +178,20 @@ export function DrinkEditModal({
           >
             <Upload
               listType="picture-card"
-              beforeUpload={() => false}
+              {...imageUploadProps}
               maxCount={1}
-              accept="image/*"
+              // No preview eye (it opens the file URL) and no in-card trash: delete sits beside the image
+              showUploadList={{ showPreviewIcon: false, showRemoveIcon: false }}
+              itemRender={(originNode, _file, _fileList, actions) => (
+                <div className="flex items-end gap-2">
+                  {originNode}
+                  <DeleteIconButton
+                    size="middle"
+                    shape="default"
+                    onClick={() => actions.remove()}
+                  />
+                </div>
+              )}
             >
               {(getFieldValue('fileList')?.length ?? 0) < 1 && <DrinkUploadAction />}
             </Upload>

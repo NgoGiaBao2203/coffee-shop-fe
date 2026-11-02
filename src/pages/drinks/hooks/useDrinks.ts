@@ -1,18 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast/useToast';
-import { RESPONSE_CODE } from '@/constants/messages';
-import { getResponseMessage } from '@/utils/getResponseMessage';
-import { isDrinkSizeExistsError } from '../utils/utils';
-import {
-  getDrinksApi,
-  createDrinkApi,
-  editDrinkApi,
-  deleteDrinkApi,
-  getDropdownCategoriesApi,
-} from '../api/drinksAPI';
-import { getShopNamesApi } from '@/pages/staffs/api/staffsApi';
+import { getDropdownCategoriesApi } from '@/api/dropdownApi';
+import { useShopOptions } from '@/hooks/useShopOptions';
+import { ROLES } from '@/permission/roles';
+import { useAppSelector } from '@/store/hooks';
+import { isApiReloadError } from '@/utils/apiError';
+import { getDrinksApi, createDrinkApi, editDrinkApi, deleteDrinkApi } from '../api/drinksAPI';
 import type {
   DrinkItem,
   GetDrinksRequest,
@@ -20,57 +14,6 @@ import type {
   EditDrinkRequest,
   CategorySelectOption,
 } from '../types';
-import type { ShopNameItem } from '@/pages/staffs/types';
-
-// Handle API errors for drink CRUD actions
-function showDrinkApiError(
-  error: unknown,
-  showError: (message: string) => void,
-  t: (key: string) => string,
-) {
-  if (!axios.isAxiosError(error) || !error.response?.data) return;
-
-  const response = error.response.data;
-  const errorCode = response.code as string | undefined;
-
-  const errorDetails: { errorCode?: string }[] = Array.isArray(response?.errorDetails)
-    ? response.errorDetails
-    : [];
-
-  // Drink name exists with the same size (create merges new sizes into the existing drink)
-  if (isDrinkSizeExistsError(error)) {
-    showError(t('drinks.sizeExists'));
-    return;
-  }
-
-  // Check drink name conflict response
-  const isNameConflict =
-    [RESPONSE_CODE.CONFLICT, 'ER011'].includes(errorCode ?? '') ||
-    errorDetails.some(
-      ({ errorCode: detailCode }) =>
-        detailCode === RESPONSE_CODE.CONFLICT || detailCode === 'ER011',
-    );
-
-  if (isNameConflict) {
-    showError(t('drinks.nameConflict'));
-    return;
-  }
-
-  // Map known API response codes to user messages
-  if (errorCode === RESPONSE_CODE.NOT_FOUND || errorCode === 'ER004') {
-    showError(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
-  } else if (errorCode === RESPONSE_CODE.INVALID_REQUEST || errorCode === 'ER008') {
-    const firstDetailCode = errorDetails[0]?.errorCode;
-
-    if (firstDetailCode === RESPONSE_CODE.PRICE_MIN) {
-      showError(getResponseMessage(RESPONSE_CODE.PRICE_MIN));
-    } else {
-      showError(getResponseMessage(firstDetailCode || RESPONSE_CODE.INVALID_REQUEST));
-    }
-  } else if (errorCode) {
-    showError(getResponseMessage(errorCode));
-  }
-}
 
 // Default pagination, search, and shop filter parameters
 const DEFAULT_PARAMS: GetDrinksRequest = {
@@ -86,6 +29,9 @@ const DEFAULT_PARAMS: GetDrinksRequest = {
 export function useDrinks(initialPage = 1, initialSize = 10) {
   const toast = useToast();
   const { t } = useTranslation();
+  const roleName = useAppSelector((state) => state.auth.profile?.roleName);
+  // Dropdowns are OWNER / MANAGER only (STAFF only views the menu and creates orders)
+  const canManageDrinks = roleName === ROLES.OWNER || roleName === ROLES.MANAGER;
 
   // Query parameters state
   const [params, setParams] = useState<GetDrinksRequest>({
@@ -97,7 +43,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
   // Drink and dropdown data states
   const [items, setItems] = useState<DrinkItem[]>([]);
   const [totalElements, setTotalElements] = useState<number>(0);
-  const [shopNames, setShopNames] = useState<ShopNameItem[]>([]);
+  const { shopOptions, optionsLoading: shopsLoading } = useShopOptions();
   const [categoryOptions, setCategoryOptions] = useState<CategorySelectOption[]>([]);
 
   // UI loading and status states
@@ -106,7 +52,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
   const [createLoading, setCreateLoading] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
   const [isSearch, setIsSearch] = useState(false);
 
@@ -158,18 +104,15 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     [],
   );
 
-  // Fetch shop list and categories for dropdown selections
+  // Fetch categories for the create / edit drink forms
   useEffect(() => {
-    async function fetchOptions() {
-      setOptionsLoading(true);
+    if (!canManageDrinks) return;
+
+    async function fetchCategories() {
+      setCategoriesLoading(true);
 
       try {
-        const [shopNamesRes, categoriesRes] = await Promise.all([
-          getShopNamesApi(),
-          getDropdownCategoriesApi(),
-        ]);
-
-        setShopNames(shopNamesRes.shopNameResults || []);
+        const categoriesRes = await getDropdownCategoriesApi();
 
         // Map category response to Ant Design Select options
         const mappedCategories: CategorySelectOption[] = (categoriesRes.categoryResult || []).map(
@@ -184,12 +127,12 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
       } catch (err) {
         console.error('Failed to fetch dropdown options:', err);
       } finally {
-        setOptionsLoading(false);
+        setCategoriesLoading(false);
       }
     }
 
-    void fetchOptions();
-  }, []);
+    void fetchCategories();
+  }, [canManageDrinks]);
 
   // Reload drink list when query parameters change
   useEffect(() => {
@@ -219,10 +162,8 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
 
         // Refresh drink list after successful creation
         await fetchDrinks(params);
-      } catch (error) {
-        showDrinkApiError(error, toast.error, t);
-        throw error;
       } finally {
+        // Errors are shown on the form by the modal
         setCreateLoading(false);
       }
     },
@@ -241,7 +182,8 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         // Refresh drink list after successful update
         await fetchDrinks(params);
       } catch (error) {
-        showDrinkApiError(error, toast.error, t);
+        // Errors are shown on the form by the modal
+        if (isApiReloadError(error)) await fetchDrinks(params);
         throw error;
       } finally {
         setEditLoading(false);
@@ -262,7 +204,8 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
         // Refresh drink list after successful deletion
         await fetchDrinks(params);
       } catch (error) {
-        showDrinkApiError(error, toast.error, t);
+        // The interceptor already shows the error message
+        if (isApiReloadError(error)) await fetchDrinks(params);
       } finally {
         setDeleteLoading(false);
       }
@@ -303,11 +246,7 @@ export function useDrinks(initialPage = 1, initialSize = 10) {
     }));
   };
 
-  // Map shop list to Ant Design Select options
-  const shopOptions = shopNames.map((s) => ({
-    value: s.shopId,
-    label: s.shopName,
-  }));
+  const optionsLoading = shopsLoading || categoriesLoading;
 
   // Expose drink data, actions, filters, and loading states
   return {

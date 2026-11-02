@@ -14,6 +14,8 @@ interface DrinkDetailDrawerProps {
   readonly selected: DrinkItem | null;
   readonly detailLoading: boolean;
   readonly isStaff: boolean;
+  // Branch of the drink, only passed for OWNER (who sees every branch)
+  readonly shopName?: string;
   readonly onAdd?: () => void;
   readonly onEdit?: (record: DrinkVariantItem) => void;
   readonly onDelete?: (record: DrinkVariantItem) => void;
@@ -32,6 +34,7 @@ export function DrinkDetailDrawer({
   selected,
   detailLoading,
   isStaff,
+  shopName,
   onAdd,
   onEdit,
   onDelete,
@@ -39,7 +42,7 @@ export function DrinkDetailDrawer({
   const { t } = useTranslation();
 
   // Fallback image when drink image is unavailable
-  const fallbackImage = 'https://placehold.co/600x400?text=No+Image';
+  const fallbackImage = 'https://placehold.co/600x600?text=No+Image';
 
   // Sort drink variants by configured size order
   const variants = [...(selected?.variants ?? [])].sort(
@@ -67,11 +70,11 @@ export function DrinkDetailDrawer({
       <Spin spinning={detailLoading}>
         {selected && (
           <div className="flex flex-col gap-4">
-            {/* Drink image */}
+            {/* Drink image: fixed 1:1 frame so the drawer layout does not change with the photo */}
             <img
               src={resolveImageUrl(selected.imageUrl) || fallbackImage}
               alt={selected.drinkName}
-              className="block h-auto w-full rounded-lg object-contain"
+              className="block aspect-square w-full rounded-lg object-cover"
               onError={(event) => {
                 const element = event.currentTarget;
 
@@ -96,14 +99,26 @@ export function DrinkDetailDrawer({
               )}
             </div>
 
-            {/* Drink category */}
-            <div>
-              <Typography.Text type="secondary" className="text-sm">
-                {t('drinks.category')}
-              </Typography.Text>
+            {/* Branch (OWNER only) and category on one row */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {shopName && (
+                <div className="flex items-center gap-1">
+                  <Typography.Text strong className="text-sm">
+                    {t('drinks.shopName')}:
+                  </Typography.Text>
+                  <Tag color="gold" className="mr-0!">
+                    {shopName}
+                  </Tag>
+                </div>
+              )}
 
-              <div className="mt-1">
-                <Tag color="blue">{selected.categoryName || t('drinks.noCategory')}</Tag>
+              <div className="flex items-center gap-1">
+                <Typography.Text strong className="text-sm">
+                  {t('drinks.category')}:
+                </Typography.Text>
+                <Tag color="blue" className="mr-0!">
+                  {selected.categoryName || t('drinks.noCategory')}
+                </Tag>
               </div>
             </div>
 

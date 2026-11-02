@@ -11,7 +11,7 @@ export interface OrderCartLine {
 // Values prefilled when an existing order (invoice) is edited
 export interface OrderInitialValues {
   tableId: string;
-  tableNumber: number;
+  tableNumber: number | null;
   lines: OrderCartLine[];
 }
 

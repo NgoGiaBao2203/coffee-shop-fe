@@ -31,6 +31,8 @@ export interface TableGridProps<T extends object> {
   readonly onDelete?: (record: T) => void;
   /** Called with the row record when the delete button is clicked — no built-in confirmation; the caller is responsible for showing a confirmation UI */
   readonly onDeleteClick?: (record: T) => void;
+  /** Disables the delete button of a row (e.g. a record the backend refuses to delete) */
+  readonly isDeleteDisabled?: (record: T) => boolean;
   /** Total records count for server-side pagination */
   readonly total?: number;
   /** Current page number (controlled) */
@@ -55,6 +57,7 @@ export function TableGrid<T extends object>({
   onEdit,
   onDelete,
   onDeleteClick,
+  isDeleteDisabled,
   total,
   currentPage,
   currentPageSize,
@@ -85,6 +88,7 @@ export function TableGrid<T extends object>({
         {onDeleteClick && (
           <DeleteIconButton
             shape="default"
+            disabled={isDeleteDisabled?.(record)}
             onClick={(e) => {
               e.stopPropagation();
               onDeleteClick(record);

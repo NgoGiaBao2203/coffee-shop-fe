@@ -1,19 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import {
-  getStaffsApi,
-  editStaffApi,
-  deleteStaffApi,
-  createStaffApi,
-  getRolesApi,
-  getShopNamesApi,
-} from '../api/staffsApi';
-import { RESPONSE_CODE } from '@/constants/messages';
-import { getResponseMessage } from '@/utils/getResponseMessage';
+import { getStaffsApi, editStaffApi, deleteStaffApi, createStaffApi } from '../api/staffsApi';
+import { getRolesApi } from '@/api/dropdownApi';
+import { useShopOptions } from '@/hooks/useShopOptions';
 import { useToast } from '@/components/toast/useToast';
-import type { StaffItem, StaffListParams, PaginationInfo, RoleItem, ShopNameItem } from '../types';
+import type { PaginationInfo } from '@/types/api';
+import type { RoleItem } from '@/types/dropdown';
+import { isApiReloadError } from '@/utils/apiError';
+import type { StaffItem, StaffListParams } from '../types';
 import type { StaffEditValues } from '../components/StaffEditModal';
 import type { StaffCreateValues } from '../components/StaffCreateModal';
 
@@ -45,8 +40,8 @@ export function useStaffs() {
   const [createLoading, setCreateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [roles, setRoles] = useState<RoleItem[]>([]);
-  const [shopNames, setShopNames] = useState<ShopNameItem[]>([]);
-  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const { shopOptions, optionsLoading: shopsLoading } = useShopOptions();
 
   const fetchStaffs = useCallback(async (currentParams: StaffListParams, isSearch = false) => {
     setLoading(true);
@@ -65,17 +60,16 @@ export function useStaffs() {
   }, []);
 
   useEffect(() => {
-    async function fetchOptions() {
-      setOptionsLoading(true);
+    async function fetchRoles() {
+      setRolesLoading(true);
       try {
-        const [rolesRes, shopNamesRes] = await Promise.all([getRolesApi(), getShopNamesApi()]);
-        setRoles(rolesRes.roleResult);
-        setShopNames(shopNamesRes.shopNameResults);
+        const rolesRes = await getRolesApi();
+        setRoles(rolesRes.roleResult ?? []);
       } finally {
-        setOptionsLoading(false);
+        setRolesLoading(false);
       }
     }
-    fetchOptions();
+    fetchRoles();
   }, []);
 
   const [isSearch, setIsSearch] = useState(false);
@@ -113,9 +107,8 @@ export function useStaffs() {
         toast.success(t('staffs.editSuccess'));
         await fetchStaffs(params);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
-          toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
-        }
+        // Errors are shown on the form by the modal
+        if (isApiReloadError(error)) await fetchStaffs(params);
         throw error;
       } finally {
         setEditLoading(false);
@@ -137,9 +130,8 @@ export function useStaffs() {
           await fetchStaffs(params);
         }
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
-          toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
-        }
+        // The interceptor already shows the error message
+        if (isApiReloadError(error)) await fetchStaffs(params);
       } finally {
         setDeleteLoading(false);
       }
@@ -154,12 +146,8 @@ export function useStaffs() {
         await createStaffApi(values);
         toast.success(t('staffs.createSuccess'));
         await fetchStaffs(params);
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.NOT_FOUND) {
-          toast.error(getResponseMessage(RESPONSE_CODE.NOT_FOUND));
-        }
-        throw error;
       } finally {
+        // Errors are shown on the form by the modal
         setCreateLoading(false);
       }
     },
@@ -167,7 +155,7 @@ export function useStaffs() {
   );
 
   const roleOptions = roles.map((r) => ({ value: r.roleId, label: r.roleDisplayName }));
-  const shopOptions = shopNames.map((s) => ({ value: s.shopId, label: s.shopName }));
+  const optionsLoading = rolesLoading || shopsLoading;
 
   return {
     items,

@@ -1,7 +1,9 @@
+import { ShopOutlined } from '@ant-design/icons';
 import { Card, Typography, Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/utils/image';
 import type { DrinkItem } from '../types';
+import { isDrinkActive } from '../constants';
 import { formatPrice } from '@/utils/formatPrice';
 import { DeleteIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
@@ -11,9 +13,18 @@ interface Props {
   readonly onDelete?: (record: DrinkItem) => void;
   readonly onEdit?: (record: DrinkItem) => void;
   readonly isStaff?: boolean;
+  // Branch of the drink, only passed for OWNER (who sees every branch)
+  readonly shopName?: string;
 }
 
-export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = false }: Props) {
+export function DrinkCardGrouped({
+  record,
+  onClick,
+  onDelete,
+  onEdit,
+  isStaff = false,
+  shopName,
+}: Props) {
   const { t } = useTranslation();
 
   // Fallback image when drink image is unavailable
@@ -32,10 +43,7 @@ export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = 
   }, undefined);
 
   // Check current drink selling status
-  const isActive =
-    record.status === t('drinks.statusActive') ||
-    record.status === 'ACTIVE' ||
-    record.status === '1';
+  const isActive = isDrinkActive(record.status);
 
   return (
     <Card
@@ -90,6 +98,19 @@ export function DrinkCardGrouped({ record, onClick, onDelete, onEdit, isStaff = 
         >
           {record.drinkName}
         </Typography.Paragraph>
+
+        {/* Branch of the drink (OWNER only) */}
+        {shopName && (
+          <Typography.Text
+            ellipsis
+            type="secondary"
+            className="flex! items-center gap-1 text-xs"
+            title={shopName}
+          >
+            <ShopOutlined />
+            {shopName}
+          </Typography.Text>
+        )}
 
         {/* Starting price and drink status */}
         <div className="flex flex-wrap items-center justify-between gap-1">

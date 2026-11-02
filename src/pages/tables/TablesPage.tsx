@@ -162,7 +162,7 @@ export function TablesPage() {
         try {
           await deleteTable(record);
         } catch {
-          // Error notification handled inside hook
+          // The interceptor already shows the error message
         }
       },
     });

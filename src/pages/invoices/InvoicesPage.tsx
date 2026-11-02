@@ -19,6 +19,7 @@ import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { InvoiceEditModal } from './components/InvoiceEditModal';
+import { InvoiceStatusTag } from './components/InvoiceStatusTag';
 import { useInvoices } from './hooks/useInvoices';
 import type { InvoiceItem } from './types';
 import { CloseButton } from '@/components/button/CloseButton';
@@ -52,7 +53,7 @@ export function InvoicesPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
-  const isOwner = roleName === ROLES.OWNER || roleName?.toUpperCase() === 'OWNER';
+  const isOwner = roleName === ROLES.OWNER;
 
   const {
     items,
@@ -78,6 +79,7 @@ export function InvoicesPage() {
     cancelLoading,
     shopOptions,
     optionsLoading,
+    canManageInvoice,
   } = useInvoices();
 
   const { confirm: confirmAction } = useConfirmModal();
@@ -93,19 +95,6 @@ export function InvoicesPage() {
     }
   }, [showEmptyModal, showError, closeEmptyModal, t]);
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return t('invoices.statusOptions.serving');
-      case 'COMPLETED':
-        return t('invoices.statusOptions.paid');
-      case 'CANCELLED':
-        return t('invoices.statusOptions.cancelled');
-      default:
-        return status;
-    }
-  };
-
   const columns: AppColumnType<InvoiceItem>[] = [
     {
       key: 'invoiceCode',
@@ -119,7 +108,8 @@ export function InvoicesPage() {
       dataIndex: 'tableNumber',
       title: t('invoices.tableNumber'),
       width: 100,
-      render: (val: number) => t('revenues.tablePrefix', { number: val }),
+      render: (val: number | null) =>
+        val == null ? '—' : t('revenues.tablePrefix', { number: val }),
     },
     {
       key: 'shopName',
@@ -149,13 +139,7 @@ export function InvoicesPage() {
       dataIndex: 'status',
       title: t('invoices.status'),
       width: 140,
-      render: (val: string) => {
-        let color = 'default';
-        if (val === 'PENDING') color = 'processing';
-        else if (val === 'COMPLETED') color = 'success';
-        else if (val === 'CANCELLED') color = 'error';
-        return <Tag color={color}>{getStatusLabel(val)}</Tag>;
-      },
+      render: (val: string) => <InvoiceStatusTag status={val} />,
     },
     {
       key: 'createdAt',
@@ -171,7 +155,7 @@ export function InvoicesPage() {
       fixed: 'right',
       align: 'center',
       render: (_: unknown, record: InvoiceItem) => {
-        const isServing = record.status === 'PENDING';
+        const isServing = canManageInvoice(record);
         return (
           <div
             className="flex items-center justify-center gap-1"
@@ -331,22 +315,12 @@ export function InvoicesPage() {
                 {selectedRecord.staffName || '—'}
               </Descriptions.Item>
               <Descriptions.Item label={t('invoices.tableNumber')}>
-                {selectedRecord.tableNumber !== undefined
+                {selectedRecord.tableNumber != null
                   ? t('revenues.tablePrefix', { number: selectedRecord.tableNumber })
                   : '—'}
               </Descriptions.Item>
               <Descriptions.Item label={t('invoices.status')}>
-                <Tag
-                  color={
-                    selectedRecord.status === 'PENDING'
-                      ? 'processing'
-                      : selectedRecord.status === 'COMPLETED'
-                        ? 'success'
-                        : 'error'
-                  }
-                >
-                  {getStatusLabel(selectedRecord.status)}
-                </Tag>
+                <InvoiceStatusTag status={selectedRecord.status} />
               </Descriptions.Item>
               <Descriptions.Item label={t('invoices.createdAt')}>
                 {formatDate(selectedRecord.createdAt)}
