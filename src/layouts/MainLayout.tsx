@@ -4,7 +4,7 @@ import {
   CoffeeOutlined,
   FileTextOutlined,
   AppstoreOutlined,
-  // LineChartOutlined,
+  LineChartOutlined,
   TeamOutlined,
   ShopOutlined,
   TableOutlined,
@@ -27,7 +27,7 @@ export function MainLayout() {
     { key: '/invoices', label: t('sidebar.invoices'), icon: <FileTextOutlined /> },
     { key: '/categories', label: t('sidebar.categories'), icon: <AppstoreOutlined /> },
     { key: '/tables', label: t('sidebar.tables'), icon: <TableOutlined /> },
-    // { key: '/revenue', label: t('sidebar.revenues'), icon: <LineChartOutlined /> },
+    { key: '/revenue', label: t('sidebar.revenues'), icon: <LineChartOutlined /> },
     { key: '/staff', label: t('sidebar.staffs'), icon: <TeamOutlined /> },
     { key: '/shop', label: t('sidebar.shops'), icon: <ShopOutlined /> },
   ];

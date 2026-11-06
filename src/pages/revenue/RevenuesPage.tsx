@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
@@ -45,34 +45,18 @@ export function RevenuesPage() {
     handlePageChange,
     shopOptions,
     optionsLoading,
-    aggregatedTotalAmount,
+    totalRevenue,
+    totalInvoices,
     filterType,
-    setFilterType,
-    selectedDate,
-    setSelectedDate,
-    selectedMonth,
-    setSelectedMonth,
-    selectedYear,
-    setSelectedYear,
+    pickedDate,
+    setPickedDate,
+    handleFilterTypeChange,
     handleApplyFilter,
     handleResetFilter,
   } = useRevenues();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<GroupedInvoice | null>(null);
-
-  const monthOptions = useMemo(
-    () => Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `Tháng ${i + 1}` })),
-    [],
-  );
-
-  const yearOptions = useMemo(() => {
-    const currentYearNum = new Date().getFullYear();
-    return Array.from({ length: 5 }, (_, i) => ({
-      value: currentYearNum - i,
-      label: `Năm ${currentYearNum - i}`,
-    }));
-  }, []);
 
   useEffect(() => {
     if (showEmptyModal) {
@@ -83,9 +67,9 @@ export function RevenuesPage() {
 
   const columns: AppColumnType<GroupedInvoice>[] = [
     {
-      key: 'invoiceId',
-      dataIndex: 'invoiceId',
-      title: t('revenues.invoiceId'),
+      key: 'invoiceCode',
+      dataIndex: 'invoiceCode',
+      title: t('revenues.invoiceCode'),
       width: 220,
       align: 'center',
       render: (val: string) => val || '—',
@@ -139,22 +123,24 @@ export function RevenuesPage() {
         <Typography.Title level={4} className="mb-0!">
           {t('revenues.title')}
         </Typography.Title>
-        <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 w-full sm:w-auto justify-between sm:justify-start">
-          <span className="text-sm font-medium">{t('revenues.totalRevenue')}:</span>
-          <span className="text-base font-bold">{formatCurrency(aggregatedTotalAmount)}</span>
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 bg-gray-50 text-gray-700 px-3 py-1 rounded-lg border border-gray-200 flex-1 sm:flex-none justify-between">
+            <span className="text-sm font-medium">{t('revenues.totalInvoices')}:</span>
+            <span className="text-base font-bold">{totalInvoices}</span>
+          </div>
+          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 flex-1 sm:flex-none justify-between">
+            <span className="text-sm font-medium">{t('revenues.totalRevenue')}:</span>
+            <span className="text-base font-bold">{formatCurrency(totalRevenue)}</span>
+          </div>
         </div>
       </div>
 
       {/* Filter Toolbar Component */}
       <RevenueFilter
         filterType={filterType}
-        setFilterType={setFilterType}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
+        onFilterTypeChange={handleFilterTypeChange}
+        pickedDate={pickedDate}
+        onPickedDateChange={setPickedDate}
         isOwner={isOwner}
         currentShopId={currentShopId}
         shopOptions={shopOptions}
@@ -164,8 +150,6 @@ export function RevenuesPage() {
         onResetFilter={handleResetFilter}
         onSearch={handleSearch}
         searchLoading={searchLoading}
-        monthOptions={monthOptions}
-        yearOptions={yearOptions}
       />
 
       {/* Main Table Component */}

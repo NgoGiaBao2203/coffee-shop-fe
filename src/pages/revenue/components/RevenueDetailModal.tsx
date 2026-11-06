@@ -27,7 +27,7 @@ export function RevenueDetailModal({
     <Modal
       open={open}
       onCancel={onClose}
-      title={`${t('revenues.modalTitle')} - ${record?.invoiceId || ''}`}
+      title={`${t('revenues.modalTitle')} - ${record?.invoiceCode || ''}`}
       footer={null}
       width={680}
       centered
