@@ -49,7 +49,6 @@ export function RevenuesPage() {
     shopOptions,
     optionsLoading,
     totalRevenue,
-    totalInvoices,
     filterType,
     pickedDate,
     setPickedDate,
@@ -129,7 +128,7 @@ export function RevenuesPage() {
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <div className="flex items-center gap-2 bg-gray-50 text-gray-700 px-3 py-1 rounded-lg border border-gray-200 flex-1 sm:flex-none justify-between">
             <span className="text-sm font-medium">{t('revenues.totalInvoices')}:</span>
-            <span className="text-base font-bold">{totalInvoices}</span>
+            <span className="text-base font-bold">{pagination?.totalElements ?? 0}</span>
           </div>
           <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg border border-emerald-200 flex-1 sm:flex-none justify-between">
             <span className="text-sm font-medium">{t('revenues.totalRevenue')}:</span>

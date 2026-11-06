@@ -21,7 +21,6 @@ export function useRevenues() {
   const [invoices, setInvoices] = useState<RevenueInvoice[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalInvoices, setTotalInvoices] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
@@ -41,7 +40,6 @@ export function useRevenues() {
         setInvoices(response.items ?? []);
         setPagination(response.pagination ?? null);
         setTotalRevenue(response.totalRevenue ?? 0);
-        setTotalInvoices(response.totalInvoices ?? 0);
         if (params.search?.trim() && response.items?.length === 0) {
           setShowEmptyModal(true);
         }
@@ -51,7 +49,6 @@ export function useRevenues() {
           setInvoices([]);
           setPagination(null);
           setTotalRevenue(0);
-          setTotalInvoices(0);
         }
       } finally {
         if (isMounted) {
@@ -102,7 +99,6 @@ export function useRevenues() {
     invoices,
     pagination,
     totalRevenue,
-    totalInvoices,
     currentPage: params.page,
     currentPageSize: params.size,
     searchKeyword: params.search ?? '',

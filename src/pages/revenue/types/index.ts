@@ -52,7 +52,6 @@ export interface GetRevenuesResponse {
   traceId: string;
   // Whole filtered period (every page), computed by the BE
   totalRevenue: number;
-  totalInvoices: number;
   items: RevenueInvoice[];
   pagination: PaginationInfo;
 }
