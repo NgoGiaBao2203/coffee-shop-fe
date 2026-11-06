@@ -1,28 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { Dayjs } from 'dayjs';
 import { useShopOptions } from '@/hooks/useShopOptions';
 import { getRevenuesApi } from '../api/revenuesAPI';
 import { toDateRange, type FilterType } from '../utils';
-import type { RevenueResult, GetRevenuesRequest, PaginationInfo } from '../types';
-
-// Invoice built from the drink lines (items) that share the same invoiceId
-export interface GroupedInvoice {
-  invoiceId: string;
-  invoiceCode: string;
-  shopId: string;
-  shopName: string;
-  fullName: string;
-  createdAt: string;
-  totalAmount: number;
-  tableNumber: number | null;
-  items: {
-    drinkName: string;
-    size: string;
-    quantity: number;
-    price: number;
-    note: string | null;
-  }[];
-}
+import type { RevenueInvoice, GetRevenuesRequest, PaginationInfo } from '../types';
 
 const DEFAULT_PARAMS: GetRevenuesRequest = {
   page: 1,
@@ -37,7 +18,7 @@ const DEFAULT_PARAMS: GetRevenuesRequest = {
 
 export function useRevenues() {
   const [params, setParams] = useState<GetRevenuesRequest>(DEFAULT_PARAMS);
-  const [rawItems, setRawItems] = useState<RevenueResult[]>([]);
+  const [invoices, setInvoices] = useState<RevenueInvoice[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalInvoices, setTotalInvoices] = useState(0);
@@ -57,7 +38,7 @@ export function useRevenues() {
       try {
         const response = await getRevenuesApi(params);
         if (!isMounted) return;
-        setRawItems(response.items ?? []);
+        setInvoices(response.items ?? []);
         setPagination(response.pagination ?? null);
         setTotalRevenue(response.totalRevenue ?? 0);
         setTotalInvoices(response.totalInvoices ?? 0);
@@ -67,7 +48,7 @@ export function useRevenues() {
       } catch {
         // The api interceptor already shows the error notification
         if (isMounted) {
-          setRawItems([]);
+          setInvoices([]);
           setPagination(null);
           setTotalRevenue(0);
           setTotalInvoices(0);
@@ -86,37 +67,6 @@ export function useRevenues() {
       isMounted = false;
     };
   }, [params]);
-
-  const groupedInvoices = useMemo(() => {
-    const map = new Map<string, GroupedInvoice>();
-
-    rawItems.forEach((item) => {
-      let invoice = map.get(item.invoiceId);
-      if (!invoice) {
-        invoice = {
-          invoiceId: item.invoiceId,
-          invoiceCode: item.invoiceCode,
-          shopId: item.shopId,
-          shopName: item.shopName,
-          fullName: item.fullName,
-          createdAt: item.createdAt,
-          totalAmount: item.totalAmount,
-          tableNumber: item.tableNumber,
-          items: [],
-        };
-        map.set(item.invoiceId, invoice);
-      }
-      invoice.items.push({
-        drinkName: item.drinkName,
-        size: item.size,
-        quantity: item.quantity,
-        price: item.price,
-        note: item.note,
-      });
-    });
-
-    return Array.from(map.values());
-  }, [rawItems]);
 
   const handleFilterTypeChange = (type: FilterType) => {
     setFilterType(type);
@@ -149,7 +99,7 @@ export function useRevenues() {
   };
 
   return {
-    groupedInvoices,
+    invoices,
     pagination,
     totalRevenue,
     totalInvoices,

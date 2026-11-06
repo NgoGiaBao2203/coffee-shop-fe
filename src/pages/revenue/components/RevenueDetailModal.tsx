@@ -1,12 +1,12 @@
 import { Modal, Table } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { GroupedInvoice } from '../hooks/useRevenues';
+import type { RevenueInvoice } from '../types';
 
 // Props interface for RevenueDetailModal component
 interface RevenueDetailModalProps {
   open: boolean;
   onClose: () => void;
-  record: GroupedInvoice | null;
+  record: RevenueInvoice | null;
   formatDateTime: (val: unknown) => string;
   formatCurrency: (amount: number) => string;
 }
@@ -42,8 +42,8 @@ export function RevenueDetailModal({
               <span className="font-normal text-gray-900">{record.shopName}</span>
             </div>
             <div>
-              <b className="font-semibold text-gray-700">{t('revenues.fullName')}:</b>{' '}
-              <span className="font-normal text-gray-900">{record.fullName}</span>
+              <b className="font-semibold text-gray-700">{t('revenues.staffName')}:</b>{' '}
+              <span className="font-normal text-gray-900">{record.staffName || '—'}</span>
             </div>
             <div>
               <b className="font-semibold text-gray-700">{t('revenues.tableNumber')}:</b>{' '}
@@ -62,7 +62,7 @@ export function RevenueDetailModal({
           {/* Ordered Items Table */}
           <Table
             dataSource={record.items}
-            rowKey={(item, idx) => `${item.drinkName}-${item.size}-${idx}`}
+            rowKey="invoiceDetailId"
             pagination={false}
             size="small"
             scroll={{ x: 'max-content' }}
@@ -84,16 +84,17 @@ export function RevenueDetailModal({
               },
               {
                 title: t('revenues.price'),
-                dataIndex: 'price',
-                key: 'price',
+                dataIndex: 'unitPrice',
+                key: 'unitPrice',
                 align: 'right',
                 render: (price: number) => formatCurrency(price),
               },
               {
                 title: t('revenues.totalAmount'),
-                key: 'total',
+                dataIndex: 'itemTotal',
+                key: 'itemTotal',
                 align: 'right',
-                render: (_, item) => formatCurrency(item.price * item.quantity),
+                render: (total: number) => formatCurrency(total),
               },
               {
                 title: t('revenues.note'),

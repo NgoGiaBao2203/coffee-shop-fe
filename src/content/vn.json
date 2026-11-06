@@ -180,9 +180,7 @@
     "filterApply": "Lọc",
     "filterReset": "Đặt lại",
     "emptySearch": "Không tìm thấy dữ liệu doanh thu phù hợp.",
-    "totalRevenue": "Tổng Doanh Thu",
     "shopName": "Chi nhánh",
-    "fullName": "Nhân viên",
     "drinkName": "Món uống",
     "size": "Kích cỡ",
     "quantity": "Số lượng",
@@ -197,8 +195,10 @@
     "filterYearType": "Theo năm",
     "modalTitle": "Chi Tiết Hóa Đơn",
     "invoiceCode": "Mã hóa đơn",
-    "totalInvoices": "Số hóa đơn",
-    "filterWeekType": "Theo tuần"
+    "filterWeekType": "Theo tuần",
+    "totalInvoices": "Tổng số hóa đơn",
+    "staffName": "Nhân viên",
+    "totalRevenue": "Tổng Doanh Thu"
   },
   "shops": {
     "title": "Chi Nhánh",

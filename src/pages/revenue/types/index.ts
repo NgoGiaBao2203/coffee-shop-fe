@@ -1,30 +1,29 @@
 export type RevenueSortBy =
-  | 'invoiceId'
-  | 'shopName'
-  | 'fullName'
-  | 'drinkName'
-  | 'createdAt'
-  | 'totalAmount'
-  | 'tableNumber'
-  | 'size'
-  | 'quantity'
-  | 'price';
+  'invoiceId' | 'shopName' | 'staffName' | 'createdAt' | 'totalAmount' | 'tableNumber';
 
-// One row per drink line of a paid invoice
-export interface RevenueResult {
+export interface RevenueDrink {
+  invoiceDetailId: string;
+  drinkDetailId: string;
+  drinkId: string;
+  drinkName: string;
+  size: string;
+  quantity: number;
+  unitPrice: number;
+  itemTotal: number;
+  note: string | null;
+}
+
+// One paid invoice with its drinks
+export interface RevenueInvoice {
   invoiceId: string;
   invoiceCode: string;
   shopId: string;
   shopName: string;
-  fullName: string;
-  drinkName: string;
-  createdAt: string;
-  totalAmount: number;
+  staffName: string | null;
   tableNumber: number | null;
-  size: string;
-  quantity: number;
-  price: number;
-  note: string | null;
+  totalAmount: number;
+  createdAt: string;
+  items: RevenueDrink[];
 }
 
 export interface GetRevenuesRequest {
@@ -51,8 +50,9 @@ export interface GetRevenuesResponse {
   code: string;
   message: string;
   traceId: string;
+  // Whole filtered period (every page), computed by the BE
   totalRevenue: number;
   totalInvoices: number;
-  items: RevenueResult[];
+  items: RevenueInvoice[];
   pagination: PaginationInfo;
 }

@@ -6,7 +6,8 @@ import { ROLES } from '@/permission/roles';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useSearchValidation } from '@/hooks/useSearchValidation';
-import { useRevenues, type GroupedInvoice } from './hooks/useRevenues';
+import { useRevenues } from './hooks/useRevenues';
+import type { RevenueInvoice } from './types';
 import { RevenueFilter } from './components/RevenueFilter';
 import { RevenueDetailModal } from './components/RevenueDetailModal';
 
@@ -32,7 +33,7 @@ export function RevenuesPage() {
   const isOwner = roleName === ROLES.OWNER;
 
   const {
-    groupedInvoices,
+    invoices,
     pagination,
     currentPage,
     currentPageSize,
@@ -58,7 +59,7 @@ export function RevenuesPage() {
   } = useRevenues();
 
   const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<GroupedInvoice | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<RevenueInvoice | null>(null);
 
   useEffect(() => {
     if (showEmptyModal) {
@@ -67,7 +68,7 @@ export function RevenuesPage() {
     }
   }, [showEmptyModal, closeEmptyModal, showError, t]);
 
-  const columns: AppColumnType<GroupedInvoice>[] = [
+  const columns: AppColumnType<RevenueInvoice>[] = [
     {
       key: 'invoiceCode',
       dataIndex: 'invoiceCode',
@@ -84,9 +85,9 @@ export function RevenuesPage() {
       align: 'center',
     },
     {
-      key: 'fullName',
-      dataIndex: 'fullName',
-      title: t('revenues.fullName'),
+      key: 'staffName',
+      dataIndex: 'staffName',
+      title: t('revenues.staffName'),
       width: 130,
       align: 'center',
     },
@@ -155,10 +156,10 @@ export function RevenuesPage() {
       />
 
       {/* Main Table Component */}
-      <TableGrid<GroupedInvoice>
+      <TableGrid<RevenueInvoice>
         rowKey="invoiceId"
         columns={columns}
-        dataSource={groupedInvoices}
+        dataSource={invoices}
         loading={loading}
         emptyText={searchKeyword.trim() ? t('table.emptySearch') : t('table.emptyData')}
         total={pagination?.totalElements}
