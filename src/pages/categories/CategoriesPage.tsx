@@ -6,6 +6,7 @@ import { ROLES } from '@/permission/roles';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
+import { useSearchValidation } from '@/hooks/useSearchValidation';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { CategoryCreateModal } from './components/CategoryCreateModal';
 import { CategoryEditModal } from './components/CategoryEditModal';
@@ -13,12 +14,10 @@ import { useCategories } from './hooks/useCategories';
 import type { CategoryItem } from './types';
 import { CreateButton } from '@/components/button/CreateButton';
 
-// Allows: Unicode letters, numbers, spaces, and punctuation: - & / ( ) , . '
-const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
-
 export function CategoriesPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
+  const validateSearch = useSearchValidation();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isStaff = roleName === ROLES.STAFF;
   const isOwner = roleName === ROLES.OWNER;
@@ -54,17 +53,7 @@ export function CategoriesPage() {
   const [selectedRecord, setSelectedRecord] = useState<CategoryItem | null>(null);
 
   const handleCategorySearch = (value: string) => {
-    const trimmedValue = value.trim();
-    if (trimmedValue.length > 100) {
-      showError(t('responses.EV005'), t('common.error'));
-      return;
-    }
-    // Validate search characters
-    if (trimmedValue && !SEARCH_REGEX.test(trimmedValue)) {
-      showError(t('responses.EV007'), t('common.error'));
-      return;
-    }
-    handleSearch(value);
+    if (validateSearch(value)) handleSearch(value);
   };
 
   useEffect(() => {

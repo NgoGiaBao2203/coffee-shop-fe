@@ -5,6 +5,7 @@ import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
+import { useSearchValidation } from '@/hooks/useSearchValidation';
 import { useRevenues, type GroupedInvoice } from './hooks/useRevenues';
 import { RevenueFilter } from './components/RevenueFilter';
 import { RevenueDetailModal } from './components/RevenueDetailModal';
@@ -26,6 +27,7 @@ const formatCurrency = (amount: number) =>
 export function RevenuesPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
+  const validateSearch = useSearchValidation();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isOwner = roleName === ROLES.OWNER;
 
@@ -148,7 +150,7 @@ export function RevenuesPage() {
         onShopFilter={handleShopFilter}
         onApplyFilter={handleApplyFilter}
         onResetFilter={handleResetFilter}
-        onSearch={handleSearch}
+        onSearch={(keyword) => validateSearch(keyword) && handleSearch(keyword)}
         searchLoading={searchLoading}
       />
 

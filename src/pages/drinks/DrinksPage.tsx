@@ -4,6 +4,7 @@ import { ShoppingCartOutlined } from '@ant-design/icons';
 import { Pagination, Empty, Spin, Button, Typography, Select, Tooltip } from 'antd';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
+import { useSearchValidation } from '@/hooks/useSearchValidation';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -20,12 +21,11 @@ import { DrinkDetailFormModal } from './components/DrinkDetailFormModal';
 import { DrinkOrderModal } from './components/DrinkOrderModal';
 import { CreateButton } from '@/components/button/CreateButton';
 
-const SEARCH_REGEX = /^[\p{L}\p{N}\s\-&/(),.']*$/u;
-
 export function DrinksPage() {
   const { t } = useTranslation();
 
   const { showError } = useNotifyModal();
+  const validateSearch = useSearchValidation();
   const { confirmDelete } = useConfirmModal();
 
   // Role authorization checks
@@ -127,23 +127,8 @@ export function DrinksPage() {
     return DRINK_SIZES.filter((size) => size === ownSize || !otherSizes.has(size));
   }, [selected?.variants, selectedDetail]);
 
-  // Validate search keyword before sending request
   const handleDrinkSearch = (value: string) => {
-    const trimmedValue = value.trim();
-
-    if (trimmedValue.length > 100) {
-      showError(t('responses.EV005'), t('common.error'));
-
-      return;
-    }
-
-    if (trimmedValue && !SEARCH_REGEX.test(trimmedValue)) {
-      showError(t('responses.EV007'), t('common.error'));
-
-      return;
-    }
-
-    handleSearch(value);
+    if (validateSearch(value)) handleSearch(value);
   };
 
   // Open drink detail drawer and fetch latest drink data
