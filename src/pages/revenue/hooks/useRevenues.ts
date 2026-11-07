@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import type { Dayjs } from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import { useShopOptions } from '@/hooks/useShopOptions';
-import { getRevenuesApi } from '../api/revenuesAPI';
-import { toDateRange, type FilterType } from '../utils';
+import { useToast } from '@/components/toast/useToast';
+import { downloadFile } from '@/utils/downloadFile';
+import { exportRevenuesApi, getRevenuesApi } from '../api/revenuesAPI';
+import { toDateRange, toExportFileName, type FilterType } from '../utils';
 import type { RevenueInvoice, GetRevenuesRequest, PaginationInfo } from '../types';
 
 const DEFAULT_PARAMS: GetRevenuesRequest = {
@@ -16,8 +19,14 @@ const DEFAULT_PARAMS: GetRevenuesRequest = {
   sortDirection: 'DESC',
 };
 
+// The page opens on every period, matching DEFAULT_PARAMS (no date filter)
+const DEFAULT_FILTER_TYPE: FilterType = 'ALL';
+
 export function useRevenues() {
+  const { t } = useTranslation();
+  const toast = useToast();
   const [params, setParams] = useState<GetRevenuesRequest>(DEFAULT_PARAMS);
+  const [exportLoading, setExportLoading] = useState(false);
   const [invoices, setInvoices] = useState<RevenueInvoice[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -26,7 +35,7 @@ export function useRevenues() {
   const [showEmptyModal, setShowEmptyModal] = useState(false);
   const { shopOptions, optionsLoading } = useShopOptions();
 
-  const [filterType, setFilterType] = useState<FilterType>('DATE');
+  const [filterType, setFilterType] = useState<FilterType>(DEFAULT_FILTER_TYPE);
   const [pickedDate, setPickedDate] = useState<Dayjs | null>(null);
 
   useEffect(() => {
@@ -65,20 +74,30 @@ export function useRevenues() {
     };
   }, [params]);
 
+  // Apply the period right away; no date = no date filter (skip the refetch if nothing changes)
+  const applyDateFilter = (type: FilterType, date: Dayjs | null) => {
+    const range = date && type !== 'ALL' ? toDateRange(type, date) : {};
+    setParams((prev) =>
+      !date && !prev.startDate && !prev.endDate
+        ? prev
+        : { ...prev, startDate: undefined, endDate: undefined, ...range, page: 1 },
+    );
+  };
+
   const handleFilterTypeChange = (type: FilterType) => {
     setFilterType(type);
     setPickedDate(null);
+    applyDateFilter(type, null);
   };
 
-  // Nothing picked = no date filter
-  const handleApplyFilter = () => {
-    const range = pickedDate ? toDateRange(filterType, pickedDate) : {};
-    setParams((prev) => ({ ...prev, startDate: undefined, endDate: undefined, ...range, page: 1 }));
+  const handlePickedDateChange = (date: Dayjs | null) => {
+    setPickedDate(date);
+    applyDateFilter(filterType, date);
   };
 
   const handleResetFilter = () => {
     setPickedDate(null);
-    setFilterType('DATE');
+    setFilterType(DEFAULT_FILTER_TYPE);
     setParams(DEFAULT_PARAMS);
   };
 
@@ -93,6 +112,24 @@ export function useRevenues() {
 
   const handlePageChange = (page: number, size: number) => {
     setParams((prev) => ({ ...prev, page, size }));
+  };
+
+  // "All time" exports everything; a day/week/month/year type needs its date picked first
+  const canExport = filterType === 'ALL' || !!(params.startDate && params.endDate);
+
+  // Export the filters currently applied to the table
+  const handleExport = async () => {
+    if (!canExport) return;
+    setExportLoading(true);
+    try {
+      const file = await exportRevenuesApi(params);
+      downloadFile(file, toExportFileName(params.startDate, params.endDate));
+      toast.success(t('revenues.exportSuccess'));
+    } catch {
+      // The api interceptor already shows the error notification
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   return {
@@ -110,13 +147,15 @@ export function useRevenues() {
     handleSearch,
     handleShopFilter,
     handlePageChange,
+    exportLoading,
+    canExport,
+    handleExport,
     shopOptions,
     optionsLoading,
     filterType,
     pickedDate,
-    setPickedDate,
+    handlePickedDateChange,
     handleFilterTypeChange,
-    handleApplyFilter,
     handleResetFilter,
   };
 }

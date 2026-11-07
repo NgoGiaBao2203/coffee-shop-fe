@@ -1,6 +1,6 @@
 import { Select, DatePicker, Button, ConfigProvider } from 'antd';
 import viVN from 'antd/locale/vi_VN';
-import { FilterOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Dayjs } from 'dayjs';
 import { SearchInput } from '@/components/search/SearchInput';
@@ -28,7 +28,6 @@ interface RevenueFilterProps {
   readonly shopOptions: SelectOption[];
   readonly optionsLoading: boolean;
   readonly onShopFilter: (shopId: string) => void;
-  readonly onApplyFilter: () => void;
   readonly onResetFilter: () => void;
   readonly onSearch: (search: string) => void;
   readonly searchLoading: boolean;
@@ -44,13 +43,13 @@ export function RevenueFilter({
   shopOptions,
   optionsLoading,
   onShopFilter,
-  onApplyFilter,
   onResetFilter,
   onSearch,
   searchLoading,
 }: RevenueFilterProps) {
   const { t } = useTranslation();
-  const { picker, format } = PICKER_BY_TYPE[filterType];
+  // "All time" has no period to pick
+  const pickerConfig = filterType === 'ALL' ? null : PICKER_BY_TYPE[filterType];
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full">
@@ -67,26 +66,29 @@ export function RevenueFilter({
           value={filterType}
           onChange={onFilterTypeChange}
           options={[
+            { value: 'ALL', label: t('revenues.filterAllType') },
             { value: 'DATE', label: t('revenues.filterDateType') },
             { value: 'WEEK', label: t('revenues.filterWeekType') },
             { value: 'MONTH', label: t('revenues.filterMonthType') },
             { value: 'YEAR', label: t('revenues.filterYearType') },
           ]}
-          className="w-[calc(50%-4px)] sm:w-28"
+          className="w-[calc(50%-4px)] sm:w-36"
           size="middle"
         />
 
         {/* vi_VN locale: the week starts on Monday, same as the range sent to the BE */}
-        <ConfigProvider locale={viVN}>
-          <DatePicker
-            key={filterType}
-            picker={picker}
-            format={format}
-            value={pickedDate}
-            onChange={onPickedDateChange}
-            className="w-[calc(50%-4px)] sm:w-36"
-          />
-        </ConfigProvider>
+        {pickerConfig && (
+          <ConfigProvider locale={viVN}>
+            <DatePicker
+              key={filterType}
+              picker={pickerConfig.picker}
+              format={pickerConfig.format}
+              value={pickedDate}
+              onChange={onPickedDateChange}
+              className="w-[calc(50%-4px)] sm:w-36"
+            />
+          </ConfigProvider>
+        )}
 
         {/* Branch / Shop Filter */}
         {isOwner && (
@@ -101,20 +103,14 @@ export function RevenueFilter({
           />
         )}
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto mt-1 sm:mt-0">
-          <Button
-            type="primary"
-            icon={<FilterOutlined />}
-            onClick={onApplyFilter}
-            className="flex-1 sm:flex-none"
-          >
-            {t('revenues.filterApply')}
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={onResetFilter} className="flex-1 sm:flex-none">
-            {t('revenues.filterReset')}
-          </Button>
-        </div>
+        {/* Picking a date filters right away; reset clears every filter */}
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={onResetFilter}
+          className="w-full sm:w-auto mt-1 sm:mt-0"
+        >
+          {t('revenues.filterReset')}
+        </Button>
       </div>
     </div>
   );

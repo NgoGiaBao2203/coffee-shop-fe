@@ -36,10 +36,23 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 );
 
+// File downloads (responseType 'blob') receive the JSON error body as a Blob: parse it so the
+// error code and message below work the same as for JSON requests
+async function parseBlobErrorBody(error: AxiosError<ApiErrorResponse>) {
+  const data: unknown = error.response?.data;
+  if (!error.response || !(data instanceof Blob) || !data.type.includes('json')) return;
+  try {
+    error.response.data = JSON.parse(await data.text()) as ApiErrorResponse;
+  } catch {
+    // Not valid JSON: keep the Blob, the generic error message is shown
+  }
+}
+
 // Response interceptor — show the localized error unless the call site handles that code itself
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiErrorResponse>) => {
+  async (error: AxiosError<ApiErrorResponse>) => {
+    await parseBlobErrorBody(error);
     // Fall back to INTERNAL_SERVER_ERROR if response is undefined (e.g. backend offline or network down)
     const code = error.response?.data?.code ?? RESPONSE_CODE.INTERNAL_SERVER_ERROR;
 

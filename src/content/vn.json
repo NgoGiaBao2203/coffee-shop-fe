@@ -177,7 +177,6 @@
     "title": "Báo Cáo Doanh Thu",
     "searchPlaceholder": "Tìm món, nhân viên, bàn...",
     "filterShop": "Chi nhánh",
-    "filterApply": "Lọc",
     "filterReset": "Đặt lại",
     "emptySearch": "Không tìm thấy dữ liệu doanh thu phù hợp.",
     "shopName": "Chi nhánh",
@@ -198,7 +197,12 @@
     "filterWeekType": "Theo tuần",
     "totalInvoices": "Tổng số hóa đơn",
     "staffName": "Nhân viên",
-    "totalRevenue": "Tổng Doanh Thu"
+    "totalRevenue": "Tổng Doanh Thu",
+    "exportExcel": "Xuất Excel",
+    "exportSuccess": "Đã xuất báo cáo doanh thu.",
+    "filterAllType": "Tất cả thời gian",
+    "exportNeedPeriod": "Chọn thời điểm cần lọc (ngày, tuần, tháng hoặc năm) trước khi xuất Excel.",
+    "exportTooMany": "Có quá nhiều hóa đơn để xuất (tối đa 20.000). Vui lòng thu hẹp bộ lọc."
   },
   "shops": {
     "title": "Chi Nhánh",

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Typography } from 'antd';
+import { Button, Tooltip, Typography } from 'antd';
+import { FileExcelOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -46,14 +47,16 @@ export function RevenuesPage() {
     handleSearch,
     handleShopFilter,
     handlePageChange,
+    exportLoading,
+    canExport,
+    handleExport,
     shopOptions,
     optionsLoading,
     totalRevenue,
     filterType,
     pickedDate,
-    setPickedDate,
+    handlePickedDateChange,
     handleFilterTypeChange,
-    handleApplyFilter,
     handleResetFilter,
   } = useRevenues();
 
@@ -134,6 +137,17 @@ export function RevenuesPage() {
             <span className="text-sm font-medium">{t('revenues.totalRevenue')}:</span>
             <span className="text-base font-bold">{formatCurrency(totalRevenue)}</span>
           </div>
+          <Tooltip title={canExport ? undefined : t('revenues.exportNeedPeriod')}>
+            <Button
+              icon={<FileExcelOutlined />}
+              loading={exportLoading}
+              disabled={!canExport}
+              onClick={() => void handleExport()}
+              className="w-full sm:w-auto"
+            >
+              {t('revenues.exportExcel')}
+            </Button>
+          </Tooltip>
         </div>
       </div>
 
@@ -142,13 +156,12 @@ export function RevenuesPage() {
         filterType={filterType}
         onFilterTypeChange={handleFilterTypeChange}
         pickedDate={pickedDate}
-        onPickedDateChange={setPickedDate}
+        onPickedDateChange={handlePickedDateChange}
         isOwner={isOwner}
         currentShopId={currentShopId}
         shopOptions={shopOptions}
         optionsLoading={optionsLoading}
         onShopFilter={handleShopFilter}
-        onApplyFilter={handleApplyFilter}
         onResetFilter={handleResetFilter}
         onSearch={(keyword) => validateSearch(keyword) && handleSearch(keyword)}
         searchLoading={searchLoading}

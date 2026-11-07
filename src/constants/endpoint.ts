@@ -33,6 +33,7 @@ export const ENDPOINT = {
 
   // Revenue
   GET_REVENUES: '/revenues',
+  EXPORT_REVENUES: '/revenues/export',
 
   // Invoices
   GET_INVOICES: '/invoices',

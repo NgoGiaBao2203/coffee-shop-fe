@@ -103,6 +103,9 @@ export const BACKEND_MESSAGE_RULES: BackendMessageRule[] = [
   { match: ['can not delete table with pending invoices'], key: 'tables.deletePendingInvoices' },
   { match: ['table does not belong'], key: 'apiMessages.tableNotBelong', reload: true },
 
+  // Revenue
+  { match: ['too many invoices to export'], key: 'revenues.exportTooMany' },
+
   // Shared
   { match: ['has already been deleted or modified'], key: 'apiMessages.staleData', reload: true },
   { match: ['not assigned to any shop'], key: 'apiMessages.notAssignedShop' },
