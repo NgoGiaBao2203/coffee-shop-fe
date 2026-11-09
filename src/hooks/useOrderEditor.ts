@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast/useToast';
+import { useSearchValidation } from '@/hooks/useSearchValidation';
 import { RESPONSE_CODE } from '@/constants/messages';
-import { ORDER_MAX_QUANTITY } from '@/constants/order';
 import { getDrinkDetailApi, getDrinksApi } from '@/pages/drinks/api/drinksAPI';
 import { isDrinkActive } from '@/pages/drinks/constants';
 import type { DrinkItem, DrinkVariantItem } from '@/pages/drinks/types';
@@ -13,8 +13,27 @@ import { getApiErrorCode, getApiErrorMessage } from '@/utils/apiError';
 import { getOrderItemErrors } from '@/utils/orderItemErrors';
 import { getResponseMessage } from '@/utils/getResponseMessage';
 
+// Max quantity of one line (items[].quantity in POST /invoice/create, PUT /invoice/edit)
+const ORDER_MAX_QUANTITY = 100;
+
 // Table status 1 = available (matches the backend check when saving an invoice)
 const TABLE_AVAILABLE_STATUS = 1;
+
+// Sellable drinks of the shop via POST /drinks (search runs on the backend).
+// shopId is empty for non-OWNER roles, the backend resolves their shop.
+// The list API does not return variants, sizes are loaded per drink on demand.
+async function fetchSellableDrinks(shopId: string, search: string): Promise<DrinkItem[]> {
+  const response = await getDrinksApi({
+    page: 1,
+    size: 100,
+    shopId,
+    search,
+    sortBy: 'drinkName',
+    sortDirection: 'ASC',
+  });
+
+  return (response.items ?? []).filter((drink) => isDrinkActive(drink.status));
+}
 
 // Convert a price that may be formatted with commas into a number
 function toNumber(value: number | string): number {
@@ -25,6 +44,7 @@ function toNumber(value: number | string): number {
 export function useOrderEditor(open: boolean, shopId: string, initialOrder?: OrderInitialValues) {
   const toast = useToast();
   const { t } = useTranslation();
+  const validateSearch = useSearchValidation();
 
   const [drinks, setDrinks] = useState<DrinkItem[]>([]);
   const [tables, setTables] = useState<TableItem[]>([]);
@@ -34,6 +54,9 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
   const [orderShopId, setOrderShopId] = useState('');
   const [tableId, setTableId] = useState<string | undefined>(initialOrder?.tableId);
   const [loading, setLoading] = useState(false);
+  // Drink search sent to the backend and its own loading flag (the table picker keeps its data)
+  const [drinkSearch, setDrinkSearch] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
   // Quantity errors returned by the backend, keyed by drinkDetailId
   const [serverItemErrors, setServerItemErrors] = useState<Record<string, string>>({});
 
@@ -48,27 +71,16 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
 
       let targetShopId = shopId;
 
-      // 1. Menu: drinks API (shopId is empty for non-OWNER roles, the backend resolves their shop)
+      // 1. Menu
       try {
-        const drinkResponse = await getDrinksApi({
-          page: 1,
-          size: 100,
-          shopId,
-          search: '',
-          sortBy: 'drinkName',
-          sortDirection: 'ASC',
-        });
-
-        // The list API does not return variants, sizes are loaded per drink on demand
-        const sellableDrinks = (drinkResponse.items ?? []).filter((drink) =>
-          isDrinkActive(drink.status),
-        );
+        const sellableDrinks = await fetchSellableDrinks(shopId, '');
 
         targetShopId = shopId || sellableDrinks[0]?.shopId || '';
 
         if (!isMounted) return;
 
         setDrinks(sellableDrinks);
+        setDrinkSearch('');
         setOrderShopId(targetShopId);
       } catch (error) {
         console.error('Failed to load order drinks:', error);
@@ -119,6 +131,24 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     return options;
   }, [tables, initialOrder, t]);
 
+  // Search drinks on the backend (POST /drinks with search); the interceptor shows API errors
+  const handleDrinkSearch = async (keyword: string) => {
+    if (!validateSearch(keyword)) return;
+
+    const search = keyword.trim();
+
+    setDrinkSearch(search);
+    setSearchLoading(true);
+
+    try {
+      setDrinks(await fetchSellableDrinks(shopId, search));
+    } catch (error) {
+      console.error('Failed to search order drinks:', error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   const totalAmount = useMemo(
     () => cart.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
     [cart],
@@ -152,19 +182,25 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     });
   };
 
-  // Load sizes and prices of a drink via the drink detail API (cached per drink)
-  const loadVariants = async (drinkId: string) => {
-    if (variantsByDrink[drinkId] || variantLoadingIds.includes(drinkId)) return;
+  // Load sizes and prices of a drink via the drink detail API (cached per drink); returns them
+  const loadVariants = async (drinkId: string): Promise<DrinkVariantItem[]> => {
+    const cached = variantsByDrink[drinkId];
+
+    if (cached) return cached;
+    if (variantLoadingIds.includes(drinkId)) return [];
 
     setVariantLoadingIds((prev) => [...prev, drinkId]);
 
     try {
       const response = await getDrinkDetailApi(drinkId);
+      const variants = response.item?.variants ?? [];
 
-      setVariantsByDrink((prev) => ({ ...prev, [drinkId]: response.item?.variants ?? [] }));
+      setVariantsByDrink((prev) => ({ ...prev, [drinkId]: variants }));
+      return variants;
     } catch (error) {
       console.error('Failed to load drink variants:', error);
       toast.error(t('order.loadError'));
+      return [];
     } finally {
       setVariantLoadingIds((prev) => prev.filter((id) => id !== drinkId));
     }
@@ -297,12 +333,15 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     cart,
     tableId,
     loading,
+    drinkSearch,
+    searchLoading,
     totalAmount,
     itemErrors,
     // Order can be submitted once it has a table and at least one item
     canSubmit: cart.length > 0 && !!tableId,
     setTableId,
     loadVariants,
+    handleDrinkSearch,
     handleAddItem,
     handleQuantityChange,
     handleNoteChange,

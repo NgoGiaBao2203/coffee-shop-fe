@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react';
-import {
-  Typography,
-  Select,
-  Tag,
-  Button,
-  Tooltip,
-  Drawer,
-  Descriptions,
-  Table,
-  Divider,
-} from 'antd';
-import { CreditCardOutlined, StopOutlined } from '@ant-design/icons';
+import { Typography, Select, Tag, Tooltip, Drawer, Descriptions, Table } from 'antd';
+import { CreditCardOutlined, PrinterOutlined, StopOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -19,11 +9,12 @@ import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { InvoiceEditModal } from './components/InvoiceEditModal';
+import { InvoicePayModal } from './components/InvoicePayModal';
 import { InvoiceStatusTag } from './components/InvoiceStatusTag';
 import { useInvoices } from './hooks/useInvoices';
 import type { InvoiceItem } from './types';
 import { CloseButton } from '@/components/button/CloseButton';
-import { EditIconButton } from '@/components/button/ActionIconButtons';
+import { ActionIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
 interface InvoiceDetailItem {
   id?: string | number;
@@ -36,6 +27,7 @@ interface InvoiceDetailItem {
   quantity?: number;
   subTotal?: number;
   totalPrice?: number;
+  note?: string | null;
 }
 
 const formatDate = (value: unknown) =>
@@ -80,12 +72,16 @@ export function InvoicesPage() {
     shopOptions,
     optionsLoading,
     canManageInvoice,
+    canPrintInvoice,
+    handlePrint,
+    printingInvoiceId,
   } = useInvoices();
 
   const { confirm: confirmAction } = useConfirmModal();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<InvoiceItem | null>(null);
 
   useEffect(() => {
@@ -151,11 +147,12 @@ export function InvoicesPage() {
     {
       key: 'actions',
       title: t('table.actions'),
-      width: 100,
+      width: 150,
       fixed: 'right',
       align: 'center',
       render: (_: unknown, record: InvoiceItem) => {
         const isServing = canManageInvoice(record);
+        const isPrintable = canPrintInvoice(record);
         return (
           <div
             className="flex items-center justify-center gap-1"
@@ -163,21 +160,15 @@ export function InvoicesPage() {
           >
             {/* Pay Action */}
             <Tooltip title={isServing ? t('invoices.pay') : ''}>
-              <Button
-                type="text"
-                shape="circle"
+              <ActionIconButton
+                Icon={CreditCardOutlined}
+                labelKey="invoices.pay"
+                size="middle"
                 disabled={!isServing}
-                icon={
-                  <CreditCardOutlined className={isServing ? 'text-emerald-500 text-base' : ''} />
-                }
+                iconClassName={isServing ? 'text-emerald-500 text-base' : ''}
                 onClick={() => {
-                  confirmAction({
-                    title: t('invoices.payConfirmTitle'),
-                    content: t('invoices.payConfirmDesc'),
-                    okText: t('invoices.payOk'),
-                    cancelText: t('form.cancel'),
-                    onConfirm: () => payInvoice(record.invoiceId),
-                  });
+                  setSelectedRecord(record);
+                  setPayOpen(true);
                 }}
               />
             </Tooltip>
@@ -197,12 +188,13 @@ export function InvoicesPage() {
 
             {/* Cancel Action */}
             <Tooltip title={isServing ? t('invoices.cancel') : ''}>
-              <Button
-                type="text"
-                shape="circle"
+              <ActionIconButton
+                Icon={StopOutlined}
+                labelKey="invoices.cancel"
                 danger
+                size="middle"
                 disabled={!isServing}
-                icon={<StopOutlined className={isServing ? 'text-rose-500 text-base' : ''} />}
+                iconClassName={isServing ? 'text-rose-500 text-base' : ''}
                 onClick={() => {
                   confirmAction({
                     title: t('invoices.cancelConfirmTitle'),
@@ -213,6 +205,19 @@ export function InvoicesPage() {
                     onConfirm: () => cancelInvoice(record.invoiceId),
                   });
                 }}
+              />
+            </Tooltip>
+
+            {/* Print Action: paid invoices only (reprint the receipt) */}
+            <Tooltip title={isPrintable ? t('invoices.print') : ''}>
+              <ActionIconButton
+                Icon={PrinterOutlined}
+                labelKey="invoices.print"
+                size="middle"
+                disabled={!isPrintable}
+                loading={printingInvoiceId === record.invoiceId}
+                iconClassName={isPrintable ? 'text-sky-600 text-base' : ''}
+                onClick={() => handlePrint(record.invoiceId)}
               />
             </Tooltip>
           </div>
@@ -281,7 +286,7 @@ export function InvoicesPage() {
         rowKey="invoiceId"
         columns={columns}
         dataSource={items}
-        loading={loading || payLoading || cancelLoading}
+        loading={loading || cancelLoading}
         emptyText={searchKeyword.trim() ? t('table.emptySearch') : t('table.emptyData')}
         total={pagination?.totalElements}
         currentPage={currentPage}
@@ -303,7 +308,7 @@ export function InvoicesPage() {
         footer={<CloseButton onClose={() => setDetailOpen(false)} />}
       >
         {selectedRecord && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <Descriptions size="small" column={1} bordered>
               <Descriptions.Item label={t('invoices.invoiceCode')}>
                 {selectedRecord.invoiceCode || '—'}
@@ -327,8 +332,6 @@ export function InvoicesPage() {
               </Descriptions.Item>
             </Descriptions>
 
-            <Divider className="my-2" />
-
             <Typography.Text strong className="text-base">
               {t('invoices.itemsList')}
             </Typography.Text>
@@ -343,7 +346,17 @@ export function InvoicesPage() {
                   title: t('invoices.drinkName'),
                   dataIndex: 'drinkName',
                   key: 'drinkName',
-                  render: (val: string | undefined, r: InvoiceDetailItem) => val || r.name || '—',
+                  // The note (if any) is shown under the drink name
+                  render: (val: string | undefined, r: InvoiceDetailItem) => (
+                    <div className="flex flex-col">
+                      <span>{val || r.name || '—'}</span>
+                      {r.note?.trim() && (
+                        <Typography.Text type="secondary" className="text-xs">
+                          {t('invoices.note')}: {r.note}
+                        </Typography.Text>
+                      )}
+                    </div>
+                  ),
                 },
                 {
                   title: t('invoices.size'),
@@ -386,7 +399,7 @@ export function InvoicesPage() {
               ]}
             />
 
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg mt-2 border">
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
               <span className="font-semibold text-gray-700">{t('invoices.totalAmount')}:</span>
               <span className="font-bold text-lg text-emerald-600">
                 {Number(selectedRecord.totalAmount || 0).toLocaleString('vi-VN')} đ
@@ -403,6 +416,19 @@ export function InvoicesPage() {
         record={selectedRecord}
         onSubmit={editInvoice}
         loading={editLoading}
+      />
+
+      {/* Pay Invoice Modal: print or don't print the receipt */}
+      <InvoicePayModal
+        open={payOpen}
+        record={selectedRecord}
+        onClose={() => setPayOpen(false)}
+        onSubmit={async (shouldPrint) => {
+          if (!selectedRecord) return;
+          await payInvoice(selectedRecord.invoiceId, shouldPrint);
+          setPayOpen(false);
+        }}
+        loading={payLoading}
       />
     </div>
   );

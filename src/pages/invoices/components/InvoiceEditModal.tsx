@@ -4,6 +4,7 @@ import { AppModal } from '@/components/modal/AppModal';
 import { SubmitButtons } from '@/components/button/SubmitButtons';
 import { useTranslation } from 'react-i18next';
 import { OrderEditor } from '@/components/order/OrderEditor';
+import { OrderTotal } from '@/components/order/OrderTotal';
 import { useOrderEditor } from '@/hooks/useOrderEditor';
 import type { OrderInitialValues } from '@/types/order';
 import type { InvoiceItem, EditInvoiceRequest } from '../types';
@@ -67,12 +68,18 @@ function InvoiceEditModalBody({ open, onClose, record, onSubmit, loading = false
       width={1280}
       mask={{ closable: !loading }}
       footer={
-        <SubmitButtons
-          onCancel={onClose}
-          onSubmit={handleSubmit}
-          loading={loading}
-          disabled={!editor.canSubmit}
-        />
+        // Total right above the submit buttons
+        <div className="flex flex-col gap-2">
+          <OrderTotal totalAmount={editor.totalAmount} />
+          <div className="flex justify-end gap-2">
+            <SubmitButtons
+              onCancel={onClose}
+              onSubmit={handleSubmit}
+              loading={loading}
+              disabled={!editor.canSubmit}
+            />
+          </div>
+        </div>
       }
     >
       <div className="grid grid-cols-3 gap-x-4 gap-y-1 bg-gray-50 rounded-lg px-4 py-3 mb-4 text-sm">

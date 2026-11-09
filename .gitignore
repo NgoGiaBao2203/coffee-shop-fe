@@ -29,3 +29,6 @@ reports
 
 # API docs
 api-docs/
+
+# Windows download metadata
+*:Zone.Identifier

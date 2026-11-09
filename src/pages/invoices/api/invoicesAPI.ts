@@ -4,9 +4,10 @@ import { RESPONSE_CODE } from '@/constants/messages';
 import type {
   InvoiceListParams,
   InvoiceListResponse,
-  CreateInvoiceRequest,
   EditInvoiceRequest,
-  UpdateInvoiceStatusRequest,
+  PayInvoiceRequest,
+  CancelInvoiceRequest,
+  PrintInvoiceRequest,
   InvoiceActionResponse,
 } from '../types';
 
@@ -23,15 +24,6 @@ export async function getInvoicesApi(payload: InvoiceListParams): Promise<Invoic
   return response.data;
 }
 
-export async function createInvoiceApi(
-  payload: CreateInvoiceRequest,
-): Promise<InvoiceActionResponse> {
-  const response = await api.post<InvoiceActionResponse>(ENDPOINT.CREATE_INVOICE, payload, {
-    suppressCodes: ORDER_SUPPRESS_CODES,
-  });
-  return response.data;
-}
-
 export async function editInvoiceApi(payload: EditInvoiceRequest): Promise<InvoiceActionResponse> {
   const response = await api.put<InvoiceActionResponse>(ENDPOINT.EDIT_INVOICE, payload, {
     suppressCodes: ORDER_SUPPRESS_CODES,
@@ -39,9 +31,22 @@ export async function editInvoiceApi(payload: EditInvoiceRequest): Promise<Invoi
   return response.data;
 }
 
-export async function updateInvoiceStatusApi(
-  payload: UpdateInvoiceStatusRequest,
+export async function payInvoiceApi(payload: PayInvoiceRequest): Promise<InvoiceActionResponse> {
+  const response = await api.put<InvoiceActionResponse>(ENDPOINT.PAY_INVOICE, payload);
+  return response.data;
+}
+
+export async function cancelInvoiceApi(
+  payload: CancelInvoiceRequest,
 ): Promise<InvoiceActionResponse> {
-  const response = await api.put<InvoiceActionResponse>(ENDPOINT.UPDATE_INVOICE_STATUS, payload);
+  const response = await api.put<InvoiceActionResponse>(ENDPOINT.CANCEL_INVOICE, payload);
+  return response.data;
+}
+
+// 80mm receipt PDF (errors still come back as JSON, parsed by the api interceptor)
+export async function printInvoiceApi(payload: PrintInvoiceRequest): Promise<Blob> {
+  const response = await api.post<Blob>(ENDPOINT.PRINT_INVOICE, payload, {
+    responseType: 'blob',
+  });
   return response.data;
 }

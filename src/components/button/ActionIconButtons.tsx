@@ -6,6 +6,7 @@ import { Button, type ButtonProps } from 'antd';
 interface ActionIconButtonProps {
   readonly onClick: (event: MouseEvent<HTMLElement>) => void;
   readonly disabled?: boolean;
+  readonly loading?: boolean;
   readonly size?: ButtonProps['size'];
   readonly shape?: ButtonProps['shape'];
   // Per-screen look (background, hover, opacity...)
@@ -20,8 +21,9 @@ interface IconConfig {
   readonly danger?: boolean;
 }
 
-// Shared text-style icon button; edit/delete only differ by icon, label and danger color
-function ActionIconButton({
+// Shared text-style icon button; edit/delete only differ by icon, label and danger color.
+// Exported for row actions without a preset below (e.g. pay / cancel / print an invoice)
+export function ActionIconButton({
   Icon,
   labelKey,
   danger,

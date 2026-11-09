@@ -66,16 +66,6 @@ export interface InvoiceListParams {
 
 export type InvoiceListResponse = PageResponse<InvoiceItem>;
 
-// 0 = pay later, 1 = paid at the counter
-export type InvoicePaymentStatus = 0 | 1;
-
-export interface CreateInvoiceRequest {
-  shopId: string;
-  tableId: string;
-  status: InvoicePaymentStatus;
-  items: CreateInvoiceDetailItem[];
-}
-
 export interface CreateInvoiceDetailItem {
   drinkDetailId: string;
   quantity: number;
@@ -90,9 +80,13 @@ export interface EditInvoiceRequest {
   items: CreateInvoiceDetailItem[];
 }
 
-export interface UpdateInvoiceStatusRequest {
+export interface PayInvoiceRequest {
   invoiceId: string;
-  status: 1 | 2;
 }
+
+export type CancelInvoiceRequest = PayInvoiceRequest;
+
+// Only COMPLETED (paid) invoices can be printed; the response is a PDF file
+export type PrintInvoiceRequest = PayInvoiceRequest;
 
 export type InvoiceActionResponse = ApiResponse;

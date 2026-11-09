@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { Pagination, Empty, Spin, Button, Typography, Select, Tooltip } from 'antd';
 import { SearchInput } from '@/components/search/SearchInput';
@@ -18,11 +19,11 @@ import { DrinkCreateModal } from './components/DrinkCreateModal';
 import { DrinkEditModal } from './components/DrinkEditModal';
 import { DrinkDetailDrawer } from './components/DrinkDetailDrawer';
 import { DrinkDetailFormModal } from './components/DrinkDetailFormModal';
-import { DrinkOrderModal } from './components/DrinkOrderModal';
 import { CreateButton } from '@/components/button/CreateButton';
 
 export function DrinksPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const { showError } = useNotifyModal();
   const validateSearch = useSearchValidation();
@@ -83,7 +84,6 @@ export function DrinksPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [orderOpen, setOrderOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [createDetailOpen, setCreateDetailOpen] = useState(false);
   const [editDetailOpen, setEditDetailOpen] = useState(false);
@@ -94,8 +94,10 @@ export function DrinksPage() {
   const [selectedDetail, setSelectedDetail] = useState<DrinkVariantItem | null>(null);
 
   // OWNER must pick a shop filter before ordering; other roles use their own shop
-
   const canCreateOrder = !isOwner || !!currentShopId;
+
+  const handleOpenOrderPage = () =>
+    navigate(currentShopId ? `/orders?shopId=${encodeURIComponent(currentShopId)}` : '/orders');
 
   // OWNER sees drinks of every branch, so show which branch a drink belongs to
   const getShopName = (shopId?: string) =>
@@ -298,12 +300,12 @@ export function DrinksPage() {
           />
         )}
 
-        {/* Create Order Button (cash payment, creates a paid invoice) */}
+        {/* Create Order Button: opens the create-order page for the selected shop */}
         <Tooltip title={canCreateOrder ? undefined : t('drinks.orderSelectShopHint')}>
           <Button
             icon={<ShoppingCartOutlined />}
             disabled={!canCreateOrder}
-            onClick={() => setOrderOpen(true)}
+            onClick={handleOpenOrderPage}
             className="w-full sm:w-auto"
           >
             {t('drinks.orderBtn')}
@@ -420,14 +422,6 @@ export function DrinksPage() {
           setSelectedDetail(null);
         }}
         onSubmit={handleEditDetail}
-      />
-
-      {/* Create Order Modal */}
-      <DrinkOrderModal
-        open={orderOpen}
-        shopId={currentShopId}
-        onClose={() => setOrderOpen(false)}
-        onCreated={() => setOrderOpen(false)}
       />
 
       {/* Create Drink Modal */}

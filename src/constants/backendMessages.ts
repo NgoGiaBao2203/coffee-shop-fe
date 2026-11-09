@@ -36,6 +36,7 @@ export const BACKEND_MESSAGE_RULES: BackendMessageRule[] = [
   { match: ['drink is unavailable'], key: 'apiMessages.drinkUnavailable', reload: true },
   { match: ['drink price has changed'], key: 'apiMessages.drinkPriceChanged', reload: true },
   { match: ['invoice total exceeds'], key: 'apiMessages.invoiceTotalExceeded' },
+  { match: ['only paid invoices can be printed'], key: 'apiMessages.invoicePrintUnpaid' },
 
   // Categories
   {

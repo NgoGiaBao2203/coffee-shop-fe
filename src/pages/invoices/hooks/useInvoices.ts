@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getInvoicesApi, editInvoiceApi, updateInvoiceStatusApi } from '../api/invoicesAPI';
+import {
+  getInvoicesApi,
+  editInvoiceApi,
+  payInvoiceApi,
+  cancelInvoiceApi,
+  printInvoiceApi,
+} from '../api/invoicesAPI';
+import { printFile } from '@/utils/printFile';
 import { useShopOptions } from '@/hooks/useShopOptions';
 import { useToast } from '@/components/toast/useToast';
 import { useAppSelector } from '@/store/hooks';
@@ -8,7 +15,6 @@ import { ROLES } from '@/permission/roles';
 import type { PaginationInfo } from '@/types/api';
 import { isApiReloadError } from '@/utils/apiError';
 import {
-  INVOICE_STATUS,
   INVOICE_STATUS_NAME,
   type InvoiceItem,
   type InvoiceListParams,
@@ -43,6 +49,7 @@ export function useInvoices() {
   const [editLoading, setEditLoading] = useState(false);
   const [payLoading, setPayLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [printingInvoiceId, setPrintingInvoiceId] = useState<string | null>(null);
 
   // Only OWNER filters invoices by shop
   const { shopOptions, optionsLoading } = useShopOptions(isOwner);
@@ -114,12 +121,27 @@ export function useInvoices() {
     [params, fetchInvoices, t, toast],
   );
 
+  // The receipt is only printable once the invoice is paid; a print failure keeps the payment
+  // Also used by the row Print button; printingInvoiceId shows the spinner on that row
+  const printInvoice = useCallback(async (invoiceId: string) => {
+    setPrintingInvoiceId(invoiceId);
+    try {
+      printFile(await printInvoiceApi({ invoiceId }));
+    } catch {
+      // The interceptor already shows the error message
+    } finally {
+      setPrintingInvoiceId(null);
+    }
+  }, []);
+
+  // Pay from the pay modal: "Print" pays then prints the receipt, "Don't print" only pays
   const payInvoice = useCallback(
-    async (invoiceId: string) => {
+    async (invoiceId: string, shouldPrint: boolean) => {
       setPayLoading(true);
       try {
-        await updateInvoiceStatusApi({ invoiceId, status: INVOICE_STATUS.COMPLETED });
+        await payInvoiceApi({ invoiceId });
         toast.success(t('invoices.paySuccess'));
+        if (shouldPrint) await printInvoice(invoiceId);
         await fetchInvoices(params);
       } catch (error) {
         // The interceptor already shows the error message
@@ -128,14 +150,14 @@ export function useInvoices() {
         setPayLoading(false);
       }
     },
-    [params, fetchInvoices, t, toast],
+    [params, fetchInvoices, printInvoice, t, toast],
   );
 
   const cancelInvoice = useCallback(
     async (invoiceId: string) => {
       setCancelLoading(true);
       try {
-        await updateInvoiceStatusApi({ invoiceId, status: INVOICE_STATUS.CANCELLED });
+        await cancelInvoiceApi({ invoiceId });
         toast.success(t('invoices.cancelSuccess'));
         await fetchInvoices(params);
       } catch (error) {
@@ -152,6 +174,9 @@ export function useInvoices() {
   const canManageInvoice = (record: InvoiceItem) =>
     record.status === INVOICE_STATUS_NAME.PENDING &&
     (!isStaff || (!!profileFullName && record.staffName === profileFullName));
+
+  // Every role can print any paid invoice of its shop (STAFF included, unlike pay / cancel)
+  const canPrintInvoice = (record: InvoiceItem) => record.status === INVOICE_STATUS_NAME.COMPLETED;
 
   return {
     items,
@@ -178,5 +203,8 @@ export function useInvoices() {
     shopOptions,
     optionsLoading,
     canManageInvoice,
+    canPrintInvoice,
+    handlePrint: printInvoice,
+    printingInvoiceId,
   };
 }
