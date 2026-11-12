@@ -1,42 +1,25 @@
+import type { ApiResponse } from '@/types/api';
+
 export interface LoginRequest {
   username: string;
   password: string;
 }
 
-export interface LoginResponse {
-  userId: string;
-  username: string;
-  token: string;
-}
-
 export interface UserProfile {
-  createdAt: string;
-  email: string;
-  fullName: string;
-  isDeleted: boolean;
-  phoneNumber: string;
   profileId: string;
-  roleName: string;
-  shopName: string | null;
-  updatedAt: string | null;
+  email: string;
   username: string;
+  fullName: string | null;
+  phoneNumber: string | null;
+  // Null for OWNER or a user not assigned to a shop
+  shopName: string | null;
+  // Vietnamese role label: CHỦ QUÁN / QUẢN LÝ / NHÂN VIÊN (see ROLES)
+  roleName: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+  isDeleted: boolean;
 }
 
-export interface GetProfileResponse {
-  code: string;
-  message: string;
-  traceId: string;
+export interface GetProfileResponse extends ApiResponse {
   userProfile: UserProfile;
-}
-
-export interface ValidationErrorDetail {
-  field: string;
-  message: string;
-}
-
-export interface ErrorResponse {
-  code: string;
-  message: string;
-  errorDetails: ValidationErrorDetail[] | null;
-  traceId: string;
 }

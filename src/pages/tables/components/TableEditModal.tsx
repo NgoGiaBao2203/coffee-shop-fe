@@ -11,7 +11,7 @@ import {
   TableShopField,
   TableStatusField,
 } from './TableFormFields';
-import { useTableFormError } from '../hooks/useTableFormError';
+import { useFormApiError } from '@/hooks/useFormApiError';
 
 export type TableEditValues = TableFormValues;
 
@@ -36,7 +36,7 @@ export function TableEditModal({
 }: TableEditModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<TableEditValues>();
-  const handleApiError = useTableFormError(form);
+  const handleFormError = useFormApiError();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isOwner = roleName === ROLES.OWNER;
   const isOpenedRef = useRef(false);
@@ -74,7 +74,7 @@ export function TableEditModal({
       });
       handleClose();
     } catch (error: unknown) {
-      handleApiError(error);
+      handleFormError(error, form);
     }
   };
 

@@ -1,40 +1,11 @@
 import { useCallback, useState } from 'react';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast/useToast';
-import { RESPONSE_CODE } from '@/constants/messages';
-import { getResponseMessage } from '@/utils/getResponseMessage';
 import {
   createDrinkDetailApi,
   deleteDrinkDetailApi,
   editDrinkDetailApi,
 } from '../api/drinkDetailsAPI';
-
-interface ApiErrorDetail {
-  errorCode?: string;
-}
-
-interface ApiErrorResponse {
-  code?: string;
-  errorDetails?: ApiErrorDetail[];
-}
-
-// Get readable error message from drink detail API response
-function getDrinkDetailApiErrorMessage(error: unknown): string {
-  if (!axios.isAxiosError<ApiErrorResponse>(error)) {
-    return getResponseMessage(RESPONSE_CODE.INVALID_REQUEST);
-  }
-
-  const response = error.response?.data;
-
-  const errorDetails = Array.isArray(response?.errorDetails) ? response.errorDetails : [];
-
-  // Prefer validation detail code when available
-  const detailCode = errorDetails[0]?.errorCode;
-  const errorCode = detailCode || response?.code;
-
-  return getResponseMessage(errorCode || RESPONSE_CODE.INVALID_REQUEST);
-}
 
 // Share mutation handling while keeping each action's loading state independent
 function useDrinkDetailMutation<T>(
@@ -50,10 +21,8 @@ function useDrinkDetailMutation<T>(
       try {
         await request(payload);
         toast.success(successMessage);
-      } catch (error) {
-        toast.error(getDrinkDetailApiErrorMessage(error));
-        throw error;
       } finally {
+        // Create / edit errors are shown on the size form, delete errors by the interceptor
         setLoading(false);
       }
     },

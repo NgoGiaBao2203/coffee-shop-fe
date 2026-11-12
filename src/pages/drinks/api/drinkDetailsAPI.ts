@@ -10,19 +10,16 @@ import type {
   EditDrinkDetailResponse,
 } from '../types';
 
+// Field errors and duplicated sizes are shown on the size form
+const FORM_SUPPRESS_CODES = [RESPONSE_CODE.INVALID_REQUEST];
+
 export async function createDrinkDetailApi(
   payload: CreateDrinkDetailRequest,
 ): Promise<CreateDrinkDetailResponse> {
   const response = await api.post<CreateDrinkDetailResponse>(
     ENDPOINT.CREATE_DRINK_DETAIL,
     payload,
-    {
-      suppressCodes: [
-        RESPONSE_CODE.NOT_FOUND,
-        RESPONSE_CODE.INVALID_REQUEST,
-        RESPONSE_CODE.CONFLICT,
-      ],
-    },
+    { suppressCodes: FORM_SUPPRESS_CODES },
   );
 
   return response.data;
@@ -32,7 +29,7 @@ export async function editDrinkDetailApi(
   payload: EditDrinkDetailRequest,
 ): Promise<EditDrinkDetailResponse> {
   const response = await api.put<EditDrinkDetailResponse>(ENDPOINT.EDIT_DRINK_DETAIL, payload, {
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST, RESPONSE_CODE.CONFLICT],
+    suppressCodes: FORM_SUPPRESS_CODES,
   });
 
   return response.data;
@@ -43,7 +40,6 @@ export async function deleteDrinkDetailApi(
 ): Promise<DeleteDrinkDetailResponse> {
   const response = await api.delete<DeleteDrinkDetailResponse>(ENDPOINT.DELETE_DRINK_DETAIL, {
     data: payload,
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.INVALID_REQUEST],
   });
 
   return response.data;

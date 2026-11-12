@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Form, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useFormApiError } from '@/hooks/useFormApiError';
 import { DrinkFormModal } from './DrinkFormModal';
 import { DrinkPriceField } from './DrinkFormFields';
 import type { DrinkDetailFormValues, DrinkDetailSubmitValues, DrinkVariantItem } from '../types';
@@ -28,6 +29,7 @@ export function DrinkDetailFormModal({
   const { t } = useTranslation();
 
   const [form] = Form.useForm<DrinkDetailFormValues>();
+  const handleFormError = useFormApiError();
 
   // Set default form values when opening the modal
   useEffect(() => {
@@ -63,27 +65,23 @@ export function DrinkDetailFormModal({
 
   // Convert form values and submit drink detail data
   const handleSubmit = async (values: DrinkDetailFormValues) => {
-    await onSubmit({
-      size: values.size,
-      price: Number(values.price),
-    });
+    try {
+      await onSubmit({
+        size: values.size,
+        price: Number(values.price),
+      });
 
-    handleClose();
+      handleClose();
+    } catch (error) {
+      handleFormError(error, form);
+    }
   };
 
-  // Build size options for create and edit modes
-  const sizeOptions =
-    mode === 'edit' && record
-      ? [
-          {
-            value: record.size as DrinkSize,
-            label: record.size,
-          },
-        ]
-      : availableSizes.map((size) => ({
-          value: size,
-          label: size,
-        }));
+  // Size options: free sizes, plus the current size of the edited variant so it stays selectable
+  const sizeOptions = availableSizes.map((size) => ({
+    value: size,
+    label: size,
+  }));
 
   return (
     <DrinkFormModal<DrinkDetailFormValues>
@@ -107,11 +105,7 @@ export function DrinkDetailFormModal({
           },
         ]}
       >
-        <Select
-          options={sizeOptions}
-          disabled={mode === 'edit'}
-          placeholder={t('drinkDetails.selectSize')}
-        />
+        <Select options={sizeOptions} placeholder={t('drinkDetails.selectSize')} />
       </Form.Item>
 
       {/* Drink detail price */}

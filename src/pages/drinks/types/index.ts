@@ -1,3 +1,4 @@
+import type { ApiResponse, PageResponse, SortDirection } from '@/types/api';
 import type { DrinkSize } from '../constants';
 
 export interface DrinkVariantItem {
@@ -14,39 +15,26 @@ export interface DrinkItem {
   drinkName: string;
   imageUrl?: string | null;
   isDeleted: boolean;
+  // "Đang bán" / "Ngừng bán" / "Không xác định"
   status: string;
+  // Always null in POST /drinks, filled by GET /drink/detail/{drinkId}
   variants: DrinkVariantItem[] | null;
 }
 
-export interface DrinksPagination {
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
+export type DrinksResponse = PageResponse<DrinkItem>;
 
-export interface DrinksResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  items: DrinkItem[];
-  pagination: DrinksPagination;
-}
-
-export interface GetDrinkDetailResponse {
-  code: string;
-  message: string;
-  traceId: string;
+export interface GetDrinkDetailResponse extends ApiResponse {
   item: DrinkItem;
 }
 
 export interface GetDrinksRequest {
   page: number;
   size: number;
+  // Only applied for OWNER; empty = every shop
   shopId: string;
   search?: string;
-  sortBy?: string;
-  sortDirection?: 'ASC' | 'DESC';
+  sortBy?: 'drinkId' | 'shopId' | 'drinkCategoryId' | 'drinkName' | 'status' | 'isDeleted';
+  sortDirection?: SortDirection;
 }
 
 export interface CreateDrinkRequest {
@@ -59,35 +47,13 @@ export interface CreateDrinkRequest {
   drinkCategoryId: string;
 }
 
-export interface CreateDrinkResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
+export type CreateDrinkResponse = ApiResponse;
 
 export interface DeleteDrinkRequest {
   drinkId: string;
 }
 
-export interface DeleteDrinkResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
-
-export interface CategoryDropdownItem {
-  categoryId: string;
-  categoryName: string;
-  shopId: string;
-  shopName: string;
-}
-
-export interface CategoryDropdownResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  categoryResult: CategoryDropdownItem[];
-}
+export type DeleteDrinkResponse = ApiResponse;
 
 export interface CategorySelectOption {
   value: string;
@@ -103,11 +69,7 @@ export interface EditDrinkRequest {
   drinkCategoryId: string;
 }
 
-export interface EditDrinkResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
+export type EditDrinkResponse = ApiResponse;
 
 // Drink Detail
 
@@ -127,11 +89,7 @@ export interface CreateDrinkDetailRequest {
   price: number;
 }
 
-export interface CreateDrinkDetailResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
+export type CreateDrinkDetailResponse = ApiResponse;
 
 export interface EditDrinkDetailRequest {
   drinkDetailId: string;
@@ -139,18 +97,12 @@ export interface EditDrinkDetailRequest {
   price: number;
 }
 
-export interface EditDrinkDetailResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
+export type EditDrinkDetailResponse = ApiResponse;
 
 export interface DeleteDrinkDetailRequest {
   drinkDetailId: string;
 }
 
-export interface DeleteDrinkDetailResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
+export type DeleteDrinkDetailResponse = ApiResponse;
+
+// Order (cash payment)

@@ -1,6 +1,6 @@
-import { Button, Divider, Form, Modal, type FormInstance, type FormProps } from 'antd';
-import { useTranslation } from 'react-i18next';
+import { Divider, Form, Modal, type FormInstance, type FormProps } from 'antd';
 import type { ReactNode } from 'react';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
 
 interface DrinkFormModalProps<T extends object> {
   readonly open: boolean;
@@ -25,8 +25,6 @@ export function DrinkFormModal<T extends object>({
   children,
   destroyOnHidden = false,
 }: DrinkFormModalProps<T>) {
-  const { t } = useTranslation();
-
   return (
     <Modal
       open={open}
@@ -36,14 +34,12 @@ export function DrinkFormModal<T extends object>({
       width="min(520px, calc(100vw - 24px))"
       destroyOnHidden={destroyOnHidden}
       footer={
-        // Form action buttons
-        <div className="flex justify-end gap-2">
-          <Button onClick={onClose}>{t('form.cancel')}</Button>
-
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {submitLabel}
-          </Button>
-        </div>
+        <SubmitButtons
+          onCancel={onClose}
+          onSubmit={() => form.submit()}
+          submitText={submitLabel}
+          loading={loading}
+        />
       }
     >
       <Divider className="my-3!" />

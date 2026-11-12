@@ -1,20 +1,15 @@
 import { useEffect, useRef } from 'react';
-import { Modal, Form, Input, Select, Button, Divider } from 'antd';
+import { Modal, Form, Input, Select, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { RESPONSE_CODE } from '@/constants/messages';
 import { ROLES } from '@/permission/roles';
 import { useAppSelector } from '@/store/hooks';
 import type { CategoryItem } from '../types';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
+import { useFormApiError } from '@/hooks/useFormApiError';
 
 export interface CategoryEditValues {
   categoryName: string;
   shopId: string;
-}
-
-interface ErrorDetailItem {
-  errorCode?: string | number;
-  message?: string;
 }
 
 interface CategoryEditModalProps {
@@ -38,6 +33,7 @@ export function CategoryEditModal({
 }: CategoryEditModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<CategoryEditValues>();
+  const handleFormError = useFormApiError();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
   const isOwner = roleName === ROLES.OWNER;
   const isOpenedRef = useRef(false);
@@ -70,37 +66,8 @@ export function CategoryEditModal({
         categoryName: values.categoryName.trim(),
       });
       handleClose();
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const resData = error.response?.data;
-        const resCode = resData?.code;
-        const details: ErrorDetailItem[] = Array.isArray(resData?.errorDetails)
-          ? resData.errorDetails
-          : Array.isArray(resData?.data)
-            ? resData.data
-            : [];
-
-        const isConflict =
-          resCode === RESPONSE_CODE.CONFLICT ||
-          resCode === 'ER005' ||
-          resCode === 'ER011' ||
-          details.some(
-            (item) =>
-              item.errorCode === 'ER005' ||
-              item.errorCode === 'ER011' ||
-              item.errorCode === 409 ||
-              item.errorCode === RESPONSE_CODE.CONFLICT,
-          );
-
-        if (isConflict) {
-          form.setFields([
-            {
-              name: 'categoryName',
-              errors: [t('categories.nameConflict')],
-            },
-          ]);
-        }
-      }
+    } catch (error) {
+      handleFormError(error, form);
     }
   };
 
@@ -112,12 +79,7 @@ export function CategoryEditModal({
       title={t('categories.editTitle')}
       width={480}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.save')}
-          </Button>
-        </div>
+        <SubmitButtons onCancel={handleClose} onSubmit={() => form.submit()} loading={loading} />
       }
     >
       <Divider className="my-3!" />
@@ -161,7 +123,8 @@ export function CategoryEditModal({
             label={t('staffs.shopName')}
             rules={[{ required: true, message: t('categories.shopRequired') }]}
           >
-            <Select options={shopOptions} loading={optionsLoading} />
+            {/* The API edits the category in its current shop, it cannot move it to another shop */}
+            <Select options={shopOptions} loading={optionsLoading} disabled />
           </Form.Item>
         ) : (
           <Form.Item

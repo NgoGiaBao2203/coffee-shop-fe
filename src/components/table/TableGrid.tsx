@@ -1,6 +1,5 @@
 import {
   Table,
-  Button,
   Popconfirm,
   Space,
   Pagination,
@@ -9,9 +8,9 @@ import {
   type TableColumnType,
   type TablePaginationConfig,
 } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
+import { DeleteIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
 /** Extended column type — adds `color` (text color for header + cells) on top of Ant Design's TableColumnType */
 export interface AppColumnType<T> extends TableColumnType<T> {
@@ -32,6 +31,8 @@ export interface TableGridProps<T extends object> {
   readonly onDelete?: (record: T) => void;
   /** Called with the row record when the delete button is clicked — no built-in confirmation; the caller is responsible for showing a confirmation UI */
   readonly onDeleteClick?: (record: T) => void;
+  /** Disables the delete button of a row (e.g. a record the backend refuses to delete) */
+  readonly isDeleteDisabled?: (record: T) => boolean;
   /** Total records count for server-side pagination */
   readonly total?: number;
   /** Current page number (controlled) */
@@ -56,6 +57,7 @@ export function TableGrid<T extends object>({
   onEdit,
   onDelete,
   onDeleteClick,
+  isDeleteDisabled,
   total,
   currentPage,
   currentPageSize,
@@ -75,10 +77,8 @@ export function TableGrid<T extends object>({
     render: (_, record) => (
       <Space size="small">
         {onEdit && (
-          <Button
-            type="text"
-            size="small"
-            icon={<EditOutlined />}
+          <EditIconButton
+            shape="default"
             onClick={(e) => {
               e.stopPropagation();
               onEdit(record);
@@ -86,11 +86,9 @@ export function TableGrid<T extends object>({
           />
         )}
         {onDeleteClick && (
-          <Button
-            type="text"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
+          <DeleteIconButton
+            shape="default"
+            disabled={isDeleteDisabled?.(record)}
             onClick={(e) => {
               e.stopPropagation();
               onDeleteClick(record);
@@ -108,13 +106,7 @@ export function TableGrid<T extends object>({
             placement="topRight"
             onPopupClick={(e) => e.stopPropagation()}
           >
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={(e) => e.stopPropagation()}
-            />
+            <DeleteIconButton shape="default" onClick={(e) => e.stopPropagation()} />
           </Popconfirm>
         )}
       </Space>

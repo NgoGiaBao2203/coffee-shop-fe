@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Typography, Button, notification } from 'antd';
-import { PlusOutlined, TeamOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { Typography, Button } from 'antd';
+import { TeamOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { TableGrid, type AppColumnType } from '@/components/table/TableGrid';
 import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
+import { useToast } from '@/components/toast/useToast';
 import { AppFormDrawer, type FormFieldConfig } from '@/components/form/AppFormDrawer';
 import { useShop } from './hooks/useShop';
 import { createShopApi, editShopApi, deleteShopApi } from './api/shopAPI';
 import { ShopCreateModal } from './components/ShopCreateModal';
 import { ShopEditModal } from './components/ShopEditModal';
 import type { ShopItem, CreateShopRequest, EditShopRequest } from './types';
+import { isApiReloadError } from '@/utils/apiError';
+import { CreateButton } from '@/components/button/CreateButton';
 
 const SEARCH_PATTERN = /^[\p{L}0-9\s.,/&'#-]*$/u;
 const SEARCH_MAX_LENGTH = 100;
@@ -33,7 +35,8 @@ export function ShopPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { showError } = useNotifyModal();
-  const { confirm: confirmDelete } = useConfirmModal();
+  const { confirmDelete } = useConfirmModal();
+  const toast = useToast();
   const {
     items,
     pagination,
@@ -124,11 +127,7 @@ export function ShopPage() {
     setCreateLoading(true);
     try {
       await createShopApi(values);
-      notification.success({
-        title: t('shops.createSuccess'),
-        placement: 'topRight',
-        duration: 3,
-      });
+      toast.success(t('shops.createSuccess'));
       refresh();
       setCreateModalOpen(false);
     } finally {
@@ -141,11 +140,7 @@ export function ShopPage() {
     setEditLoading(true);
     try {
       await editShopApi(selectedRecord.shopId, values);
-      notification.success({
-        title: t('shops.editSuccess'),
-        placement: 'topRight',
-        duration: 3,
-      });
+      toast.success(t('shops.editSuccess'));
       refresh();
       setEditModalOpen(false);
     } finally {
@@ -157,35 +152,14 @@ export function ShopPage() {
     confirmDelete({
       title: t('shops.deleteTitle'),
       content: t('shops.deleteConfirmDesc', { name: record.shopName }),
-      okText: t('table.deleteOk'),
-      cancelText: t('table.deleteCancel'),
-      okDanger: true,
       onConfirm: async () => {
         try {
           await deleteShopApi({ shopId: record.shopId });
-          notification.success({
-            title: t('shops.deleteSuccess'),
-            placement: 'topRight',
-            duration: 3,
-          });
+          toast.success(t('shops.deleteSuccess'));
           refresh();
         } catch (error) {
-          const errMsg = axios.isAxiosError<{ message?: string }>(error)
-            ? error.response?.data?.message || ''
-            : '';
-          const normalizedMessage = errMsg.toLowerCase();
-          const hasActiveStaff = normalizedMessage.includes('active staff');
-          const hasPendingInvoices = normalizedMessage.includes('pending invoices');
-
-          if (hasActiveStaff && hasPendingInvoices) {
-            showError(t('shops.deleteActiveStaffAndPendingInvoices'), t('common.error'));
-          } else if (hasActiveStaff) {
-            showError(t('shops.deleteActiveStaff'), t('common.error'));
-          } else if (hasPendingInvoices) {
-            showError(t('shops.deletePendingInvoices'), t('common.error'));
-          } else {
-            showError(t('responses.ER001'), t('common.error'));
-          }
+          // The interceptor shows the reason (active staff / pending invoices / not found)
+          if (isApiReloadError(error)) refresh();
         }
       },
     });
@@ -205,9 +179,7 @@ export function ShopPage() {
             placeholder={t('shops.searchPlaceholder')}
           />
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
-          {t('form.create')}
-        </Button>
+        <CreateButton onClick={() => setCreateModalOpen(true)} />
       </div>
 
       <TableGrid<ShopItem>
@@ -229,6 +201,8 @@ export function ShopPage() {
           setEditModalOpen(true);
         }}
         onDeleteClick={handleDeleteClick}
+        // A shop with active staff cannot be deleted
+        isDeleteDisabled={(record) => record.activeStaffCount > 0}
       />
 
       <AppFormDrawer<ShopItem>

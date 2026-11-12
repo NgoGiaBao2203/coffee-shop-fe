@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { Modal, Form, Input, Select, Button, Divider, notification } from 'antd';
+import { Modal, Form, Input, Select, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { RESPONSE_CODE } from '@/constants/messages';
 import { ROLES } from '@/permission/roles';
-import { useAppSelector } from '@/store/hooks';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
+import { useFormApiError } from '@/hooks/useFormApiError';
+import { getPhoneNumberRule, normalizePhoneNumber } from '@/utils/formRules';
 
 const DEFAULT_ROLE_LABEL = ROLES.STAFF;
 
@@ -14,7 +14,7 @@ export interface StaffCreateValues {
   fullName: string;
   phoneNumber?: string;
   roleId: string;
-  shopId?: string;
+  shopId: string;
 }
 
 interface SelectOption {
@@ -45,27 +45,20 @@ export function StaffCreateModal({
 }: StaffCreateModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<StaffCreateValues>();
-  const profileShopName = useAppSelector((state) => state.auth.profile?.shopName);
-  const roleName = useAppSelector((state) => state.auth.profile?.roleName);
-  const isOwner = roleName === ROLES.OWNER;
+  const handleFormError = useFormApiError();
 
+  // Default role STAFF and the first shop; for MANAGER the shop options only contain their shop
+  // (the backend forces role STAFF for a manager anyway)
   useEffect(() => {
-    if (!open || roleOptions.length === 0) return;
+    if (!open) return;
     const defaultRole = roleOptions.find((r) => r.label === DEFAULT_ROLE_LABEL);
     if (defaultRole) {
       form.setFieldValue('roleId', defaultRole.value);
     }
     if (shopOptions.length > 0) {
-      if (isManager && profileShopName) {
-        const matchedShop = shopOptions.find(
-          (s) => s.label.trim().toLowerCase() === profileShopName.trim().toLowerCase(),
-        );
-        form.setFieldValue('shopId', matchedShop?.value ?? shopOptions[0].value);
-      } else if (isOwner) {
-        form.setFieldValue('shopId', shopOptions[0].value);
-      }
+      form.setFieldValue('shopId', shopOptions[0].value);
     }
-  }, [open, roleOptions, shopOptions, isManager, isOwner, profileShopName]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, roleOptions, shopOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClose = () => {
     form.resetFields();
@@ -74,33 +67,14 @@ export function StaffCreateModal({
 
   const handleSubmit = async (values: StaffCreateValues) => {
     try {
-      await onSubmit(values);
+      await onSubmit({
+        ...values,
+        fullName: values.fullName?.trim(),
+        phoneNumber: values.phoneNumber || undefined,
+      });
       handleClose();
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.CONFLICT) {
-        const message = (error.response?.data?.message ?? '').toLowerCase();
-        let fieldName: keyof StaffCreateValues;
-        let errorMsg: string;
-
-        if (message.includes('phone')) {
-          fieldName = 'phoneNumber';
-          errorMsg = t('staffs.phoneConflict');
-        } else if (message.includes('email')) {
-          fieldName = 'email';
-          errorMsg = t('staffs.emailConflict');
-        } else {
-          fieldName = 'username';
-          errorMsg = t('staffs.usernameConflict');
-        }
-
-        notification.error({
-          message: t('common.error'),
-          description: errorMsg,
-          placement: 'topRight',
-          duration: 3,
-        });
-        form.setFields([{ name: fieldName, errors: [errorMsg] }]);
-      }
+      handleFormError(error, form);
     }
   };
 
@@ -112,12 +86,12 @@ export function StaffCreateModal({
       title={t('staffs.createTitle')}
       width={560}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.create')}
-          </Button>
-        </div>
+        <SubmitButtons
+          onCancel={handleClose}
+          onSubmit={() => form.submit()}
+          submitText={t('form.create')}
+          loading={loading}
+        />
       }
     >
       <Divider className="my-3!" />
@@ -132,15 +106,20 @@ export function StaffCreateModal({
             <Input />
           </Form.Item>
 
-          <Form.Item name="phoneNumber" label={t('staffs.phoneNumber')}>
-            <Input />
+          <Form.Item
+            name="phoneNumber"
+            label={t('staffs.phoneNumber')}
+            normalize={normalizePhoneNumber}
+            rules={[getPhoneNumberRule(t)]}
+          >
+            <Input maxLength={11} />
           </Form.Item>
 
           <Form.Item
             name="email"
             label={t('staffs.email')}
             rules={[
-              { required: true, message: t('staffs.emailRequired') },
+              { required: true, whitespace: true, message: t('staffs.emailRequired') },
               { type: 'email', message: t('staffs.emailInvalid') },
             ]}
           >
@@ -150,22 +129,25 @@ export function StaffCreateModal({
           <Form.Item
             name="username"
             label={t('staffs.username')}
-            rules={[{ required: true, message: t('staffs.usernameRequired') }]}
+            rules={[{ required: true, whitespace: true, message: t('staffs.usernameRequired') }]}
           >
             <Input />
           </Form.Item>
 
-          <Form.Item name="roleId" label={t('staffs.role')}>
+          <Form.Item
+            name="roleId"
+            label={t('staffs.role')}
+            rules={[{ required: true, message: t('staffs.roleRequired') }]}
+          >
             <Select options={roleOptions} loading={optionsLoading} disabled={isManager} />
           </Form.Item>
 
-          <Form.Item name="shopId" label={t('staffs.shopName')}>
-            <Select
-              options={shopOptions}
-              loading={optionsLoading}
-              allowClear
-              disabled={isManager}
-            />
+          <Form.Item
+            name="shopId"
+            label={t('staffs.shopName')}
+            rules={[{ required: true, message: t('staffs.shopRequired') }]}
+          >
+            <Select options={shopOptions} loading={optionsLoading} disabled={isManager} />
           </Form.Item>
         </div>
       </Form>

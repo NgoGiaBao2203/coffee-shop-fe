@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getShopsApi } from '../api/shopAPI';
-import type { ShopItem, SearchShopRequest, ShopPagination } from '../types';
+import type { PaginationInfo } from '@/types/api';
+import type { ShopItem, SearchShopRequest } from '../types';
 
 const DEFAULT_PARAMS: SearchShopRequest = {
   page: 1,
@@ -18,7 +19,7 @@ export function useShop(initialPage = 1, initialSize = 10) {
   });
 
   const [items, setItems] = useState<ShopItem[]>([]);
-  const [pagination, setPagination] = useState<ShopPagination | null>(null);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showEmptyModal, setShowEmptyModal] = useState(false);
@@ -36,7 +37,6 @@ export function useShop(initialPage = 1, initialSize = 10) {
           search: currentParams.search?.trim() || undefined,
           sortBy: currentParams.sortBy || 'shopId',
           sortDirection: currentParams.sortDirection || 'ASC',
-          shopId: currentParams.shopId || undefined,
         };
 
         const response = await getShopsApi(payload);

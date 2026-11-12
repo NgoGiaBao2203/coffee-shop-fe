@@ -1,12 +1,18 @@
+import type { ApiResponse, PageResponse, SortDirection } from '@/types/api';
+
+// Kept for features that still import the dropdown types from here (revenue)
+export type { ShopNameItem } from '@/types/dropdown';
+
+// The list has no roleId / shopId and `isDeleted` is always null, so neither is typed here
 export interface StaffItem {
   profileId: string;
-  fullName: string;
+  fullName: string | null;
   username: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber: string | null;
+  // QUẢN LÝ / NHÂN VIÊN
   roleName: string;
   shopName: string | null;
-  isDeleted: boolean;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -14,87 +20,46 @@ export interface StaffItem {
 export interface StaffListParams {
   page: number;
   size: number;
+  // UUIDs from the dropdowns; empty = no filter (never send a non-UUID, the backend returns 500)
   roleId: string;
   branchShopId: string;
   search: string;
-  sortBy: string;
-  sortDirection: 'ASC' | 'DESC';
+  sortBy:
+    | 'profileId'
+    | 'email'
+    | 'username'
+    | 'fullName'
+    | 'phoneNumber'
+    | 'shopName'
+    | 'roleName'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'isDeleted';
+  sortDirection: SortDirection;
 }
 
-export interface PaginationInfo {
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
+export type StaffListResponse = PageResponse<StaffItem>;
 
-export interface StaffListResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  items: StaffItem[];
-  pagination: PaginationInfo;
-}
-
-export interface EditStaffRequest {
-  profileId: string;
-  fullName: string;
-  phoneNumber: string;
+export interface CreateStaffRequest {
+  email: string;
+  username: string;
+  fullName?: string;
+  phoneNumber?: string;
   roleId: string;
   shopId: string;
 }
 
-export interface EditStaffResponse {
-  code: string;
-  message: string;
-  traceId: string;
+// email / username cannot be edited; MANAGER cannot change roleId / shopId (ignored by the backend)
+export interface EditStaffRequest {
+  profileId: string;
+  fullName: string;
+  phoneNumber?: string;
+  roleId: string;
+  shopId: string;
 }
 
 export interface DeleteStaffRequest {
   profileId: string;
 }
 
-export interface DeleteStaffResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
-
-export interface CreateStaffRequest {
-  email: string;
-  username: string;
-  fullName: string;
-  phoneNumber?: string;
-  roleId: string;
-  shopId?: string;
-}
-
-export interface CreateStaffResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
-
-export interface RoleItem {
-  roleId: string;
-  roleDisplayName: string;
-}
-
-export interface RoleListResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  roleResult: RoleItem[];
-}
-
-export interface ShopNameItem {
-  shopId: string;
-  shopName: string;
-}
-
-export interface ShopNameListResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  shopNameResults: ShopNameItem[];
-}
+export type StaffMutationResponse = ApiResponse;

@@ -1,59 +1,55 @@
-import { Select, DatePicker, Button } from 'antd';
-import { FilterOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Select, DatePicker, Button, ConfigProvider } from 'antd';
+import viVN from 'antd/locale/vi_VN';
+import { ReloadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { SearchInput } from '@/components/search/SearchInput';
-import type { FilterType } from '../hooks/useRevenues';
+import type { FilterType } from '../utils';
 
 interface SelectOption {
-  value: string | number;
+  value: string;
   label: string;
 }
 
+const PICKER_BY_TYPE = {
+  DATE: { picker: 'date', format: 'DD/MM/YYYY' },
+  WEEK: { picker: 'week', format: undefined },
+  MONTH: { picker: 'month', format: 'MM/YYYY' },
+  YEAR: { picker: 'year', format: 'YYYY' },
+} as const;
+
 interface RevenueFilterProps {
-  filterType: FilterType;
-  setFilterType: (type: FilterType) => void;
-  selectedDate?: string;
-  setSelectedDate: (date?: string) => void;
-  selectedMonth?: number;
-  setSelectedMonth: (month?: number) => void;
-  selectedYear?: number;
-  setSelectedYear: (year?: number) => void;
-  isOwner: boolean;
-  currentShopId?: string;
-  shopOptions: SelectOption[];
-  optionsLoading: boolean;
-  onShopFilter: (shopId: string) => void;
-  onApplyFilter: () => void;
-  onResetFilter: () => void;
-  onSearch: (search: string) => void;
-  searchLoading: boolean;
-  monthOptions: SelectOption[];
-  yearOptions: SelectOption[];
+  readonly filterType: FilterType;
+  readonly onFilterTypeChange: (type: FilterType) => void;
+  readonly pickedDate: Dayjs | null;
+  readonly onPickedDateChange: (value: Dayjs | null) => void;
+  readonly isOwner: boolean;
+  readonly currentShopId?: string;
+  readonly shopOptions: SelectOption[];
+  readonly optionsLoading: boolean;
+  readonly onShopFilter: (shopId: string) => void;
+  readonly onResetFilter: () => void;
+  readonly onSearch: (search: string) => void;
+  readonly searchLoading: boolean;
 }
 
 export function RevenueFilter({
   filterType,
-  setFilterType,
-  selectedDate,
-  setSelectedDate,
-  selectedMonth,
-  setSelectedMonth,
-  selectedYear,
-  setSelectedYear,
+  onFilterTypeChange,
+  pickedDate,
+  onPickedDateChange,
   isOwner,
   currentShopId,
   shopOptions,
   optionsLoading,
   onShopFilter,
-  onApplyFilter,
   onResetFilter,
   onSearch,
   searchLoading,
-  monthOptions,
-  yearOptions,
 }: RevenueFilterProps) {
   const { t } = useTranslation();
+  // "All time" has no period to pick
+  const pickerConfig = filterType === 'ALL' ? null : PICKER_BY_TYPE[filterType];
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full">
@@ -65,54 +61,33 @@ export function RevenueFilter({
         />
       </div>
 
-      {/* Filter Group: Responsive layout for Mobile/Tablet/Desktop */}
       <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-start md:justify-end">
-        {/* Filter Type */}
         <Select
           value={filterType}
-          onChange={(val: FilterType) => setFilterType(val)}
+          onChange={onFilterTypeChange}
           options={[
+            { value: 'ALL', label: t('revenues.filterAllType') },
             { value: 'DATE', label: t('revenues.filterDateType') },
+            { value: 'WEEK', label: t('revenues.filterWeekType') },
             { value: 'MONTH', label: t('revenues.filterMonthType') },
             { value: 'YEAR', label: t('revenues.filterYearType') },
           ]}
-          className="w-[calc(50%-4px)] sm:w-28"
+          className="w-[calc(50%-4px)] sm:w-36"
           size="middle"
         />
 
-        {/* Date Picker */}
-        {filterType === 'DATE' && (
-          <DatePicker
-            format="DD/MM/YYYY"
-            placeholder="dd/mm/yyyy"
-            value={selectedDate ? dayjs(selectedDate) : null}
-            onChange={(date) => setSelectedDate(date ? date.format('YYYY-MM-DD') : undefined)}
-            className="w-[calc(50%-4px)] sm:w-32"
-          />
-        )}
-
-        {/* Month & Year Selectors */}
-        {(filterType === 'MONTH' || filterType === 'YEAR') && (
-          <>
-            {filterType === 'MONTH' && (
-              <Select
-                allowClear
-                placeholder={t('revenues.selectMonthPlaceholder')}
-                options={monthOptions}
-                value={selectedMonth}
-                onChange={(val) => setSelectedMonth(val)}
-                className="w-[calc(50%-4px)] sm:w-32"
-              />
-            )}
-            <Select
-              allowClear
-              placeholder={t('revenues.selectYearPlaceholder')}
-              options={yearOptions}
-              value={selectedYear}
-              onChange={(val) => setSelectedYear(val)}
-              className="w-[calc(50%-4px)] sm:w-28"
+        {/* vi_VN locale: the week starts on Monday, same as the range sent to the BE */}
+        {pickerConfig && (
+          <ConfigProvider locale={viVN}>
+            <DatePicker
+              key={filterType}
+              picker={pickerConfig.picker}
+              format={pickerConfig.format}
+              value={pickedDate}
+              onChange={onPickedDateChange}
+              className="w-[calc(50%-4px)] sm:w-36"
             />
-          </>
+          </ConfigProvider>
         )}
 
         {/* Branch / Shop Filter */}
@@ -128,20 +103,14 @@ export function RevenueFilter({
           />
         )}
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto mt-1 sm:mt-0">
-          <Button
-            type="primary"
-            icon={<FilterOutlined />}
-            onClick={onApplyFilter}
-            className="flex-1 sm:flex-none"
-          >
-            {t('revenues.filterApply')}
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={onResetFilter} className="flex-1 sm:flex-none">
-            {t('revenues.filterReset')}
-          </Button>
-        </div>
+        {/* Picking a date filters right away; reset clears every filter */}
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={onResetFilter}
+          className="w-full sm:w-auto mt-1 sm:mt-0"
+        >
+          {t('revenues.filterReset')}
+        </Button>
       </div>
     </div>
   );

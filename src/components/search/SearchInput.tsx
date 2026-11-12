@@ -5,9 +5,16 @@ interface SearchInputProps {
   onSearch: (value: string) => void;
   loading?: boolean;
   placeholder?: string;
+  // Defaults to large (list pages); compact forms pass middle
+  size?: 'small' | 'middle' | 'large';
 }
 
-export function SearchInput({ onSearch, loading = false, placeholder }: SearchInputProps) {
+export function SearchInput({
+  onSearch,
+  loading = false,
+  placeholder,
+  size = 'large',
+}: SearchInputProps) {
   const { t } = useTranslation();
 
   return (
@@ -20,7 +27,7 @@ export function SearchInput({ onSearch, loading = false, placeholder }: SearchIn
       }}
       loading={loading}
       allowClear
-      size="large"
+      size={size}
       className="w-full sm:max-w-sm"
     />
   );

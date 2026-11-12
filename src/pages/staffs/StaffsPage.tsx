@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Typography, Button, Select } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Typography, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -13,6 +12,7 @@ import { StaffEditModal } from './components/StaffEditModal';
 import { StaffCreateModal } from './components/StaffCreateModal';
 import { useStaffs } from './hooks/useStaffs';
 import type { StaffItem } from './types';
+import { CreateButton } from '@/components/button/CreateButton';
 
 const formatDate = (value: unknown) =>
   value
@@ -57,7 +57,7 @@ export function StaffsPage() {
     optionsLoading,
   } = useStaffs();
 
-  const { confirm: confirmDelete } = useConfirmModal();
+  const { confirmDelete } = useConfirmModal();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -193,9 +193,7 @@ export function StaffsPage() {
             />
           </>
         )}
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-          {t('form.create')}
-        </Button>
+        <CreateButton onClick={() => setCreateOpen(true)} />
       </div>
 
       <TableGrid<StaffItem>
@@ -220,9 +218,6 @@ export function StaffsPage() {
           confirmDelete({
             title: t('table.deleteConfirmTitle'),
             content: t('table.deleteConfirmDesc'),
-            okText: t('table.deleteOk'),
-            cancelText: t('table.deleteCancel'),
-            okDanger: true,
             onConfirm: () => deleteStaff(record.profileId),
           });
         }}
