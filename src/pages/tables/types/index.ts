@@ -1,9 +1,21 @@
+import type { ApiResponse, PageResponse, SortDirection } from '@/types/api';
+
+// 1 = available, 2 = occupied (set by invoices), 3 = reserved
+export type TableStatus = 1 | 2 | 3;
+
+export const TABLE_STATUS = {
+  AVAILABLE: 1,
+  OCCUPIED: 2,
+  RESERVED: 3,
+} as const;
+
+// Null fields are omitted from the JSON; createdAt / updatedAt are never sent to STAFF
 export interface TableItem {
   tableId: string;
   shopId: string;
   shopName?: string;
   tableNumber: number;
-  description: string | null;
+  description?: string | null;
   status: number;
   statusName?: string;
   createdAt?: string | null;
@@ -22,31 +34,18 @@ export interface TableShopOption {
   label: string;
 }
 
-export interface TablePagination {
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-
 export interface SearchTablesRequest {
   page: number;
   size: number;
   status?: number;
   search?: string;
-  sortBy?: 'tableId' | 'tableNumber' | 'status' | 'createdAt' | 'updatedAt';
-  sortDirection?: 'ASC' | 'DESC';
+  sortBy?: 'tableId' | 'tableNumber' | 'status' | 'shopId' | 'createdAt' | 'updatedAt';
+  sortDirection?: SortDirection;
   /** Branch filter — applied server-side */
   shopId?: string;
 }
 
-export interface TablesListResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  items: TableItem[];
-  pagination: TablePagination;
-}
+export type TablesListResponse = PageResponse<TableItem>;
 
 export interface CreateTableRequest {
   tableNumber: number;
@@ -58,6 +57,7 @@ export interface CreateTableRequest {
 export interface EditTableRequest {
   tableId: string;
   tableNumber: number;
+  // Omitted = the description is cleared
   description?: string;
   shopId: string;
   status: number;
@@ -68,13 +68,4 @@ export interface DeleteTableRequest {
   shopId: string;
 }
 
-export interface TableMutationResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
-
-export interface ShopNameItem {
-  shopId: string;
-  shopName: string;
-}
+export type TableMutationResponse = ApiResponse;

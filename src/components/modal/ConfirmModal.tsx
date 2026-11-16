@@ -1,4 +1,5 @@
 import { App } from 'antd';
+import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 
 interface ConfirmOptions {
@@ -12,6 +13,7 @@ interface ConfirmOptions {
 
 export function useConfirmModal() {
   const { modal } = App.useApp();
+  const { t } = useTranslation();
 
   const confirm = ({
     title,
@@ -32,5 +34,15 @@ export function useConfirmModal() {
     });
   };
 
-  return { confirm };
+  // Delete confirmation with the shared delete/cancel labels and a danger OK button
+  const confirmDelete = (options: ConfirmOptions) => {
+    confirm({
+      okText: t('table.deleteOk'),
+      cancelText: t('table.deleteCancel'),
+      okDanger: true,
+      ...options,
+    });
+  };
+
+  return { confirm, confirmDelete };
 }

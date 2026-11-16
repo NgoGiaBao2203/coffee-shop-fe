@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react';
-import {
-  Typography,
-  Select,
-  Tag,
-  Button,
-  Tooltip,
-  Drawer,
-  Descriptions,
-  Table,
-  Divider,
-} from 'antd';
-import { CreditCardOutlined, EditOutlined, StopOutlined } from '@ant-design/icons';
+import { Typography, Select, Tag, Tooltip, Drawer, Descriptions, Table } from 'antd';
+import { CreditCardOutlined, PrinterOutlined, StopOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
@@ -19,8 +9,12 @@ import { SearchInput } from '@/components/search/SearchInput';
 import { useNotifyModal } from '@/components/modal/NotifyModal';
 import { useConfirmModal } from '@/components/modal/ConfirmModal';
 import { InvoiceEditModal } from './components/InvoiceEditModal';
+import { InvoicePayModal } from './components/InvoicePayModal';
+import { InvoiceStatusTag } from './components/InvoiceStatusTag';
 import { useInvoices } from './hooks/useInvoices';
 import type { InvoiceItem } from './types';
+import { CloseButton } from '@/components/button/CloseButton';
+import { ActionIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
 interface InvoiceDetailItem {
   id?: string | number;
@@ -33,6 +27,7 @@ interface InvoiceDetailItem {
   quantity?: number;
   subTotal?: number;
   totalPrice?: number;
+  note?: string | null;
 }
 
 const formatDate = (value: unknown) =>
@@ -50,7 +45,7 @@ export function InvoicesPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
-  const isAdmin = roleName === ROLES.OWNER;
+  const isOwner = roleName === ROLES.OWNER;
 
   const {
     items,
@@ -76,12 +71,17 @@ export function InvoicesPage() {
     cancelLoading,
     shopOptions,
     optionsLoading,
+    canManageInvoice,
+    canPrintInvoice,
+    handlePrint,
+    printingInvoiceId,
   } = useInvoices();
 
   const { confirm: confirmAction } = useConfirmModal();
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<InvoiceItem | null>(null);
 
   useEffect(() => {
@@ -93,11 +93,19 @@ export function InvoicesPage() {
 
   const columns: AppColumnType<InvoiceItem>[] = [
     {
+      key: 'invoiceCode',
+      dataIndex: 'invoiceCode',
+      title: t('invoices.invoiceCode'),
+      width: 200,
+      render: (val?: string) => val || '—',
+    },
+    {
       key: 'tableNumber',
       dataIndex: 'tableNumber',
       title: t('invoices.tableNumber'),
       width: 100,
-      render: (val: number) => t('revenues.tablePrefix', { number: val }),
+      render: (val: number | null) =>
+        val == null ? '—' : t('revenues.tablePrefix', { number: val }),
     },
     {
       key: 'shopName',
@@ -127,13 +135,7 @@ export function InvoicesPage() {
       dataIndex: 'status',
       title: t('invoices.status'),
       width: 140,
-      render: (val: string) => {
-        let color = 'default';
-        if (val === t('invoices.statusOptions.serving')) color = 'processing';
-        else if (val === t('invoices.statusOptions.paid')) color = 'success';
-        else if (val === t('invoices.statusOptions.cancelled')) color = 'error';
-        return <Tag color={color}>{val}</Tag>;
-      },
+      render: (val: string) => <InvoiceStatusTag status={val} />,
     },
     {
       key: 'createdAt',
@@ -145,11 +147,12 @@ export function InvoicesPage() {
     {
       key: 'actions',
       title: t('table.actions'),
-      width: 100,
+      width: 150,
       fixed: 'right',
       align: 'center',
       render: (_: unknown, record: InvoiceItem) => {
-        const isServing = record.status === t('invoices.statusOptions.serving');
+        const isServing = canManageInvoice(record);
+        const isPrintable = canPrintInvoice(record);
         return (
           <div
             className="flex items-center justify-center gap-1"
@@ -157,32 +160,25 @@ export function InvoicesPage() {
           >
             {/* Pay Action */}
             <Tooltip title={isServing ? t('invoices.pay') : ''}>
-              <Button
-                type="text"
-                shape="circle"
+              <ActionIconButton
+                Icon={CreditCardOutlined}
+                labelKey="invoices.pay"
+                size="middle"
                 disabled={!isServing}
-                icon={
-                  <CreditCardOutlined className={isServing ? 'text-emerald-500 text-base' : ''} />
-                }
+                iconClassName={isServing ? 'text-emerald-500 text-base' : ''}
                 onClick={() => {
-                  confirmAction({
-                    title: t('invoices.payConfirmTitle'),
-                    content: t('invoices.payConfirmDesc'),
-                    okText: t('invoices.payOk'),
-                    cancelText: t('form.cancel'),
-                    onConfirm: () => payInvoice(record.invoiceId),
-                  });
+                  setSelectedRecord(record);
+                  setPayOpen(true);
                 }}
               />
             </Tooltip>
 
             {/* Edit Action */}
             <Tooltip title={isServing ? t('form.edit') : ''}>
-              <Button
-                type="text"
-                shape="circle"
+              <EditIconButton
+                size="middle"
                 disabled={!isServing}
-                icon={<EditOutlined className={isServing ? 'text-gray-700 text-base' : ''} />}
+                iconClassName={isServing ? 'text-gray-700 text-base' : ''}
                 onClick={() => {
                   setSelectedRecord(record);
                   setEditOpen(true);
@@ -192,12 +188,13 @@ export function InvoicesPage() {
 
             {/* Cancel Action */}
             <Tooltip title={isServing ? t('invoices.cancel') : ''}>
-              <Button
-                type="text"
-                shape="circle"
+              <ActionIconButton
+                Icon={StopOutlined}
+                labelKey="invoices.cancel"
                 danger
+                size="middle"
                 disabled={!isServing}
-                icon={<StopOutlined className={isServing ? 'text-rose-500 text-base' : ''} />}
+                iconClassName={isServing ? 'text-rose-500 text-base' : ''}
                 onClick={() => {
                   confirmAction({
                     title: t('invoices.cancelConfirmTitle'),
@@ -208,6 +205,19 @@ export function InvoicesPage() {
                     onConfirm: () => cancelInvoice(record.invoiceId),
                   });
                 }}
+              />
+            </Tooltip>
+
+            {/* Print Action: paid invoices only (reprint the receipt) */}
+            <Tooltip title={isPrintable ? t('invoices.print') : ''}>
+              <ActionIconButton
+                Icon={PrinterOutlined}
+                labelKey="invoices.print"
+                size="middle"
+                disabled={!isPrintable}
+                loading={printingInvoiceId === record.invoiceId}
+                iconClassName={isPrintable ? 'text-sky-600 text-base' : ''}
+                onClick={() => handlePrint(record.invoiceId)}
               />
             </Tooltip>
           </div>
@@ -259,7 +269,7 @@ export function InvoicesPage() {
         />
 
         {/* Shop filter dropdown: Only to Owner */}
-        {isAdmin && (
+        {isOwner && (
           <Select
             allowClear
             placeholder={t('invoices.filterShop')}
@@ -276,7 +286,7 @@ export function InvoicesPage() {
         rowKey="invoiceId"
         columns={columns}
         dataSource={items}
-        loading={loading || payLoading || cancelLoading}
+        loading={loading || cancelLoading}
         emptyText={searchKeyword.trim() ? t('table.emptySearch') : t('table.emptyData')}
         total={pagination?.totalElements}
         currentPage={currentPage}
@@ -291,19 +301,18 @@ export function InvoicesPage() {
       {/* Drawer View invoice details */}
       <Drawer
         title={t('invoices.detailTitle')}
-        width={580}
+        size={580}
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         closable={true}
-        footer={
-          <div className="flex justify-end">
-            <Button onClick={() => setDetailOpen(false)}>{t('form.close')}</Button>
-          </div>
-        }
+        footer={<CloseButton onClose={() => setDetailOpen(false)} />}
       >
         {selectedRecord && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <Descriptions size="small" column={1} bordered>
+              <Descriptions.Item label={t('invoices.invoiceCode')}>
+                {selectedRecord.invoiceCode || '—'}
+              </Descriptions.Item>
               <Descriptions.Item label={t('invoices.shopName')}>
                 {selectedRecord.shopName || '—'}
               </Descriptions.Item>
@@ -311,29 +320,17 @@ export function InvoicesPage() {
                 {selectedRecord.staffName || '—'}
               </Descriptions.Item>
               <Descriptions.Item label={t('invoices.tableNumber')}>
-                {selectedRecord.tableNumber !== undefined
+                {selectedRecord.tableNumber != null
                   ? t('revenues.tablePrefix', { number: selectedRecord.tableNumber })
                   : '—'}
               </Descriptions.Item>
               <Descriptions.Item label={t('invoices.status')}>
-                <Tag
-                  color={
-                    selectedRecord.status === t('invoices.statusOptions.serving')
-                      ? 'processing'
-                      : selectedRecord.status === t('invoices.statusOptions.paid')
-                        ? 'success'
-                        : 'error'
-                  }
-                >
-                  {selectedRecord.status}
-                </Tag>
+                <InvoiceStatusTag status={selectedRecord.status} />
               </Descriptions.Item>
               <Descriptions.Item label={t('invoices.createdAt')}>
                 {formatDate(selectedRecord.createdAt)}
               </Descriptions.Item>
             </Descriptions>
-
-            <Divider className="my-2" />
 
             <Typography.Text strong className="text-base">
               {t('invoices.itemsList')}
@@ -349,7 +346,17 @@ export function InvoicesPage() {
                   title: t('invoices.drinkName'),
                   dataIndex: 'drinkName',
                   key: 'drinkName',
-                  render: (val: string | undefined, r: InvoiceDetailItem) => val || r.name || '—',
+                  // The note (if any) is shown under the drink name
+                  render: (val: string | undefined, r: InvoiceDetailItem) => (
+                    <div className="flex flex-col">
+                      <span>{val || r.name || '—'}</span>
+                      {r.note?.trim() && (
+                        <Typography.Text type="secondary" className="text-xs">
+                          {t('invoices.note')}: {r.note}
+                        </Typography.Text>
+                      )}
+                    </div>
+                  ),
                 },
                 {
                   title: t('invoices.size'),
@@ -392,7 +399,7 @@ export function InvoicesPage() {
               ]}
             />
 
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg mt-2 border">
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border">
               <span className="font-semibold text-gray-700">{t('invoices.totalAmount')}:</span>
               <span className="font-bold text-lg text-emerald-600">
                 {Number(selectedRecord.totalAmount || 0).toLocaleString('vi-VN')} đ
@@ -409,6 +416,19 @@ export function InvoicesPage() {
         record={selectedRecord}
         onSubmit={editInvoice}
         loading={editLoading}
+      />
+
+      {/* Pay Invoice Modal: print or don't print the receipt */}
+      <InvoicePayModal
+        open={payOpen}
+        record={selectedRecord}
+        onClose={() => setPayOpen(false)}
+        onSubmit={async (shouldPrint) => {
+          if (!selectedRecord) return;
+          await payInvoice(selectedRecord.invoiceId, shouldPrint);
+          setPayOpen(false);
+        }}
+        loading={payLoading}
       />
     </div>
   );

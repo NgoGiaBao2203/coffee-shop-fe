@@ -4,13 +4,13 @@ export const ENDPOINT = {
 
   // Staffs
   GET_STAFFS: '/staffs',
+  CREATE_STAFF: '/staff/create',
   EDIT_STAFF: '/staff/edit',
   DELETE_STAFF: '/staff/delete',
-  CREATE_STAFF: '/staff/create',
 
   // Dropdowns
-  GET_ROLES: '/dropdown/role',
-  GET_SHOP_NAMES: '/dropdown/shop-name',
+  GET_DROPDOWN_ROLES: '/dropdown/role',
+  GET_DROPDOWN_SHOP_NAMES: '/dropdown/shop-name',
   GET_DROPDOWN_CATEGORIES: '/dropdown/category',
 
   // Categories
@@ -23,8 +23,8 @@ export const ENDPOINT = {
   GET_DRINKS: '/drinks',
   GET_DRINK_DETAIL: '/drink/detail',
   CREATE_DRINK: '/drink/create',
+  EDIT_DRINK: '/drink/edit',
   DELETE_DRINK: '/drink/delete',
-  UPDATE_DRINK: '/drink/edit',
 
   // Drink Details
   CREATE_DRINK_DETAIL: '/drink-detail/create',
@@ -33,6 +33,7 @@ export const ENDPOINT = {
 
   // Revenue
   GET_REVENUES: '/revenues',
+  EXPORT_REVENUES: '/revenues/export',
 
   // Invoices
   GET_INVOICES: '/invoices',
@@ -40,16 +41,17 @@ export const ENDPOINT = {
   EDIT_INVOICE: '/invoice/edit',
   PAY_INVOICE: '/invoice/pay',
   CANCEL_INVOICE: '/invoice/cancel',
+  PRINT_INVOICE: '/invoices/print',
 
-  // Tables
+  // Tables (create is plural on the backend)
   GET_TABLES: '/tables',
   CREATE_TABLE: '/tables/create',
-  EDIT_TABLE: 'table/edit',
+  EDIT_TABLE: '/table/edit',
   DELETE_TABLE: '/table/delete',
 
-  // Shop
-  GET_SHOPES: '/shops',
-  CREATE_SHOP: 'shop/create',
+  // Shops (edit takes shopId on the path: /shop/{shopId})
+  GET_SHOPS: '/shops',
+  CREATE_SHOP: '/shop/create',
   EDIT_SHOP: '/shop',
   DELETE_SHOP: '/shop/delete',
 } as const;

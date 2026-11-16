@@ -1,6 +1,6 @@
-import { Button, Divider, Form, Modal, type FormInstance, type FormProps } from 'antd';
-import { useTranslation } from 'react-i18next';
+import { Divider, Form, Modal, type FormInstance, type FormProps } from 'antd';
 import type { ReactNode } from 'react';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
 
 interface TableFormModalProps<T extends object> {
   readonly open: boolean;
@@ -23,8 +23,6 @@ export function TableFormModal<T extends object>({
   submitLabel,
   children,
 }: TableFormModalProps<T>) {
-  const { t } = useTranslation();
-
   return (
     <Modal
       open={open}
@@ -33,12 +31,12 @@ export function TableFormModal<T extends object>({
       title={title}
       width={480}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={onClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {submitLabel}
-          </Button>
-        </div>
+        <SubmitButtons
+          onCancel={onClose}
+          onSubmit={() => form.submit()}
+          submitText={submitLabel}
+          loading={loading}
+        />
       }
     >
       <Divider className="my-3!" />

@@ -4,6 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useLayoutEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import type { CategorySelectOption } from '../types';
+import { DRINK_SIZES, type DrinkSize } from '../constants';
 
 // Check allowed characters for drink name
 const isAllowedDrinkNameCharacter = (character: string) =>
@@ -15,6 +16,11 @@ interface DrinkCategoryFieldProps {
     value: string,
     option?: CategorySelectOption | CategorySelectOption[],
   ) => void;
+  readonly disabled?: boolean;
+}
+
+interface DrinkSizeFieldProps {
+  readonly takenSizes?: readonly string[];
 }
 
 export function DrinkNameField() {
@@ -50,7 +56,7 @@ export function DrinkNameField() {
   );
 }
 
-export function DrinkCategoryField({ options, onChange }: DrinkCategoryFieldProps) {
+export function DrinkCategoryField({ options, onChange, disabled }: DrinkCategoryFieldProps) {
   const { t } = useTranslation();
 
   return (
@@ -68,13 +74,17 @@ export function DrinkCategoryField({ options, onChange }: DrinkCategoryFieldProp
         placeholder={t('form.selectCategoryPlaceholder')}
         options={options}
         onChange={onChange}
+        disabled={disabled}
         notFoundContent={options.length === 0 ? t('drinks.noCategory') : undefined}
       />
     </Form.Item>
   );
 }
 
-export function DrinkStatusField({ required = true }: Readonly<{ required?: boolean }>) {
+export function DrinkStatusField({
+  required = true,
+  disabled,
+}: Readonly<{ required?: boolean; disabled?: boolean }>) {
   const { t } = useTranslation();
 
   return (
@@ -84,6 +94,7 @@ export function DrinkStatusField({ required = true }: Readonly<{ required?: bool
       rules={required ? [{ required: true }] : undefined}
     >
       <Select
+        disabled={disabled}
         options={[
           {
             value: 1,
@@ -94,6 +105,27 @@ export function DrinkStatusField({ required = true }: Readonly<{ required?: bool
             label: t('drinks.statusInactive'),
           },
         ]}
+      />
+    </Form.Item>
+  );
+}
+
+export function DrinkSizeField({ takenSizes = [] }: DrinkSizeFieldProps) {
+  const { t } = useTranslation();
+
+  return (
+    <Form.Item
+      name="size"
+      label={t('drinks.size')}
+      rules={[{ required: true, message: t('drinks.validation.sizeRequired') }]}
+    >
+      <Select
+        placeholder={t('drinkDetails.selectSize')}
+        options={DRINK_SIZES.map((size: DrinkSize) => ({
+          value: size,
+          label: t(`drinks.sizeOptions.${size}`),
+          disabled: takenSizes.includes(size),
+        }))}
       />
     </Form.Item>
   );

@@ -26,7 +26,7 @@ npm run format      # prettier --write "src/**/*.{ts,tsx,css}"
 npm run build:prod
 ```
 
-Always run `npm run type-check` after making changes.
+Always run `npm run type-check` after making changes. Before finishing, run the CI scripts from the repo root: `./scripts/format.sh`, `./scripts/build-dev.sh`, `./scripts/build-prod.sh`.
 
 ## Feature Folder Convention
 
@@ -89,9 +89,30 @@ Prefer these over ad-hoc implementations:
 | `TableGrid`, `AppColumnType` | [src/components/table/TableGrid.tsx](src/components/table/TableGrid.tsx) |
 | `SearchInput` | [src/components/search/SearchInput.tsx](src/components/search/SearchInput.tsx) |
 | `AppFormDrawer`, `FormFieldConfig` | [src/components/form/AppFormDrawer.tsx](src/components/form/AppFormDrawer.tsx) |
-| `useConfirmModal` | [src/components/modal/ConfirmModal.tsx](src/components/modal/ConfirmModal.tsx) |
+| `AppModal` (centered, destroyOnHidden) | [src/components/modal/AppModal.tsx](src/components/modal/AppModal.tsx) |
+| `SubmitButtons` (Cancel + Submit footer for modals/drawers) | [src/components/button/SubmitButtons.tsx](src/components/button/SubmitButtons.tsx) |
+| `CloseButton` (right-aligned Close footer for read-only drawers/modals) | [src/components/button/CloseButton.tsx](src/components/button/CloseButton.tsx) |
+| `CreateButton` (primary "Create" button in page headers) | [src/components/button/CreateButton.tsx](src/components/button/CreateButton.tsx) |
+| `EditIconButton`, `DeleteIconButton` (text icon buttons; pass `className`/`iconSize` for per-screen look) | [src/components/button/ActionIconButtons.tsx](src/components/button/ActionIconButtons.tsx) |
+| `useConfirmModal` (`confirm`, `confirmDelete` with shared delete labels) | [src/components/modal/ConfirmModal.tsx](src/components/modal/ConfirmModal.tsx) |
 | `useNotifyModal` | [src/components/modal/NotifyModal.tsx](src/components/modal/NotifyModal.tsx) |
 | `useToast` | [src/components/toast/useToast.ts](src/components/toast/useToast.ts) |
+| `OrderEditor` (menu + table + cart form shared by create order and edit invoice) | [src/components/order/OrderEditor.tsx](src/components/order/OrderEditor.tsx) |
+| `useOrderEditor` | [src/hooks/useOrderEditor.ts](src/hooks/useOrderEditor.ts) |
+
+### Where shared code goes
+
+Code used by 2+ features (extract it instead of duplicating; Jenkins/SonarQube check duplication):
+
+| Kind | Location |
+|---|---|
+| Component (`.tsx` only) | `src/components/<kind>/` |
+| Hook (`use*.ts`) | `src/hooks/` |
+| Shared types / DTOs | `src/types/<topic>.ts` |
+| Helpers | `src/utils/` |
+| Constants | `src/constants/` |
+
+Never put hooks or `.ts` type files inside `src/components/<kind>/` (exception already there: `toast/useToast.ts`).
 
 ## Adding a New Page
 
@@ -100,7 +121,7 @@ Prefer these over ad-hoc implementations:
 3. Register the route in [src/app/router.tsx](src/app/router.tsx) under `ProtectedRoute`.
 4. Add the nav entry in `NAV_ITEMS` ([src/layouts/MainLayout.tsx](src/layouts/MainLayout.tsx)) and its role list in `NAV_PERMISSIONS`.
 5. Add Vietnamese strings to `vn.json`.
-6. Run `npm run type-check` and `npm run format`.
+6. Run `./scripts/format.sh`, `./scripts/build-dev.sh` and `./scripts/build-prod.sh`.
 
 ## Conventions to Preserve
 

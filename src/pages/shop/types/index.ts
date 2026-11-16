@@ -1,38 +1,28 @@
+import type { PageResponse, SortDirection } from '@/types/api';
+
 export interface ShopItem {
   shopId: string;
   shopName: string;
   address: string;
-  phoneNumber: string | null;
+  phoneNumber: string;
   activeStaffCount: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
   isDeleted: boolean;
 }
 
-export interface ShopPagination {
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-
+// GET /shops takes query params (the only list API not using a JSON body)
 export interface SearchShopRequest {
-  shopId?: string;
   page: number;
   size: number;
   search?: string;
   sortBy?:
     'shopId' | 'shopName' | 'address' | 'phoneNumber' | 'createdAt' | 'updatedAt' | 'isDeleted';
-  sortDirection?: 'ASC' | 'DESC';
+  // Must be upper case in the query string
+  sortDirection?: SortDirection;
 }
 
-export interface ShopsResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  items: ShopItem[];
-  pagination: ShopPagination;
-}
+export type ShopsResponse = PageResponse<ShopItem>;
 
 export interface CreateShopRequest {
   shopName: string;
@@ -40,11 +30,7 @@ export interface CreateShopRequest {
   phoneNumber: string;
 }
 
-export interface EditShopRequest {
-  shopName: string;
-  address: string;
-  phoneNumber: string;
-}
+export type EditShopRequest = CreateShopRequest;
 
 export interface DeleteShopRequest {
   shopId: string;

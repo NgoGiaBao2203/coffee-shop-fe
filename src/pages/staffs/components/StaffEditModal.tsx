@@ -1,14 +1,15 @@
-import { useEffect, useRef } from 'react'; // 1. Import useRef
-import { Modal, Form, Input, Select, Button, Divider } from 'antd';
+import { useEffect, useRef } from 'react';
+import { Modal, Form, Input, Select, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { RESPONSE_CODE } from '@/constants/messages';
 import { ROLES } from '@/permission/roles';
 import type { StaffItem } from '../types';
+import { SubmitButtons } from '@/components/button/SubmitButtons';
+import { useFormApiError } from '@/hooks/useFormApiError';
+import { getPhoneNumberRule, normalizePhoneNumber } from '@/utils/formRules';
 
 export interface StaffEditValues {
   fullName: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   roleId: string;
   shopId: string;
 }
@@ -43,6 +44,7 @@ export function StaffEditModal({
 }: StaffEditModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<StaffEditValues>();
+  const handleFormError = useFormApiError();
 
   // Ref to ensure fields are ONLY reset when opening the modal, NOT on parent re-renders
   const isOpenedRef = useRef(false);
@@ -71,8 +73,8 @@ export function StaffEditModal({
       );
 
       form.setFieldsValue({
-        fullName: record.fullName,
-        phoneNumber: record.phoneNumber,
+        fullName: record.fullName ?? '',
+        phoneNumber: record.phoneNumber ?? '',
         roleId: matchedRole?.value,
         shopId: matchedShop?.value,
       });
@@ -87,18 +89,14 @@ export function StaffEditModal({
 
   const handleSubmit = async (values: StaffEditValues) => {
     try {
-      await onSubmit(values);
+      await onSubmit({
+        ...values,
+        fullName: values.fullName.trim(),
+        phoneNumber: values.phoneNumber || undefined,
+      });
       handleClose();
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.data?.code === RESPONSE_CODE.CONFLICT) {
-        // Set error message directly on the field
-        form.setFields([
-          {
-            name: 'phoneNumber',
-            errors: [t('staffs.phoneNumberConflict')],
-          },
-        ]);
-      }
+      handleFormError(error, form);
     }
   };
 
@@ -110,12 +108,7 @@ export function StaffEditModal({
       title={t('staffs.editTitle')}
       width={520}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleClose}>{t('form.cancel')}</Button>
-          <Button type="primary" loading={loading} onClick={() => form.submit()}>
-            {t('form.save')}
-          </Button>
-        </div>
+        <SubmitButtons onCancel={handleClose} onSubmit={() => form.submit()} loading={loading} />
       }
     >
       {/* Read-only info */}
@@ -153,13 +146,18 @@ export function StaffEditModal({
           <Form.Item
             name="fullName"
             label={t('staffs.fullName')}
-            rules={[{ required: true, message: t('staffs.fullNameRequired') }]}
+            rules={[{ required: true, whitespace: true, message: t('staffs.fullNameRequired') }]}
           >
             <Input />
           </Form.Item>
 
-          <Form.Item name="phoneNumber" label={t('staffs.phoneNumber')}>
-            <Input />
+          <Form.Item
+            name="phoneNumber"
+            label={t('staffs.phoneNumber')}
+            normalize={normalizePhoneNumber}
+            rules={[getPhoneNumberRule(t)]}
+          >
+            <Input maxLength={11} />
           </Form.Item>
 
           <Form.Item
@@ -170,13 +168,12 @@ export function StaffEditModal({
             <Select options={roleOptions} loading={optionsLoading} disabled={isManager} />
           </Form.Item>
 
-          <Form.Item name="shopId" label={t('staffs.shopName')}>
-            <Select
-              options={shopOptions}
-              loading={optionsLoading}
-              allowClear
-              disabled={isManager}
-            />
+          <Form.Item
+            name="shopId"
+            label={t('staffs.shopName')}
+            rules={[{ required: true, message: t('staffs.shopRequired') }]}
+          >
+            <Select options={shopOptions} loading={optionsLoading} disabled={isManager} />
           </Form.Item>
         </div>
       </Form>

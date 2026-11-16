@@ -5,7 +5,8 @@ import type { GetProfileResponse, LoginRequest } from '../types';
 
 export async function getProfileApi(payload: LoginRequest): Promise<GetProfileResponse> {
   const response = await api.post<GetProfileResponse>(ENDPOINT.GET_PROFILE, payload, {
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.EMAIL_OR_PASSWORD_INCORRECT],
+    // Validation and wrong credentials are shown on the form fields
+    suppressCodes: [RESPONSE_CODE.INVALID_REQUEST, RESPONSE_CODE.EMAIL_OR_PASSWORD_INCORRECT],
   });
   return response.data;
 }

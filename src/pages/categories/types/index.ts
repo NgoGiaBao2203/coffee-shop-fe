@@ -1,3 +1,5 @@
+import type { ApiResponse, PageResponse, SortDirection } from '@/types/api';
+
 export interface CategoryItem {
   categoryId: string;
   categoryName: string;
@@ -8,68 +10,26 @@ export interface CategoryItem {
 export interface CategoryListParams {
   page: number;
   size: number;
+  // Only applied for OWNER; empty = every shop
   shopId: string;
   search: string;
-  sortBy: string;
-  sortDirection: 'ASC' | 'DESC';
+  sortBy: 'drinkCategoryId' | 'categoryId' | 'shopId' | 'categoryName' | 'isDeleted';
+  sortDirection: SortDirection;
 }
 
-export interface PaginationInfo {
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-
-export interface CategoryListResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  items: CategoryItem[];
-  pagination: PaginationInfo;
-}
-
-export interface ShopNameItem {
-  shopId: string;
-  shopName: string;
-}
-
-export interface ShopNameListResponse {
-  code: string;
-  message: string;
-  traceId: string;
-  shopNameResults: ShopNameItem[];
-}
+export type CategoryListResponse = PageResponse<CategoryItem>;
 
 export interface CreateCategoryRequest {
   categoryName: string;
   shopId: string;
 }
 
-export interface CreateCategoryResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
-
-export interface EditCategoryRequest {
+export interface EditCategoryRequest extends CreateCategoryRequest {
   categoryId: string;
-  categoryName: string;
-  shopId: string;
-}
-
-export interface EditCategoryResponse {
-  code: string;
-  message: string;
-  traceId: string;
 }
 
 export interface DeleteCategoryRequest {
   categoryId: string;
 }
 
-export interface DeleteCategoryResponse {
-  code: string;
-  message: string;
-  traceId: string;
-}
+export type CategoryMutationResponse = ApiResponse;

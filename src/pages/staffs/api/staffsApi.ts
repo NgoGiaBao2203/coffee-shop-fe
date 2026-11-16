@@ -5,48 +5,43 @@ import type {
   StaffListParams,
   StaffListResponse,
   EditStaffRequest,
-  EditStaffResponse,
   DeleteStaffRequest,
-  DeleteStaffResponse,
   CreateStaffRequest,
-  CreateStaffResponse,
-  RoleListResponse,
-  ShopNameListResponse,
+  StaffMutationResponse,
 } from '../types';
 
+// Kept for features that still import it from here (revenue)
+export { getShopNamesApi } from '@/api/dropdownApi';
+
+// Field errors and duplicates (ER005: username / email / phone) are shown on the form
+const FORM_SUPPRESS_CODES = [RESPONSE_CODE.INVALID_REQUEST, RESPONSE_CODE.CONFLICT];
+
 export async function getStaffsApi(params: StaffListParams): Promise<StaffListResponse> {
-  const response = await api.post<StaffListResponse>(ENDPOINT.GET_STAFFS, params);
-  return response.data;
-}
-
-export async function editStaffApi(params: EditStaffRequest): Promise<EditStaffResponse> {
-  const response = await api.put<EditStaffResponse>(ENDPOINT.EDIT_STAFF, params, {
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND, RESPONSE_CODE.CONFLICT],
+  const response = await api.post<StaffListResponse>(ENDPOINT.GET_STAFFS, {
+    ...params,
+    roleId: params.roleId || undefined,
+    branchShopId: params.branchShopId || undefined,
   });
   return response.data;
 }
 
-export async function createStaffApi(params: CreateStaffRequest): Promise<CreateStaffResponse> {
-  const response = await api.post<CreateStaffResponse>(ENDPOINT.CREATE_STAFF, params, {
-    suppressCodes: [RESPONSE_CODE.CONFLICT, RESPONSE_CODE.NOT_FOUND],
+export async function createStaffApi(params: CreateStaffRequest): Promise<StaffMutationResponse> {
+  const response = await api.post<StaffMutationResponse>(ENDPOINT.CREATE_STAFF, params, {
+    suppressCodes: FORM_SUPPRESS_CODES,
   });
   return response.data;
 }
 
-export async function deleteStaffApi(params: DeleteStaffRequest): Promise<DeleteStaffResponse> {
-  const response = await api.delete<DeleteStaffResponse>(ENDPOINT.DELETE_STAFF, {
+export async function editStaffApi(params: EditStaffRequest): Promise<StaffMutationResponse> {
+  const response = await api.put<StaffMutationResponse>(ENDPOINT.EDIT_STAFF, params, {
+    suppressCodes: FORM_SUPPRESS_CODES,
+  });
+  return response.data;
+}
+
+export async function deleteStaffApi(params: DeleteStaffRequest): Promise<StaffMutationResponse> {
+  const response = await api.delete<StaffMutationResponse>(ENDPOINT.DELETE_STAFF, {
     data: params,
-    suppressCodes: [RESPONSE_CODE.NOT_FOUND],
   });
-  return response.data;
-}
-
-export async function getRolesApi(): Promise<RoleListResponse> {
-  const response = await api.get<RoleListResponse>(ENDPOINT.GET_ROLES);
-  return response.data;
-}
-
-export async function getShopNamesApi(): Promise<ShopNameListResponse> {
-  const response = await api.get<ShopNameListResponse>(ENDPOINT.GET_SHOP_NAMES);
   return response.data;
 }

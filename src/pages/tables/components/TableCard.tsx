@@ -1,8 +1,7 @@
-import { Button } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { TableItem } from '../types';
 import { getTableCardStyle, tableStatusKey } from '../utils/utils';
+import { DeleteIconButton, EditIconButton } from '@/components/button/ActionIconButtons';
 
 interface TableCardProps {
   readonly record: TableItem;
@@ -54,25 +53,16 @@ export function TableCard({ record, onClick, onEdit, onDelete }: TableCardProps)
       {(onEdit || onDelete) && (
         <div className="absolute right-1.5 top-1.5 z-10 flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
           {onEdit && (
-            <Button
-              type="text"
-              shape="circle"
-              size="small"
-              aria-label={t('form.edit')}
+            <EditIconButton
               className="flex items-center justify-center! bg-white/80 hover:bg-white! text-inherit shadow-xs"
-              icon={<EditOutlined style={{ fontSize: 13 }} />}
+              iconSize={13}
               onClick={() => onEdit(record)}
             />
           )}
           {onDelete && (
-            <Button
-              danger
-              type="text"
-              shape="circle"
-              size="small"
-              aria-label={t('form.delete')}
+            <DeleteIconButton
               className="flex items-center justify-center! bg-white/80 hover:bg-red-50! shadow-xs"
-              icon={<DeleteOutlined style={{ fontSize: 13 }} />}
+              iconSize={13}
               onClick={() => onDelete(record)}
             />
           )}
