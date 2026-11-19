@@ -33,8 +33,7 @@ export interface StaffListParams {
     | 'shopName'
     | 'roleName'
     | 'createdAt'
-    | 'updatedAt'
-    | 'isDeleted';
+    | 'updatedAt';
   sortDirection: SortDirection;
 }
 
@@ -43,17 +42,18 @@ export type StaffListResponse = PageResponse<StaffItem>;
 export interface CreateStaffRequest {
   email: string;
   username: string;
-  fullName?: string;
-  phoneNumber?: string;
+  fullName: string;
+  phoneNumber: string;
   roleId: string;
   shopId: string;
 }
 
-// email / username cannot be edited; MANAGER cannot change roleId / shopId (ignored by the backend)
+// email / username cannot be edited. MANAGER: roleId is ignored, shopId must be their own shop.
+// OWNER: sending a shopId different from the current shop moves the staff to that shop.
 export interface EditStaffRequest {
   profileId: string;
   fullName: string;
-  phoneNumber?: string;
+  phoneNumber: string;
   roleId: string;
   shopId: string;
 }

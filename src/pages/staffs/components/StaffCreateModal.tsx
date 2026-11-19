@@ -4,7 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { ROLES } from '@/permission/roles';
 import { SubmitButtons } from '@/components/button/SubmitButtons';
 import { useFormApiError } from '@/hooks/useFormApiError';
-import { getPhoneNumberRule, normalizePhoneNumber } from '@/utils/formRules';
+import {
+  getRequiredPhoneNumberRules,
+  getStaffEmailRules,
+  getStaffFullNameRules,
+  getStaffUsernameRules,
+  normalizePhoneNumber,
+} from '@/utils/formRules';
 
 const DEFAULT_ROLE_LABEL = ROLES.STAFF;
 
@@ -12,7 +18,7 @@ export interface StaffCreateValues {
   email: string;
   username: string;
   fullName: string;
-  phoneNumber?: string;
+  phoneNumber: string;
   roleId: string;
   shopId: string;
 }
@@ -69,8 +75,10 @@ export function StaffCreateModal({
     try {
       await onSubmit({
         ...values,
-        fullName: values.fullName?.trim(),
-        phoneNumber: values.phoneNumber || undefined,
+        email: values.email.trim().toLowerCase(),
+        username: values.username.trim(),
+        fullName: values.fullName.trim(),
+        phoneNumber: values.phoneNumber.trim(),
       });
       handleClose();
     } catch (error) {
@@ -98,11 +106,7 @@ export function StaffCreateModal({
 
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <div className="grid grid-cols-2 gap-x-4">
-          <Form.Item
-            name="fullName"
-            label={t('staffs.fullName')}
-            rules={[{ required: true, message: t('staffs.fullNameRequired') }]}
-          >
+          <Form.Item name="fullName" label={t('staffs.fullName')} rules={getStaffFullNameRules(t)}>
             <Input />
           </Form.Item>
 
@@ -110,27 +114,16 @@ export function StaffCreateModal({
             name="phoneNumber"
             label={t('staffs.phoneNumber')}
             normalize={normalizePhoneNumber}
-            rules={[getPhoneNumberRule(t)]}
+            rules={getRequiredPhoneNumberRules(t)}
           >
             <Input maxLength={11} />
           </Form.Item>
 
-          <Form.Item
-            name="email"
-            label={t('staffs.email')}
-            rules={[
-              { required: true, whitespace: true, message: t('staffs.emailRequired') },
-              { type: 'email', message: t('staffs.emailInvalid') },
-            ]}
-          >
+          <Form.Item name="email" label={t('staffs.email')} rules={getStaffEmailRules(t)}>
             <Input />
           </Form.Item>
 
-          <Form.Item
-            name="username"
-            label={t('staffs.username')}
-            rules={[{ required: true, whitespace: true, message: t('staffs.usernameRequired') }]}
-          >
+          <Form.Item name="username" label={t('staffs.username')} rules={getStaffUsernameRules(t)}>
             <Input />
           </Form.Item>
 

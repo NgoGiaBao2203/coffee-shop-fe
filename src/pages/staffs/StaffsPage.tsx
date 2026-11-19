@@ -125,36 +125,6 @@ export function StaffsPage() {
       width: 250,
       render: (value: string | null) => value ?? '—',
     },
-    {
-      key: 'createdAt',
-      dataIndex: 'createdAt',
-      title: t('staffs.createdAt'),
-      width: 150,
-      render: (value: string) =>
-        new Date(value).toLocaleString('vi-VN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-    },
-    {
-      key: 'updatedAt',
-      dataIndex: 'updatedAt',
-      title: t('staffs.updatedAt'),
-      width: 150,
-      render: (value: string | null) =>
-        value
-          ? new Date(value).toLocaleString('vi-VN', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : '—',
-    },
   ];
 
   return (
@@ -197,7 +167,7 @@ export function StaffsPage() {
       </div>
 
       <TableGrid<StaffItem>
-        rowKey="profileId"
+        rowKey={(record) => `${record.profileId}-${record.shopName ?? ''}`}
         columns={columns}
         dataSource={items}
         loading={loading || deleteLoading}

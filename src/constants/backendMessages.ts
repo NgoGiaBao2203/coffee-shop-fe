@@ -75,12 +75,14 @@ export const BACKEND_MESSAGE_RULES: BackendMessageRule[] = [
 
   // Staffs
   {
-    match: ['staff phone is existed', 'phone number exited'],
+    match: ['staff phone number is existed', 'staff phone is existed', 'phone number exited'],
     key: 'staffs.phoneConflict',
     field: 'phoneNumber',
   },
   { match: ['staff email is existed'], key: 'staffs.emailConflict', field: 'email' },
   { match: ['staff is existed'], key: 'staffs.usernameConflict', field: 'username' },
+  { match: ['can not delete staff with pending invoices'], key: 'staffs.pendingInvoices' },
+  { match: ['role can not be assigned'], key: 'staffs.roleNotAssignable' },
 
   // Drinks / drink details
   {
@@ -102,6 +104,10 @@ export const BACKEND_MESSAGE_RULES: BackendMessageRule[] = [
     field: 'tableNumber',
   },
   { match: ['can not delete table with pending invoices'], key: 'tables.deletePendingInvoices' },
+  {
+    match: ['can not change table status while pending invoices'],
+    key: 'tables.statusPendingInvoices',
+  },
   { match: ['table does not belong'], key: 'apiMessages.tableNotBelong', reload: true },
 
   // Revenue

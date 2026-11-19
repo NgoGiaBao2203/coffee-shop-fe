@@ -2,17 +2,16 @@ import { useEffect, useRef } from 'react';
 import { Modal, Form, Input, Select, Divider } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { ROLES } from '@/permission/roles';
-import type { StaffItem } from '../types';
+import type { EditStaffRequest, StaffItem } from '../types';
 import { SubmitButtons } from '@/components/button/SubmitButtons';
 import { useFormApiError } from '@/hooks/useFormApiError';
-import { getPhoneNumberRule, normalizePhoneNumber } from '@/utils/formRules';
+import {
+  getRequiredPhoneNumberRules,
+  getStaffFullNameRules,
+  normalizePhoneNumber,
+} from '@/utils/formRules';
 
-export interface StaffEditValues {
-  fullName: string;
-  phoneNumber?: string;
-  roleId: string;
-  shopId: string;
-}
+export type StaffEditValues = Omit<EditStaffRequest, 'profileId'>;
 
 interface SelectOption {
   value: string;
@@ -92,7 +91,7 @@ export function StaffEditModal({
       await onSubmit({
         ...values,
         fullName: values.fullName.trim(),
-        phoneNumber: values.phoneNumber || undefined,
+        phoneNumber: values.phoneNumber.trim(),
       });
       handleClose();
     } catch (error) {
@@ -143,11 +142,7 @@ export function StaffEditModal({
         }}
       >
         <div className="grid grid-cols-2 gap-x-4">
-          <Form.Item
-            name="fullName"
-            label={t('staffs.fullName')}
-            rules={[{ required: true, whitespace: true, message: t('staffs.fullNameRequired') }]}
-          >
+          <Form.Item name="fullName" label={t('staffs.fullName')} rules={getStaffFullNameRules(t)}>
             <Input />
           </Form.Item>
 
@@ -155,25 +150,27 @@ export function StaffEditModal({
             name="phoneNumber"
             label={t('staffs.phoneNumber')}
             normalize={normalizePhoneNumber}
-            rules={[getPhoneNumberRule(t)]}
+            rules={getRequiredPhoneNumberRules(t)}
           >
             <Input maxLength={11} />
           </Form.Item>
 
           <Form.Item
             name="roleId"
+            hidden={isManager}
             label={t('staffs.role')}
             rules={[{ required: true, message: t('staffs.roleRequired') }]}
           >
-            <Select options={roleOptions} loading={optionsLoading} disabled={isManager} />
+            <Select options={roleOptions} loading={optionsLoading} />
           </Form.Item>
 
           <Form.Item
             name="shopId"
+            hidden={isManager}
             label={t('staffs.shopName')}
             rules={[{ required: true, message: t('staffs.shopRequired') }]}
           >
-            <Select options={shopOptions} loading={optionsLoading} disabled={isManager} />
+            <Select options={shopOptions} loading={optionsLoading} />
           </Form.Item>
         </div>
       </Form>

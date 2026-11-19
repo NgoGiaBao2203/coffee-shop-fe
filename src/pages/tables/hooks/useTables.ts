@@ -4,29 +4,12 @@ import { useAppSelector } from '@/store/hooks';
 import { ROLES } from '@/permission/roles';
 import { useToast } from '@/components/toast/useToast';
 import { useShopOptions } from '@/hooks/useShopOptions';
-import { getInvoicesApi } from '@/pages/invoices/api/invoicesAPI';
-import { INVOICE_STATUS } from '@/pages/invoices/types';
 import type { PaginationInfo } from '@/types/api';
 import { isApiReloadError } from '@/utils/apiError';
 import { getTablesApi, createTableApi, editTableApi, deleteTableApi } from '../api/tablesApi';
-import { TABLE_STATUS, type SearchTablesRequest, type TableItem } from '../types';
+import type { SearchTablesRequest, TableItem } from '../types';
 import type { TableCreateValues } from '../components/TableCreateModal';
 import type { TableEditValues } from '../components/TableEditModal';
-
-// True when the table still has an unpaid (PENDING) invoice
-async function hasPendingInvoice(table: TableItem): Promise<boolean> {
-  const response = await getInvoicesApi({
-    page: 1,
-    size: 100,
-    shopId: table.shopId,
-    status: String(INVOICE_STATUS.PENDING),
-    search: String(table.tableNumber),
-    sortBy: 'createdAt',
-    sortDirection: 'DESC',
-  });
-
-  return (response.items ?? []).some((invoice) => invoice.tableId === table.tableId);
-}
 
 const DEFAULT_PARAMS: SearchTablesRequest = {
   page: 1,
@@ -186,14 +169,6 @@ export function useTables(initialPage = 1, initialSize = 10) {
 
       setEditLoading(true);
       try {
-        // Freeing an occupied table that still has an unpaid invoice breaks paying / editing it
-        const isLeavingOccupied =
-          record.status === TABLE_STATUS.OCCUPIED && values.status !== TABLE_STATUS.OCCUPIED;
-        if (isLeavingOccupied && (await hasPendingInvoice(record))) {
-          toast.error(t('tables.occupiedHasPendingInvoice'));
-          throw new Error('table has a pending invoice');
-        }
-
         await editTableApi({
           tableId: record.tableId,
           tableNumber: values.tableNumber,

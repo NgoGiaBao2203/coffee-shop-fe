@@ -29,6 +29,7 @@ export const RESPONSE_CODE = {
   PHONE_INVALID_LENGTH: 'EV009',
   PRICE_MIN: 'EV010',
   STATUS_INVALID: 'EV011',
+  EMAIL_INVALID: 'EV012',
 } as const;
 
 export type ResponseCode = (typeof RESPONSE_CODE)[keyof typeof RESPONSE_CODE];
