@@ -1,6 +1,7 @@
 export const ENDPOINT = {
   // Auth / Profile
   GET_PROFILE: '/common/get-profile',
+  CHANGE_PASSWORD: '/profile/change-password',
 
   // Staffs
   GET_STAFFS: '/staffs',

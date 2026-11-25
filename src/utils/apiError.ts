@@ -63,16 +63,39 @@ function toNamePath(field: string): (string | number)[] {
     .map((part) => (/^\d+$/.test(part) ? Number(part) : part));
 }
 
+// One field can get several EV codes at once (order not fixed): show the most relevant one
+const FIELD_CODE_PRIORITY: string[] = [
+  RESPONSE_CODE.FIELD_REQUIRED,
+  RESPONSE_CODE.PASSWORD_WHITESPACE,
+  RESPONSE_CODE.PASSWORD_NON_ASCII,
+  RESPONSE_CODE.PASSWORD_LENGTH_INCORRECT,
+  RESPONSE_CODE.SIZE_MAX,
+  RESPONSE_CODE.PASSWORD_WEAK,
+];
+
+function getFieldCodeRank(code: string): number {
+  const rank = FIELD_CODE_PRIORITY.indexOf(code);
+  return rank === -1 ? FIELD_CODE_PRIORITY.length : rank;
+}
+
 // Form errors for an API error: EV codes on errorDetails[].field, or a known message bound to a field
 export function getApiFieldErrors(error: unknown): ApiFieldError[] {
   const rule = findBackendMessageRule(error);
 
   if (rule?.field) return [{ name: [rule.field], errors: [i18n.t(rule.key)] }];
 
-  return getErrorDetails(getApiErrorResponse(error))
-    .filter((detail): detail is ApiErrorDetail & { field: string } => !!detail.field)
-    .map((detail) => ({
-      name: toNamePath(detail.field),
-      errors: [getResponseMessage(detail.message)],
-    }));
+  const codeByField = new Map<string, string>();
+
+  getErrorDetails(getApiErrorResponse(error)).forEach(({ field, message }) => {
+    if (!field) return;
+    const current = codeByField.get(field);
+    if (current === undefined || getFieldCodeRank(message) < getFieldCodeRank(current)) {
+      codeByField.set(field, message);
+    }
+  });
+
+  return Array.from(codeByField, ([field, code]) => ({
+    name: toNamePath(field),
+    errors: [getResponseMessage(code)],
+  }));
 }

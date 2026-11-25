@@ -61,3 +61,44 @@ export function getStaffEmailRules(t: TFunction): FormRule[] {
     { type: 'email', message: t('staffs.emailInvalid') },
   ];
 }
+
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_LENGTH = 72;
+const NO_WHITESPACE_PATTERN = /^\S*$/;
+const ASCII_PATTERN = /^[\x21-\x7E]*$/;
+const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!-/:-@[-`{-~]).*$/;
+
+// New password rules of the backend, one message at a time in the order
+// whitespace (EV013) > non-ASCII (EV015) > min 8 (EV002) > max 72 (EV005) > strength (EV014)
+export function getNewPasswordRules(t: TFunction): FormRule[] {
+  return [
+    { required: true, message: t('profile.newPasswordRequired') },
+    {
+      validator: (_, value?: string) => {
+        if (!value) return Promise.resolve();
+
+        let message: string | undefined;
+        if (!NO_WHITESPACE_PATTERN.test(value)) message = t('responses.EV013');
+        else if (!ASCII_PATTERN.test(value)) message = t('responses.EV015');
+        else if (value.length < PASSWORD_MIN_LENGTH) message = t('profile.newPasswordMin');
+        else if (value.length > PASSWORD_MAX_LENGTH) message = t('profile.newPasswordMax');
+        else if (!STRONG_PASSWORD_PATTERN.test(value)) message = t('responses.EV014');
+
+        return message ? Promise.reject(new Error(message)) : Promise.resolve();
+      },
+    },
+  ];
+}
+
+// Confirm password: required and equal to the field `newPasswordField`
+export function getConfirmPasswordRules(t: TFunction, newPasswordField: string): FormRule[] {
+  return [
+    { required: true, message: t('profile.confirmPasswordRequired') },
+    ({ getFieldValue }) => ({
+      validator: (_, value?: string) =>
+        !value || value === getFieldValue(newPasswordField)
+          ? Promise.resolve()
+          : Promise.reject(new Error(t('profile.confirmPasswordMismatch'))),
+    }),
+  ];
+}

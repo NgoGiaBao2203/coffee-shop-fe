@@ -110,6 +110,24 @@ export const BACKEND_MESSAGE_RULES: BackendMessageRule[] = [
   },
   { match: ['table does not belong'], key: 'apiMessages.tableNotBelong', reload: true },
 
+  // Change password
+  {
+    match: ['current password is incorrect'],
+    key: 'profile.currentPasswordIncorrect',
+    field: 'currentPassword',
+  },
+  {
+    match: ['confirm password does not match'],
+    key: 'profile.confirmPasswordMismatch',
+    field: 'confirmPassword',
+  },
+  {
+    match: ['new password must be different'],
+    key: 'profile.newPasswordSameAsCurrent',
+    field: 'newPassword',
+  },
+  { match: ['password must not contain whitespace'], key: 'responses.EV013', field: 'newPassword' },
+
   // Revenue
   { match: ['too many invoices to export'], key: 'revenues.exportTooMany' },
 

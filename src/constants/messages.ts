@@ -30,6 +30,9 @@ export const RESPONSE_CODE = {
   PRICE_MIN: 'EV010',
   STATUS_INVALID: 'EV011',
   EMAIL_INVALID: 'EV012',
+  PASSWORD_WHITESPACE: 'EV013',
+  PASSWORD_WEAK: 'EV014',
+  PASSWORD_NON_ASCII: 'EV015',
 } as const;
 
 export type ResponseCode = (typeof RESPONSE_CODE)[keyof typeof RESPONSE_CODE];
