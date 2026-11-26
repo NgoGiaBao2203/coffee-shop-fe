@@ -13,6 +13,7 @@ import { StaffCreateModal } from './components/StaffCreateModal';
 import { useStaffs } from './hooks/useStaffs';
 import type { StaffItem } from './types';
 import { CreateButton } from '@/components/button/CreateButton';
+import { ResetPasswordIconButton } from '@/components/button/ActionIconButtons';
 
 const formatDate = (value: unknown) =>
   value
@@ -29,6 +30,7 @@ export function StaffsPage() {
   const { t } = useTranslation();
   const { showError } = useNotifyModal();
   const roleName = useAppSelector((state) => state.auth.profile?.roleName);
+  const currentProfileId = useAppSelector((state) => state.auth.profile?.profileId);
   const isManager = roleName === ROLES.MANAGER;
   const {
     items,
@@ -52,12 +54,30 @@ export function StaffsPage() {
     createLoading,
     deleteStaff,
     deleteLoading,
+    resetStaffPassword,
+    resetPasswordLoading,
     roleOptions,
     shopOptions,
     optionsLoading,
   } = useStaffs();
 
-  const { confirmDelete } = useConfirmModal();
+  const { confirm, confirmDelete } = useConfirmModal();
+
+  // Backend scope: OWNER resets any MANAGER / STAFF, MANAGER only STAFF; never yourself
+  const canResetPassword = (record: StaffItem) =>
+    record.profileId !== currentProfileId &&
+    record.roleName !== ROLES.OWNER &&
+    (!isManager || record.roleName === ROLES.STAFF);
+
+  const handleResetPasswordClick = (record: StaffItem) => {
+    confirm({
+      title: t('staffs.resetPasswordConfirmTitle'),
+      content: t('staffs.resetPasswordConfirmDesc', { name: record.fullName ?? record.username }),
+      okText: t('staffs.resetPasswordOk'),
+      cancelText: t('form.cancel'),
+      onConfirm: () => resetStaffPassword(record.profileId),
+    });
+  };
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -170,12 +190,22 @@ export function StaffsPage() {
         rowKey={(record) => `${record.profileId}-${record.shopName ?? ''}`}
         columns={columns}
         dataSource={items}
-        loading={loading || deleteLoading}
+        loading={loading || deleteLoading || resetPasswordLoading}
         emptyText={searchKeyword.trim() ? t('table.emptySearch') : t('table.emptyData')}
         total={pagination?.totalElements}
         currentPage={currentPage}
         currentPageSize={currentPageSize}
         onPageChange={handlePageChange}
+        renderExtraActions={(record) => (
+          <ResetPasswordIconButton
+            shape="default"
+            disabled={!canResetPassword(record)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleResetPasswordClick(record);
+            }}
+          />
+        )}
         onRowClick={(record) => {
           setSelectedRecord(record);
           setDetailOpen(true);

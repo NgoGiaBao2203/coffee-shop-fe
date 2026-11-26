@@ -2,6 +2,7 @@ export const ENDPOINT = {
   // Auth / Profile
   GET_PROFILE: '/common/get-profile',
   CHANGE_PASSWORD: '/profile/change-password',
+  RESET_PASSWORD: '/profile/reset-password',
 
   // Staffs
   GET_STAFFS: '/staffs',

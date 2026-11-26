@@ -62,4 +62,10 @@ export interface DeleteStaffRequest {
   profileId: string;
 }
 
+// PUT /profile/reset-password — resets to the default password given when the account was created.
+// OWNER: any MANAGER / STAFF; MANAGER: STAFF of their own shop only.
+export interface ResetStaffPasswordRequest {
+  profileId: string;
+}
+
 export type StaffMutationResponse = ApiResponse;

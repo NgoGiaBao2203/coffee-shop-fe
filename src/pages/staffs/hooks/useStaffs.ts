@@ -1,7 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getStaffsApi, editStaffApi, deleteStaffApi, createStaffApi } from '../api/staffsApi';
+import {
+  getStaffsApi,
+  editStaffApi,
+  deleteStaffApi,
+  createStaffApi,
+  resetStaffPasswordApi,
+} from '../api/staffsApi';
 import { getRolesApi } from '@/api/dropdownApi';
 import { useShopOptions } from '@/hooks/useShopOptions';
 import { useToast } from '@/components/toast/useToast';
@@ -39,6 +45,7 @@ export function useStaffs() {
   const [editLoading, setEditLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const { shopOptions, optionsLoading: shopsLoading } = useShopOptions();
@@ -154,6 +161,22 @@ export function useStaffs() {
     [params, fetchStaffs], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
+  const resetStaffPassword = useCallback(
+    async (profileId: string) => {
+      setResetPasswordLoading(true);
+      try {
+        await resetStaffPasswordApi({ profileId });
+        toast.success(t('staffs.resetPasswordSuccess'));
+      } catch (error) {
+        // The interceptor already shows the error message; ER004 = staff gone or out of scope
+        if (isApiReloadError(error)) await fetchStaffs(params);
+      } finally {
+        setResetPasswordLoading(false);
+      }
+    },
+    [params, fetchStaffs], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   const roleOptions = roles.map((r) => ({ value: r.roleId, label: r.roleDisplayName }));
   const optionsLoading = rolesLoading || shopsLoading;
 
@@ -179,6 +202,8 @@ export function useStaffs() {
     createLoading,
     deleteStaff,
     deleteLoading,
+    resetStaffPassword,
+    resetPasswordLoading,
     roleOptions,
     shopOptions,
     optionsLoading,

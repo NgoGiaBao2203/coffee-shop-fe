@@ -7,6 +7,7 @@ import type {
   EditStaffRequest,
   DeleteStaffRequest,
   CreateStaffRequest,
+  ResetStaffPasswordRequest,
   StaffMutationResponse,
 } from '../types';
 
@@ -43,5 +44,12 @@ export async function deleteStaffApi(params: DeleteStaffRequest): Promise<StaffM
   const response = await api.delete<StaffMutationResponse>(ENDPOINT.DELETE_STAFF, {
     data: params,
   });
+  return response.data;
+}
+
+export async function resetStaffPasswordApi(
+  params: ResetStaffPasswordRequest,
+): Promise<StaffMutationResponse> {
+  const response = await api.put<StaffMutationResponse>(ENDPOINT.RESET_PASSWORD, params);
   return response.data;
 }

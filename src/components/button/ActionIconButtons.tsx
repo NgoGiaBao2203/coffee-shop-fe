@@ -1,6 +1,6 @@
 import type { ComponentType, CSSProperties, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, KeyOutlined } from '@ant-design/icons';
 import { Button, type ButtonProps } from 'antd';
 
 interface ActionIconButtonProps {
@@ -56,4 +56,9 @@ export function EditIconButton(props: ActionIconButtonProps) {
 // Danger "Delete" icon button for table rows, cards and lists
 export function DeleteIconButton(props: ActionIconButtonProps) {
   return <ActionIconButton Icon={DeleteOutlined} labelKey="form.delete" danger {...props} />;
+}
+
+// "Reset password" icon button for table rows (e.g. a staff account)
+export function ResetPasswordIconButton(props: ActionIconButtonProps) {
+  return <ActionIconButton Icon={KeyOutlined} labelKey="form.resetPassword" {...props} />;
 }

@@ -33,6 +33,8 @@ export interface TableGridProps<T extends object> {
   readonly onDeleteClick?: (record: T) => void;
   /** Disables the delete button of a row (e.g. a record the backend refuses to delete) */
   readonly isDeleteDisabled?: (record: T) => boolean;
+  /** Extra row action buttons rendered before edit / delete; stop click propagation inside them */
+  readonly renderExtraActions?: (record: T) => ReactNode;
   /** Total records count for server-side pagination */
   readonly total?: number;
   /** Current page number (controlled) */
@@ -58,6 +60,7 @@ export function TableGrid<T extends object>({
   onDelete,
   onDeleteClick,
   isDeleteDisabled,
+  renderExtraActions,
   total,
   currentPage,
   currentPageSize,
@@ -71,11 +74,12 @@ export function TableGrid<T extends object>({
   const actionColumn: TableColumnType<T> = {
     key: '_actions',
     title: t('table.actions'),
-    width: 100,
+    width: renderExtraActions ? 130 : 100,
     align: 'center',
     fixed: 'right',
     render: (_, record) => (
       <Space size="small">
+        {renderExtraActions?.(record)}
         {onEdit && (
           <EditIconButton
             shape="default"
@@ -117,7 +121,9 @@ export function TableGrid<T extends object>({
   const pageSizeOptions = [10, 15, 20];
 
   const allColumns: AppColumnType<T>[] =
-    onEdit || onDelete || onDeleteClick ? [...columns, actionColumn as AppColumnType<T>] : columns;
+    onEdit || onDelete || onDeleteClick || renderExtraActions
+      ? [...columns, actionColumn as AppColumnType<T>]
+      : columns;
 
   // Apply color to header + cells for columns that define it
   const processedColumns: TableColumnType<T>[] = allColumns.map((col) => {

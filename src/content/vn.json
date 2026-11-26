@@ -283,7 +283,11 @@
     "fullNameInvalid": "Họ và tên chứa ký tự không hợp lệ.",
     "maxLength": "Tối đa 100 ký tự.",
     "pendingInvoices": "Nhân viên còn hoá đơn chưa thanh toán nên không thể xoá hoặc chuyển chi nhánh.",
-    "roleNotAssignable": "Không thể gán vai trò này cho nhân viên."
+    "roleNotAssignable": "Không thể gán vai trò này cho nhân viên.",
+    "resetPasswordConfirmTitle": "Đặt lại mật khẩu",
+    "resetPasswordConfirmDesc": "Mật khẩu của {{name}} sẽ được đặt lại về mật khẩu mặc định. Bạn có chắc muốn tiếp tục không?",
+    "resetPasswordOk": "Đặt lại",
+    "resetPasswordSuccess": "Đặt lại mật khẩu về mặc định thành công."
   },
   "table": {
     "actions": "Thao tác",
@@ -341,7 +345,8 @@
     "cancel": "Huỷ",
     "close": "Đóng",
     "selectCategoryPlaceholder": "Chọn danh mục",
-    "inputNamePlaceholder": "Nhập tên..."
+    "inputNamePlaceholder": "Nhập tên...",
+    "resetPassword": "Đặt lại mật khẩu"
   },
   "profile": {
     "changePassword": "Đổi mật khẩu",
