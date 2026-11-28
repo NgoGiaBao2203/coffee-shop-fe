@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Button, Typography } from 'antd';
+import { Typography } from 'antd';
 import { SubmitButtons } from '@/components/button/SubmitButtons';
+import { ActionIconButton } from '@/components/button/ActionIconButtons';
 import { OrderEditor } from '@/components/order/OrderEditor';
 import { OrderTotal } from '@/components/order/OrderTotal';
 import { useOrders } from './hooks/useOrders';
@@ -14,13 +15,12 @@ export function OrdersPage() {
     // Fills the fixed-height layout content: only the editor area scrolls (never the whole page)
     <div className="flex h-full flex-col gap-3 overflow-hidden rounded-xl p-4 bg-white shadow-sm">
       <div className="flex items-center gap-2">
-        <Button
-          size="small"
-          type="text"
-          icon={<ArrowLeftOutlined />}
+        <ActionIconButton
+          Icon={ArrowLeftOutlined}
+          labelKey="orders.back"
+          shape="default"
           onClick={handleBack}
           disabled={createLoading}
-          aria-label={t('orders.back')}
         />
         <Typography.Title level={5} className="mb-0!">
           {t('orders.title')}
@@ -41,6 +41,7 @@ export function OrdersPage() {
             submitText={t('orders.confirm')}
             loading={createLoading}
             disabled={!editor.canSubmit}
+            disabledReason={editor.submitDisabledReason}
             submitFirst
           />
         </div>

@@ -33,6 +33,8 @@ export interface TableGridProps<T extends object> {
   readonly onDeleteClick?: (record: T) => void;
   /** Disables the delete button of a row (e.g. a record the backend refuses to delete) */
   readonly isDeleteDisabled?: (record: T) => boolean;
+  /** Tooltip on a disabled delete button explaining why it cannot be deleted */
+  readonly getDeleteDisabledReason?: (record: T) => ReactNode;
   /** Extra row action buttons rendered before edit / delete; stop click propagation inside them */
   readonly renderExtraActions?: (record: T) => ReactNode;
   /** Total records count for server-side pagination */
@@ -60,6 +62,7 @@ export function TableGrid<T extends object>({
   onDelete,
   onDeleteClick,
   isDeleteDisabled,
+  getDeleteDisabledReason,
   renderExtraActions,
   total,
   currentPage,
@@ -93,6 +96,7 @@ export function TableGrid<T extends object>({
           <DeleteIconButton
             shape="default"
             disabled={isDeleteDisabled?.(record)}
+            disabledReason={getDeleteDisabledReason?.(record)}
             onClick={(e) => {
               e.stopPropagation();
               onDeleteClick(record);

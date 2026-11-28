@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from 'antd';
+import { Button, Tooltip } from 'antd';
 
 interface SubmitButtonsProps {
   readonly onCancel: () => void;
@@ -13,6 +13,8 @@ interface SubmitButtonsProps {
   // Spinner on the cancel button when it runs an action itself
   readonly cancelLoading?: boolean;
   readonly disabled?: boolean;
+  // Tooltip on the disabled submit button explaining why it cannot be submitted
+  readonly disabledReason?: ReactNode;
   // Show the submit button before Cancel (default: Cancel first)
   readonly submitFirst?: boolean;
 }
@@ -26,6 +28,7 @@ export function SubmitButtons({
   loading = false,
   cancelLoading = false,
   disabled = false,
+  disabledReason,
   submitFirst = false,
 }: SubmitButtonsProps) {
   const { t } = useTranslation();
@@ -36,15 +39,16 @@ export function SubmitButtons({
     </Button>
   );
   const submitButton = (
-    <Button
-      key="submit"
-      type="primary"
-      loading={loading}
-      disabled={disabled || cancelLoading}
-      onClick={onSubmit}
-    >
-      {submitText ?? t('form.save')}
-    </Button>
+    <Tooltip key="submit" title={disabled ? disabledReason : undefined}>
+      <Button
+        type="primary"
+        loading={loading}
+        disabled={disabled || cancelLoading}
+        onClick={onSubmit}
+      >
+        {submitText ?? t('form.save')}
+      </Button>
+    </Tooltip>
   );
 
   return <>{submitFirst ? [submitButton, cancelButton] : [cancelButton, submitButton]}</>;

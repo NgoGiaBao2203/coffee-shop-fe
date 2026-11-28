@@ -15,6 +15,10 @@ import type { StaffItem } from './types';
 import { CreateButton } from '@/components/button/CreateButton';
 import { ResetPasswordIconButton } from '@/components/button/ActionIconButtons';
 
+// Must match the BE rule for POST /staffs search (no ( ) ' +): letters, digits, spaces, . , / & @ _ # -
+const SEARCH_PATTERN = /^[\p{L}\p{N}\s.,/&@_#-]*$/u;
+const SEARCH_MAX_LENGTH = 100;
+
 const formatDate = (value: unknown) =>
   value
     ? new Date(value as string).toLocaleString('vi-VN', {
@@ -91,6 +95,19 @@ export function StaffsPage() {
     }
   }, [showEmptyModal]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleStaffSearch = (keyword: string) => {
+    const trimmed = keyword.trim();
+    if (trimmed.length > SEARCH_MAX_LENGTH) {
+      showError(t('staffs.searchMaxLength'), t('common.error'));
+      return;
+    }
+    if (trimmed && !SEARCH_PATTERN.test(trimmed)) {
+      showError(t('staffs.searchInvalid'), t('common.error'));
+      return;
+    }
+    handleSearch(keyword);
+  };
+
   const staffFields: FormFieldConfig[] = [
     { name: 'fullName', label: t('staffs.fullName'), type: 'text', rules: [{ required: true }] },
     { name: 'username', label: t('staffs.username'), type: 'text', readOnly: true },
@@ -156,7 +173,7 @@ export function StaffsPage() {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex-1 min-w-48">
           <SearchInput
-            onSearch={handleSearch}
+            onSearch={handleStaffSearch}
             loading={searchLoading}
             placeholder={t('staffs.searchPlaceholder')}
           />

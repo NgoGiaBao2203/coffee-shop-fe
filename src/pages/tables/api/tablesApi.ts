@@ -7,8 +7,10 @@ import type {
   CreateTableRequest,
   EditTableRequest,
   DeleteTableRequest,
+  ChangeTableStatusRequest,
   TableMutationResponse,
 } from '../types';
+import { TABLE_STATUS } from '../types';
 
 export async function getTablesApi(payload: SearchTablesRequest): Promise<TablesListResponse> {
   const response = await api.post<TablesListResponse>(ENDPOINT.GET_TABLES, payload);
@@ -26,6 +28,21 @@ export async function editTableApi(payload: EditTableRequest): Promise<TableMuta
   const response = await api.put<TableMutationResponse>(ENDPOINT.EDIT_TABLE, payload, {
     suppressCodes: FORM_SUPPRESS_CODES,
   });
+  return response.data;
+}
+
+const TABLE_STATUS_ENDPOINT: Record<number, string> = {
+  [TABLE_STATUS.AVAILABLE]: ENDPOINT.RELEASE_TABLE,
+  [TABLE_STATUS.OCCUPIED]: ENDPOINT.OCCUPY_TABLE,
+  [TABLE_STATUS.RESERVED]: ENDPOINT.RESERVE_TABLE,
+};
+
+// The interceptor shows the error message; the caller reloads the table map
+export async function changeTableStatusApi(
+  status: number,
+  payload: ChangeTableStatusRequest,
+): Promise<TableMutationResponse> {
+  const response = await api.put<TableMutationResponse>(TABLE_STATUS_ENDPOINT[status], payload);
   return response.data;
 }
 

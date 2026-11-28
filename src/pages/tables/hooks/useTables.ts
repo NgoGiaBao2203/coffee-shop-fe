@@ -6,7 +6,13 @@ import { useToast } from '@/components/toast/useToast';
 import { useShopOptions } from '@/hooks/useShopOptions';
 import type { PaginationInfo } from '@/types/api';
 import { isApiReloadError } from '@/utils/apiError';
-import { getTablesApi, createTableApi, editTableApi, deleteTableApi } from '../api/tablesApi';
+import {
+  getTablesApi,
+  createTableApi,
+  editTableApi,
+  deleteTableApi,
+  changeTableStatusApi,
+} from '../api/tablesApi';
 import type { SearchTablesRequest, TableItem } from '../types';
 import type { TableCreateValues } from '../components/TableCreateModal';
 import type { TableEditValues } from '../components/TableEditModal';
@@ -40,6 +46,8 @@ export function useTables(initialPage = 1, initialSize = 10) {
   const [createLoading, setCreateLoading] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  // tableId of the card whose status is being changed (one change at a time)
+  const [statusLoadingId, setStatusLoadingId] = useState<string | null>(null);
 
   const { shopNames, shopOptions, optionsLoading } = useShopOptions();
 
@@ -189,6 +197,25 @@ export function useTables(initialPage = 1, initialSize = 10) {
     [resolveShopId, fetchTables, params, toast, t],
   );
 
+  // Quick status change from the card (every role): release / occupy / reserve by target status
+  const changeTableStatus = useCallback(
+    async (record: TableItem, status: number) => {
+      if (!record.tableId || record.status === status) return;
+
+      setStatusLoadingId(record.tableId);
+      try {
+        await changeTableStatusApi(status, { tableId: record.tableId });
+        toast.success(t('tables.statusChangeSuccess'));
+      } catch {
+        // The interceptor already shows the message; any error means the map may be stale
+      } finally {
+        setStatusLoadingId(null);
+      }
+      await fetchTables(params);
+    },
+    [fetchTables, params, toast, t],
+  );
+
   const deleteTable = useCallback(
     async (record: TableItem) => {
       if (!record.tableId) {
@@ -237,6 +264,7 @@ export function useTables(initialPage = 1, initialSize = 10) {
     createLoading,
     editLoading,
     deleteLoading,
+    statusLoadingId,
     optionsLoading,
     shopOptions,
     showEmptyModal,
@@ -247,6 +275,7 @@ export function useTables(initialPage = 1, initialSize = 10) {
     handlePageChange,
     createTable,
     editTable,
+    changeTableStatus,
     deleteTable,
     refresh: () => fetchTables(params, false),
   };

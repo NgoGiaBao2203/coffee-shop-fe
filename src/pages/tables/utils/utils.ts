@@ -1,3 +1,5 @@
+import { TABLE_STATUS } from '../types';
+
 /** Visual styles for table cards, grouped by table status. */
 export interface TableCardStyle {
   card: string;
@@ -41,3 +43,38 @@ export function tableStatusKey(status: number): string {
       return 'tables.statusOptions.unknown';
   }
 }
+
+/** Quick status buttons shown on each table card, in display order. */
+export interface TableStatusAction {
+  status: number;
+  shortLabelKey: string;
+  labelKey: string;
+  // Current status: soft tint + border + dark text (same hue as the table illustration)
+  activeClassName: string;
+  // Other statuses: neutral outlined button that takes the status hue on hover
+  hoverClassName: string;
+}
+
+export const TABLE_STATUS_ACTIONS: TableStatusAction[] = [
+  {
+    status: TABLE_STATUS.AVAILABLE,
+    shortLabelKey: 'tables.statusShortOptions.available',
+    labelKey: 'tables.statusOptions.available',
+    activeClassName: 'bg-emerald-50! border-emerald-300! text-emerald-700! hover:bg-emerald-100!',
+    hoverClassName: 'hover:border-emerald-300! hover:text-emerald-700!',
+  },
+  {
+    status: TABLE_STATUS.OCCUPIED,
+    shortLabelKey: 'tables.statusShortOptions.occupied',
+    labelKey: 'tables.statusOptions.occupied',
+    activeClassName: 'bg-red-50! border-red-300! text-red-700! hover:bg-red-100!',
+    hoverClassName: 'hover:border-red-300! hover:text-red-700!',
+  },
+  {
+    status: TABLE_STATUS.RESERVED,
+    shortLabelKey: 'tables.statusShortOptions.reserved',
+    labelKey: 'tables.statusOptions.reserved',
+    activeClassName: 'bg-amber-50! border-amber-300! text-amber-700! hover:bg-amber-100!',
+    hoverClassName: 'hover:border-amber-300! hover:text-amber-700!',
+  },
+];

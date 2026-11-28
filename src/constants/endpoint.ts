@@ -50,6 +50,9 @@ export const ENDPOINT = {
   CREATE_TABLE: '/tables/create',
   EDIT_TABLE: '/table/edit',
   DELETE_TABLE: '/table/delete',
+  RELEASE_TABLE: '/table/release',
+  OCCUPY_TABLE: '/table/occupy',
+  RESERVE_TABLE: '/table/reserve',
 
   // Shops (edit takes shopId on the path: /shop/{shopId})
   GET_SHOPS: '/shops',

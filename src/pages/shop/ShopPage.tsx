@@ -201,8 +201,11 @@ export function ShopPage() {
           setEditModalOpen(true);
         }}
         onDeleteClick={handleDeleteClick}
-        // A shop with active staff cannot be deleted
+        // A shop with active staff cannot be deleted; the tooltip tells why
         isDeleteDisabled={(record) => record.activeStaffCount > 0}
+        getDeleteDisabledReason={(record) =>
+          t('shops.deleteDisabledActiveStaff', { count: record.activeStaffCount })
+        }
       />
 
       <AppFormDrawer<ShopItem>

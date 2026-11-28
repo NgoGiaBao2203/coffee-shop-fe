@@ -68,4 +68,9 @@ export interface DeleteTableRequest {
   shopId: string;
 }
 
+// Shared by PUT /table/release, /table/occupy and /table/reserve; the target status comes from the endpoint
+export interface ChangeTableStatusRequest {
+  tableId: string;
+}
+
 export type TableMutationResponse = ApiResponse;

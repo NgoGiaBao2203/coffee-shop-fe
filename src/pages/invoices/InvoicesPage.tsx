@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Typography, Select, Tag, Tooltip, Drawer, Descriptions, Table } from 'antd';
+import { Typography, Select, Tag, Drawer, Descriptions, Table } from 'antd';
 import { CreditCardOutlined, PrinterOutlined, StopOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store/hooks';
@@ -73,6 +73,8 @@ export function InvoicesPage() {
     optionsLoading,
     canManageInvoice,
     canPrintInvoice,
+    getManageDisabledReason,
+    getPrintDisabledReason,
     handlePrint,
     printingInvoiceId,
   } = useInvoices();
@@ -153,73 +155,72 @@ export function InvoicesPage() {
       render: (_: unknown, record: InvoiceItem) => {
         const isServing = canManageInvoice(record);
         const isPrintable = canPrintInvoice(record);
+        // Tooltip on a disabled button = why it cannot be used
+        const manageReason = getManageDisabledReason(record);
+        const printReason = getPrintDisabledReason(record);
         return (
           <div
             className="flex items-center justify-center gap-1"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pay Action */}
-            <Tooltip title={isServing ? t('invoices.pay') : ''}>
-              <ActionIconButton
-                Icon={CreditCardOutlined}
-                labelKey="invoices.pay"
-                size="middle"
-                disabled={!isServing}
-                iconClassName={isServing ? 'text-emerald-500 text-base' : ''}
-                onClick={() => {
-                  setSelectedRecord(record);
-                  setPayOpen(true);
-                }}
-              />
-            </Tooltip>
+            <ActionIconButton
+              Icon={CreditCardOutlined}
+              labelKey="invoices.pay"
+              size="middle"
+              disabled={!isServing}
+              disabledReason={manageReason}
+              iconClassName={isServing ? 'text-emerald-500 text-base' : ''}
+              onClick={() => {
+                setSelectedRecord(record);
+                setPayOpen(true);
+              }}
+            />
 
             {/* Edit Action */}
-            <Tooltip title={isServing ? t('form.edit') : ''}>
-              <EditIconButton
-                size="middle"
-                disabled={!isServing}
-                iconClassName={isServing ? 'text-gray-700 text-base' : ''}
-                onClick={() => {
-                  setSelectedRecord(record);
-                  setEditOpen(true);
-                }}
-              />
-            </Tooltip>
+            <EditIconButton
+              size="middle"
+              disabled={!isServing}
+              disabledReason={manageReason}
+              iconClassName={isServing ? 'text-gray-700 text-base' : ''}
+              onClick={() => {
+                setSelectedRecord(record);
+                setEditOpen(true);
+              }}
+            />
 
             {/* Cancel Action */}
-            <Tooltip title={isServing ? t('invoices.cancel') : ''}>
-              <ActionIconButton
-                Icon={StopOutlined}
-                labelKey="invoices.cancel"
-                danger
-                size="middle"
-                disabled={!isServing}
-                iconClassName={isServing ? 'text-rose-500 text-base' : ''}
-                onClick={() => {
-                  confirmAction({
-                    title: t('invoices.cancelConfirmTitle'),
-                    content: t('invoices.cancelConfirmDesc'),
-                    okText: t('invoices.cancelOk'),
-                    cancelText: t('form.cancel'),
-                    okDanger: true,
-                    onConfirm: () => cancelInvoice(record.invoiceId),
-                  });
-                }}
-              />
-            </Tooltip>
+            <ActionIconButton
+              Icon={StopOutlined}
+              labelKey="invoices.cancel"
+              danger
+              size="middle"
+              disabled={!isServing}
+              disabledReason={manageReason}
+              iconClassName={isServing ? 'text-rose-500 text-base' : ''}
+              onClick={() => {
+                confirmAction({
+                  title: t('invoices.cancelConfirmTitle'),
+                  content: t('invoices.cancelConfirmDesc'),
+                  okText: t('invoices.cancelOk'),
+                  cancelText: t('form.cancel'),
+                  okDanger: true,
+                  onConfirm: () => cancelInvoice(record.invoiceId),
+                });
+              }}
+            />
 
             {/* Print Action: paid invoices only (reprint the receipt) */}
-            <Tooltip title={isPrintable ? t('invoices.print') : ''}>
-              <ActionIconButton
-                Icon={PrinterOutlined}
-                labelKey="invoices.print"
-                size="middle"
-                disabled={!isPrintable}
-                loading={printingInvoiceId === record.invoiceId}
-                iconClassName={isPrintable ? 'text-sky-600 text-base' : ''}
-                onClick={() => handlePrint(record.invoiceId)}
-              />
-            </Tooltip>
+            <ActionIconButton
+              Icon={PrinterOutlined}
+              labelKey="invoices.print"
+              size="middle"
+              disabled={!isPrintable}
+              disabledReason={printReason}
+              loading={printingInvoiceId === record.invoiceId}
+              iconClassName={isPrintable ? 'text-sky-600 text-base' : ''}
+              onClick={() => handlePrint(record.invoiceId)}
+            />
           </div>
         );
       },

@@ -1,11 +1,13 @@
-import type { ComponentType, CSSProperties, MouseEvent } from 'react';
+import type { ComponentType, CSSProperties, MouseEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DeleteOutlined, EditOutlined, KeyOutlined } from '@ant-design/icons';
-import { Button, type ButtonProps } from 'antd';
+import { Button, Tooltip, type ButtonProps } from 'antd';
 
 interface ActionIconButtonProps {
   readonly onClick: (event: MouseEvent<HTMLElement>) => void;
   readonly disabled?: boolean;
+  // Tooltip while disabled, explaining why (default: the action name)
+  readonly disabledReason?: ReactNode;
   readonly loading?: boolean;
   readonly size?: ButtonProps['size'];
   readonly shape?: ButtonProps['shape'];
@@ -21,8 +23,8 @@ interface IconConfig {
   readonly danger?: boolean;
 }
 
-// Shared text-style icon button; edit/delete only differ by icon, label and danger color.
-// Exported for row actions without a preset below (e.g. pay / cancel / print an invoice)
+// Shared text-style icon button with a hover tooltip; edit/delete only differ by icon, label and
+// danger color. Exported for row actions without a preset below (e.g. pay / cancel / print an invoice)
 export function ActionIconButton({
   Icon,
   labelKey,
@@ -31,20 +33,24 @@ export function ActionIconButton({
   shape = 'circle',
   iconClassName,
   iconSize,
+  disabledReason,
   ...props
 }: ActionIconButtonProps & IconConfig) {
   const { t } = useTranslation();
+  const label = t(labelKey);
 
   return (
-    <Button
-      danger={danger}
-      type="text"
-      size={size}
-      shape={shape}
-      aria-label={t(labelKey)}
-      icon={<Icon className={iconClassName} style={{ fontSize: iconSize }} />}
-      {...props}
-    />
+    <Tooltip title={props.disabled ? (disabledReason ?? label) : label}>
+      <Button
+        danger={danger}
+        type="text"
+        size={size}
+        shape={shape}
+        aria-label={label}
+        icon={<Icon className={iconClassName} style={{ fontSize: iconSize }} />}
+        {...props}
+      />
+    </Tooltip>
   );
 }
 

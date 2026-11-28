@@ -60,6 +60,7 @@ export function TablesPage() {
     createLoading,
     editLoading,
     deleteLoading,
+    statusLoadingId,
     optionsLoading,
     shopOptions,
     showEmptyModal,
@@ -70,6 +71,7 @@ export function TablesPage() {
     handlePageChange,
     createTable,
     editTable,
+    changeTableStatus,
     deleteTable,
   } = useTables(1, 10);
 
@@ -214,7 +216,7 @@ export function TablesPage() {
       </div>
 
       {/* Table cards square grid */}
-      <div className="relative min-h-0 w-full flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/30 p-3">
+      <div className="relative min-h-0 w-full flex-1 overflow-y-auto rounded-lg border border-gray-200 bg-slate-50 p-3">
         {loading || deleteLoading ? (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
             <Spin description={t('common.loading')} />
@@ -228,7 +230,7 @@ export function TablesPage() {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 items-stretch pt-1 px-1 pb-3 w-full">
+          <div className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 items-stretch pt-1 px-1 pb-3">
             {items.map((record) => (
               <TableCard
                 key={record.tableId}
@@ -236,6 +238,8 @@ export function TablesPage() {
                 onClick={handleOpenDetail}
                 onEdit={isStaff ? undefined : handleOpenEdit}
                 onDelete={isStaff ? undefined : handleDeleteClick}
+                onStatusChange={changeTableStatus}
+                statusLoading={statusLoadingId === record.tableId}
               />
             ))}
           </div>

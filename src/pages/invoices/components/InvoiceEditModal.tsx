@@ -77,6 +77,7 @@ function InvoiceEditModalBody({ open, onClose, record, onSubmit, loading = false
               onSubmit={handleSubmit}
               loading={loading}
               disabled={!editor.canSubmit}
+              disabledReason={editor.submitDisabledReason}
             />
           </div>
         </div>

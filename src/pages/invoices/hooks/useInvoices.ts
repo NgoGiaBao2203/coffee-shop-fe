@@ -178,6 +178,25 @@ export function useInvoices() {
   // Every role can print any paid invoice of its shop (STAFF included, unlike pay / cancel)
   const canPrintInvoice = (record: InvoiceItem) => record.status === INVOICE_STATUS_NAME.COMPLETED;
 
+  // Why pay / edit / cancel are disabled (undefined = allowed), shown as the button tooltip
+  const getManageDisabledReason = (record: InvoiceItem): string | undefined => {
+    if (record.status === INVOICE_STATUS_NAME.COMPLETED) return t('invoices.disabledReasons.paid');
+    if (record.status === INVOICE_STATUS_NAME.CANCELLED) {
+      return t('invoices.disabledReasons.cancelled');
+    }
+    if (!canManageInvoice(record)) return t('invoices.disabledReasons.notOwner');
+    return undefined;
+  };
+
+  // Why print is disabled (undefined = allowed)
+  const getPrintDisabledReason = (record: InvoiceItem): string | undefined => {
+    if (record.status === INVOICE_STATUS_NAME.PENDING) return t('invoices.disabledReasons.unpaid');
+    if (record.status === INVOICE_STATUS_NAME.CANCELLED) {
+      return t('invoices.disabledReasons.cancelledPrint');
+    }
+    return undefined;
+  };
+
   return {
     items,
     pagination,
@@ -204,6 +223,8 @@ export function useInvoices() {
     optionsLoading,
     canManageInvoice,
     canPrintInvoice,
+    getManageDisabledReason,
+    getPrintDisabledReason,
     handlePrint: printInvoice,
     printingInvoiceId,
   };

@@ -325,6 +325,13 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     };
   };
 
+  // Why the order cannot be submitted (undefined = it can)
+  const getSubmitDisabledReason = (): string | undefined => {
+    if (cart.length === 0) return t('order.itemsRequired');
+    if (!tableId) return t('order.tableRequired');
+    return undefined;
+  };
+
   return {
     drinks,
     variantsByDrink,
@@ -339,6 +346,8 @@ export function useOrderEditor(open: boolean, shopId: string, initialOrder?: Ord
     itemErrors,
     // Order can be submitted once it has a table and at least one item
     canSubmit: cart.length > 0 && !!tableId,
+    // Shown as the tooltip of the disabled submit button
+    submitDisabledReason: getSubmitDisabledReason(),
     setTableId,
     loadVariants,
     handleDrinkSearch,

@@ -1,4 +1,4 @@
-import { Button, Drawer, Empty, Spin, Tag, Typography } from 'antd';
+import { Button, Drawer, Empty, Spin, Tag, Tooltip, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { resolveImageUrl } from '@/utils/image';
@@ -57,6 +57,10 @@ export function DrinkDetailDrawer({
 
   // Check current drink selling status
   const isActive = isDrinkActive(selected?.status);
+  // Tooltips on disabled buttons (no reason while only loading)
+  const inactiveReason = isActive ? undefined : t('drinkDetails.inactiveNotice');
+  const addSizeDisabledReason =
+    inactiveReason ?? (hasAvailableSize ? undefined : t('drinkDetails.allSizesAdded'));
 
   return (
     <Drawer
@@ -129,15 +133,17 @@ export function DrinkDetailDrawer({
 
                 {/* Add new size for OWNER and MANAGER */}
                 {!isStaff && onAdd && (
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<PlusOutlined />}
-                    disabled={!isActive || detailLoading || !hasAvailableSize}
-                    onClick={onAdd}
-                  >
-                    {t('drinkDetails.addSize')}
-                  </Button>
+                  <Tooltip title={addSizeDisabledReason}>
+                    <Button
+                      type="primary"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      disabled={!isActive || detailLoading || !hasAvailableSize}
+                      onClick={onAdd}
+                    >
+                      {t('drinkDetails.addSize')}
+                    </Button>
+                  </Tooltip>
                 )}
               </div>
 
@@ -171,6 +177,7 @@ export function DrinkDetailDrawer({
                           {onEdit && (
                             <EditIconButton
                               disabled={!isActive || detailLoading}
+                              disabledReason={inactiveReason}
                               onClick={() => onEdit(variant)}
                             />
                           )}

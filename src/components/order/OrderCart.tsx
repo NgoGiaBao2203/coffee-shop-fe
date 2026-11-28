@@ -1,9 +1,9 @@
 import type { KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DeleteOutlined } from '@ant-design/icons';
-import { Button, Empty, Input, InputNumber, Typography } from 'antd';
+import { Empty, Input, InputNumber, Typography } from 'antd';
 import type { OrderEditorState } from '@/hooks/useOrderEditor';
 import { formatPrice } from '@/utils/formatPrice';
+import { DeleteIconButton } from '@/components/button/ActionIconButtons';
 import { TablePicker } from './TablePicker';
 
 // Quantity range of one line (items[].quantity in POST /invoice/create, PUT /invoice/edit)
@@ -121,11 +121,7 @@ export function OrderCart({ editor }: Props) {
                   >
                     {formatPrice(line.unitPrice * line.quantity)}
                   </Typography.Text>
-                  <Button
-                    danger
-                    size="small"
-                    type="text"
-                    icon={<DeleteOutlined />}
+                  <DeleteIconButton
                     onClick={() => handleRemoveItem(line.drinkDetailId)}
                     className="shrink-0"
                   />

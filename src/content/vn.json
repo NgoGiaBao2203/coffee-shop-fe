@@ -59,6 +59,13 @@
     "cancelConfirmDesc": "Bạn có chắc chắn muốn hủy hóa đơn này không? Thao tác này không thể hoàn tác.",
     "cancelOk": "Hủy đơn",
     "shopRequired": "Vui lòng chọn chi nhánh.",
+    "disabledReasons": {
+      "paid": "Hóa đơn đã thanh toán, không thể thao tác.",
+      "cancelled": "Hóa đơn đã hủy, không thể thao tác.",
+      "notOwner": "Chỉ nhân viên tạo hóa đơn mới được thao tác.",
+      "unpaid": "Chỉ in được hóa đơn đã thanh toán.",
+      "cancelledPrint": "Hóa đơn đã hủy, không thể in."
+    },
     "statusOptions": {
       "serving": "Đang phục vụ",
       "paid": "Đã thanh toán",
@@ -144,6 +151,7 @@
   },
   "drinkDetails": {
     "inactiveNotice": "Đồ uống đã ngừng bán. Không thể thêm hoặc chỉnh sửa kích cỡ và giá.",
+    "allSizesAdded": "Đồ uống đã có đủ tất cả kích cỡ.",
     "sizesAndPrices": "Kích cỡ & Giá",
     "addSize": "Thêm kích cỡ",
     "selectSize": "Chọn kích cỡ",
@@ -244,6 +252,7 @@
     "deleteSuccess": "Xóa chi nhánh thành công.",
     "deleteActiveStaff": "Vui lòng di chuyển hoặc xóa nhân viên trước khi xóa chi nhánh.",
     "deletePendingInvoices": "Vui lòng thanh toán các hóa đơn chưa hoàn tất trước khi xóa chi nhánh.",
+    "deleteDisabledActiveStaff": "Không thể xóa: chi nhánh còn {{count}} nhân viên đang làm việc. Vui lòng di chuyển hoặc xóa nhân viên trước.",
     "deleteActiveStaffAndPendingInvoices": "Vui lòng di chuyển hoặc xóa nhân viên và thanh toán các hóa đơn chưa hoàn tất trước khi xóa chi nhánh.",
     "viewStaff": "Xem nhân viên"
   },
@@ -259,6 +268,8 @@
     "role": "Vai trò",
     "shopName": "Chi nhánh",
     "searchPlaceholder": "Tìm kiếm nhân viên...",
+    "searchMaxLength": "Từ khóa tìm kiếm không được vượt quá 100 ký tự.",
+    "searchInvalid": "Từ khóa tìm kiếm chứa ký tự không hợp lệ.",
     "emptySearch": "Không tìm thấy nhân viên nào phù hợp với từ khóa tìm kiếm.",
     "editTitle": "Chỉnh sửa nhân viên",
     "fullNameRequired": "Vui lòng nhập họ và tên.",
@@ -327,6 +338,13 @@
     "deleteSuccess": "Xoá bàn thành công.",
     "deletePendingInvoices": "Không thể xóa bàn đang có hóa đơn chưa thanh toán.",
     "deleteConfirmDesc": "Bạn có chắc chắn muốn xoá bàn {{name}} không?",
+    "statusChangeSuccess": "Đổi trạng thái bàn thành công.",
+    "statusAlreadySet": "Trạng thái bàn vừa được cập nhật ở thiết bị khác. Sơ đồ bàn đã được làm mới.",
+    "statusShortOptions": {
+      "available": "Trống",
+      "occupied": "Có khách",
+      "reserved": "Đặt trước"
+    },
     "statusOptions": {
       "available": "Trống",
       "occupied": "Đã có khách",

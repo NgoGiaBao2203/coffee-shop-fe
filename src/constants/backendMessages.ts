@@ -109,6 +109,8 @@ export const BACKEND_MESSAGE_RULES: BackendMessageRule[] = [
     key: 'tables.statusPendingInvoices',
   },
   { match: ['table does not belong'], key: 'apiMessages.tableNotBelong', reload: true },
+  { match: ['table is already in this status'], key: 'tables.statusAlreadySet', reload: true },
+  { match: ['table status cannot be updated'], key: 'apiMessages.reload', reload: true },
 
   // Change password
   {
