@@ -14,12 +14,18 @@ import { useTranslation } from 'react-i18next';
 import { SideBar } from '@/components/side-bar/SideBar';
 import { ProfileDropdown } from '@/components/profile/ProfileDropdown';
 import { useNavItems } from '@/permission/useNavItems';
+import { ROLES } from '@/permission/roles';
+import { useAppSelector } from '@/store/hooks';
 
 const { Header, Content } = Layout;
 
 export function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { t } = useTranslation();
+  const profile = useAppSelector((state) => state.auth.profile);
+  // OWNER sees the chain name; MANAGER / STAFF see the shop they are assigned to
+  const shopName = profile?.roleName === ROLES.OWNER ? null : profile?.shopName;
+  const chainName = collapsed ? t('common.appNameShort') : t('common.appName');
 
   const NAV_ITEMS = [
     { key: '/drinks', label: t('sidebar.drinks'), icon: <CoffeeOutlined /> },
@@ -47,7 +53,7 @@ export function MainLayout() {
           level={4}
           className="text-white! mb-0! tracking-wide truncate max-w-[160px] md:max-w-none"
         >
-          {collapsed ? t('common.appNameShort') : t('common.appName')}
+          {shopName || chainName}
         </Typography.Title>
         <ProfileDropdown />
       </Header>
